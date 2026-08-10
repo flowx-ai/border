@@ -1,0 +1,23 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+
+# Environments
+.venv/
+venv/
+
+# Tool caches
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+
+# Model weights are cached, never committed. See models/registry.py for the pinned
+# revisions that reproduce a cache.
+.cache/
+models_cache/
+
+# OS
+.DS_Store

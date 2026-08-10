@@ -1,0 +1,92 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "flowx-border"
+version = "0.1.0"
+description = "Inspects the text going into and coming out of an LLM, returns a decision and an evidence record."
+requires-python = ">=3.11"
+license = "Apache-2.0"
+license-files = ["LICENSE"]
+authors = [{ name = "FlowX.AI" }]
+keywords = ["llm", "pii", "prompt-injection", "guardrails", "evidence", "onnx"]
+classifiers = [
+  "Development Status :: 2 - Pre-Alpha",
+  "Intended Audience :: Developers",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Topic :: Security",
+  "Typing :: Typed",
+]
+
+# The full allowed runtime set is listed in CLAUDE.md. Only the two that phase 0
+# needs are declared here. onnxruntime, tokenizers, huggingface-hub and
+# cryptography arrive with the phases that first use them.
+dependencies = [
+  "pydantic>=2.7",
+  "pyyaml>=6.0",
+]
+
+[project.urls]
+Source = "https://github.com/flowx-ai/flowx-border"
+
+[dependency-groups]
+dev = [
+  "mypy>=1.11",
+  "pytest>=8.0",
+  "ruff>=0.6",
+  "types-pyyaml>=6.0",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/flowx_border"]
+
+[tool.ruff]
+line-length = 88
+target-version = "py311"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = [
+  "A",    # builtin shadowing
+  "ANN",  # annotations, paired with mypy strict
+  "ARG",  # unused arguments
+  "B",    # bugbear
+  "C4",   # comprehensions
+  "E",    # pycodestyle
+  "F",    # pyflakes
+  "I",    # import order
+  "N",    # naming
+  "PTH",  # pathlib over os.path
+  "RUF",
+  "S",    # security lint, this is a security library
+  "SIM",
+  "UP",
+  "W",
+]
+
+[tool.ruff.lint.per-file-ignores]
+# Tests assert, they poke at private helpers on purpose, and their builders take
+# arbitrary field overrides so that one helper can drive a parametrised sweep.
+"tests/**" = ["S101", "SLF001", "ANN401"]
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+plugins = ["pydantic.mypy"]
+# CI checks src, matching the command in BUILD_PLAN.md. Tests get their annotation
+# coverage from ruff ANN instead.
+files = ["src"]
+# A detector that silently returns Any is a detector that silently passes.
+warn_unreachable = true
+enable_error_code = ["redundant-expr", "truthy-bool", "ignore-without-code"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "--strict-markers --strict-config"
+markers = [
+  "slow: real model weights or latency budgets, excluded from the default run",
+  "network: genuinely needs a socket, exempt from the offline guard in conftest",
+]
