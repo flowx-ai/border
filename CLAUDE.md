@@ -184,6 +184,59 @@ policies/
   bfsi.yaml
 ```
 
+## What backs each detector
+
+Decided 2026-08-10 after an inventory of the 39 repos on
+[huggingface.co/flowxai](https://huggingface.co/flowxai), which is the model
+repository for this library. `models/registry.py` pins every entry to a commit sha.
+
+| Detector | Model | State |
+|---|---|---|
+| `secrets` | – | rules, no weights |
+| `disclosure` | – | rules plus a phrasings data file |
+| `pii` | `flowxai/piiguard` default, `flowxai/cee-pii` policy-selectable | piiguard has ONNX and INT8 published |
+| `output_leakage` | whichever session `pii` loaded | never a second copy |
+| `topic_scope` | `flowxai/semantic-mapper` | 4B generative, GGUF only, see the caveat below |
+| `injection` | none published | ships unavailable in v1 |
+| `regulated_advice` | none published | ships unavailable in v1 |
+| `groundedness` | none published | ships unavailable in v1 |
+
+`piiguard` is XLM-RoBERTa base with 7 entity types (CARD, DATE, EMAIL, IBAN,
+NATIONAL_ID, PERSON, PHONE) and checksum validation. `cee-pii` is GLiNER with 34
+labels weighted toward CEE, and it has no ONNX export yet, so wiring it means doing
+that export first. Both are selectable per policy, and `output_leakage` reuses the
+session that `pii` already loaded whichever way the policy went.
+
+`piiguard` was trained on **nine** locales, not the two its hub tags advertise: `en`,
+`ro`, `bg`, `hu`, `sl`, `hr`, `de`, `it`, `fr`, all of them EU official languages. The
+source of truth is `configs/cross/pii_multi.yaml` in the OpenNER training repo, and
+the hub tags need fixing to match. Trained at `max_length: 96`, which is the number to
+quote when anyone asks what input the latency figures describe.
+
+One thing to know before making per-language claims: in the generator, locale `en` is
+labelled United Kingdom but uses the German Steuer-IdNr algorithm as a generic numeric
+fallback. A real UK NINo carries no checksum, so a fallback is defensible, but the
+model learned a German-shaped number as a UK identifier. Do not state that English
+national IDs are checksum validated.
+
+**Three detectors ship unavailable, and they ship loudly.** The registry entry names
+the intended repo, the detector raises an error naming the missing model, and the
+tests are `xfail` with the repo id in the comment. There is no silent no-op, because
+a silent no-op in a security library is a vulnerability. v1 is 5 of 8 detectors real,
+stated plainly in the README. Nothing on the site or in the docs may imply otherwise.
+
+**`semantic-mapper` does not fit the detector contract as it stands.** It is a 4B
+Qwen3 LoRA that generates JSON against a frozen prompt, published as GGUF. That is a
+local LLM call inside a detector, which constraint 4 rules out, and 4B cannot meet a
+300 ms CPU budget. `topic_scope` therefore needs either a distilled encoder or an
+explicit exception. Raise it before implementing that detector, do not quietly wire
+the 4B model in.
+
+Two things to fix on the hub side, not in this repo: no repo carries a `license:` field
+in its metadata even where the card states Apache-2.0, and the published `cee-pii` and
+`scam-guard-qwen06b` cards still contain pre-publication HTML comments saying "NOT YET
+UPLOADED". The registry cannot attest a licence that is not declared.
+
 ## Language coverage
 
 Decided 2026-08-10, replacing the earlier five-language target. The supported set is
@@ -213,9 +266,25 @@ What this obliges:
 - Where a language genuinely underperforms, publish the number and say so. Do not
   drop the language from the table.
 
-Irish and Maltese are the hard cases: both are low-resource, and multilingual base
-models cover them poorly. Expect worse numbers there and report them honestly rather
-than quietly excluding them.
+Where the models actually are, as of 2026-08-10: `piiguard` covers 9 of the 26 (`en`,
+`ro`, `bg`, `hu`, `sl`, `hr`, `de`, `it`, `fr`). The remaining 17 are untested, and the
+per-language table says so rather than implying coverage.
+
+Closing that gap is a data task, not a research task, which is the useful thing to know
+here. Training data is synthetic and correct by construction, so each new locale needs
+a national-ID generator with its real checksum, a phone country code, name lists, and
+an email TLD. Most of the 17 have documented schemes: PESEL, Czech and Slovak rodné
+číslo, Dutch BSN, Portuguese NIF, Spanish DNI, Swedish personnummer, Finnish
+henkilötunnus, Estonian isikukood, Greek AMKA, Irish PPSN, Turkish TC Kimlik.
+
+Two genuine hard cases, and they are different problems:
+
+- **Maltese is not in XLM-RoBERTa's pretraining set.** No amount of synthetic data
+  fixes that, it is a base-model decision. Irish, contrary to an earlier note in this
+  file, is in XLM-R and should be fine.
+- **Maltese and Azerbaijani national IDs have no public checksum scheme**, so those
+  two can only be generated format-valid, which makes their labels weaker than the
+  rest by construction. Say so on the model card.
 
 ## Detector protocol
 
