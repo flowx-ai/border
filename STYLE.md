@@ -219,6 +219,17 @@ be copied from the page above and left wrong.
 
 **5. Use `PageHero`.** See section 4a.
 
+**6. Never type a number into `llms.txt`, or into a route summary.** That file is
+generated on every build from the same modules the pages read, so a deploy
+refreshes it. It is only as honest as that rule: it claimed thirteen detectors
+while the site said twenty-four, because the count had been written into its intro
+text by hand. A machine reading it will not check the figure against the pages, so
+a stale number there is worse than a stale number anywhere else on the site.
+
+The same applies to the `title` and `summary` in `lib/routes.js`. The detectors
+page was titled "The 13 detectors" there, which put a number that changes into data
+the sitemap and `llms.txt` both read. Titles in the manifest carry no counts.
+
 **Noindex is a deliberate state, not a default.** Set `index: false` in the manifest
 and the page leaves the sitemap and `llms.txt` and gains a `Disallow` in
 `robots.txt`. The two legal drafts are the only pages in that state, and they are
