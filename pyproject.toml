@@ -80,6 +80,17 @@ line-length = 88
 target-version = "py311"
 src = ["src", "tests"]
 
+[tool.ruff.format]
+# The formatter reads Python code blocks inside markdown, and documentation is where
+# that goes wrong. The blocks in docs/ are illustrative rather than executable: the
+# Literal table in reference/types.md aligns its right-hand sides so the four values
+# read as a set, and the formatter strips that alignment because as Python it is
+# redundant whitespace. As documentation it is the point.
+#
+# Excluded from formatting only. `ruff check` still lints these files, and every .py in
+# the repository is still formatted.
+exclude = ["docs/**/*.md", "*.md"]
+
 [tool.ruff.lint]
 select = [
   "A",    # builtin shadowing
