@@ -15,6 +15,26 @@ Distribution name `flowx-border`, import name `flowx_border`. Even though the na
 settled, keep it out of the source: it belongs in `pyproject.toml` and the top-level
 package directory, nowhere else.
 
+## Where this lives, and who will read it
+
+The library's remote is `git@github.com:flowx-ai/border.git`. The landing page gets its
+own repository, not a directory in this one.
+
+**The repository is private today and will be made public before release.** That is a fact
+about every file in it, not a detail about hosting. Two consequences worth holding onto
+while writing anything here:
+
+- Nothing goes in that would embarrass anyone or leak anything when the switch flips. No
+  credentials, obviously, but also no internal-only asides, no customer names, no
+  disparagement of another project.
+- Every claim in a comment, a docstring or a commit message is a public claim. The rules in
+  the writing-style and compliance-language sections below are not house preference, they
+  are what those claims will be read against. A number with no benchmark behind it becomes
+  a public number with no benchmark behind it.
+
+Commit messages are part of that surface. They are the most detailed record of why the code
+is shaped the way it is, and they will be readable by anyone.
+
 ## Current state, read this before looking for files
 
 Phase 0 landed on 2026-08-10. What exists: `pyproject.toml`, the CI workflow,
