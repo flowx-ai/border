@@ -276,3 +276,53 @@ def test_the_shipped_policies_stay_inside_core() -> None:
     policies = Path(__file__).resolve().parent.parent / "policies"
     for path in sorted(policies.glob("*.yaml")):
         assert deployment_notes(load_policy(path)) == (), path.name
+
+
+# ------------------------------------------------------------------------ moderation
+
+
+def test_moderation_is_catalogued_and_ships_unavailable() -> None:
+    """Catalogued so the contract exists, absent so nothing pretends it runs.
+
+    The pipeline in training/ produces this model and no artifact is published, which is
+    the same state `injection` and `groundedness` are in. Catalogued-and-absent is the
+    honest pair: a policy can name it, and the registry does not hand back a detector
+    that would return no findings.
+    """
+    from flowx_border.registry import loaded_detectors
+
+    assert "moderation" in CATALOGUE
+    assert "moderation" not in loaded_detectors()
+
+
+def test_a_policy_asking_moderation_to_enforce_refuses_to_scan() -> None:
+    """The rule that makes an unavailable detector safe rather than silent.
+
+    A policy asking a missing detector to block would otherwise let text through as if
+    it had been checked, which is the failure CLAUDE.md calls a vulnerability.
+    """
+    from flowx_border.policy import DetectorPolicy, Policy
+    from flowx_border.registry import DetectorUnavailableError, assert_satisfiable
+
+    policy = Policy(
+        policy_id="moderation-enforcing",
+        version=1,
+        fail_mode=dict.fromkeys(("T0", "T1", "T2", "T3"), "open"),
+        detectors={"moderation": DetectorPolicy(enabled=True, on_fail="block")},
+    )
+    with pytest.raises(DetectorUnavailableError, match="moderation"):
+        assert_satisfiable(policy)
+
+
+def test_the_moderation_error_says_what_is_missing_is_data_not_a_method() -> None:
+    # The pipeline ran end to end. What it lacks is a corpus, and an error saying "no
+    # artifact" without that would send somebody to rebuild something that works.
+    from flowx_border.models.registry import ModelUnavailableError, spec_for
+
+    with pytest.raises(ModelUnavailableError, match="corpus rather than a method"):
+        spec_for("moderation")
+
+
+def test_the_retrain_entries_point_at_the_detector_that_replaces_them() -> None:
+    for name in ("llamaguard_7b", "shieldgemma_2b"):
+        assert DECLINED[name].reason == "retrain"

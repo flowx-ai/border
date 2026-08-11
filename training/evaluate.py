@@ -1,15 +1,18 @@
 # SPDX-License-Identifier: Apache-2.0
 """The per-language table, and the per-category threshold search.
 
-CLAUDE.md requires a model-backed detector to report per-language numbers rather than one
-aggregate, and gives the reason plainly: an aggregate hides the tail, and the tail is the
+CLAUDE.md requires a model-backed detector to report per-language numbers rather than
+one
+aggregate, and gives the reason plainly: an aggregate hides the tail, and the tail is
+the
 whole point of the project. So this prints a row per language including the ones with no
 test data, where it prints the absence rather than omitting the row. A language missing
 from a table reads as an oversight; a language showing "no data" reads as what it is.
 
 The threshold search is the other half. CLAUDE.md records four detectors that reported
 F1 0.000 in all 26 languages because their thresholds sat at 0.5 while their scores
-separated positives from negatives well below it. A threshold left at a plausible default
+separated positives from negatives well below it. A threshold left at a plausible
+default
 is how a detector becomes a no-op that still produces evidence records. So it is chosen
 per category on the dev split and written out for the policy to carry.
 """
@@ -45,7 +48,9 @@ def load_jsonl(path: Path) -> list[dict[str, Any]]:
         return [json.loads(line) for line in handle if line.strip()]
 
 
-def score_all(model: Any, tokenizer: Any, rows: list[dict[str, Any]], length: int) -> Any:
+def score_all(
+    model: Any, tokenizer: Any, rows: list[dict[str, Any]], length: int
+) -> Any:
     out = []
     model.eval()
     with torch.no_grad():
@@ -128,7 +133,11 @@ def main() -> None:
     print(f"  {'category':<24} {'support':>8} {'F1':>8}")
     for index, category in enumerate(categories):
         support = int(test_truth[:, index].sum())
-        shown = "no data" if not support else f"{f1(test_truth[:, index], predicted[:, index]):.3f}"
+        shown = (
+            "no data"
+            if not support
+            else f"{f1(test_truth[:, index], predicted[:, index]):.3f}"
+        )
         print(f"  {category:<24} {support:>8} {shown:>8}")
 
     print("\nper language, the table CLAUDE.md requires:")

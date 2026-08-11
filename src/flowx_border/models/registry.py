@@ -171,6 +171,13 @@ UNPUBLISHED: Final[dict[str, str]] = {
             "0.99928 minimum cosine to the fp32 model"
         ),
     ),
+    "moderation": (
+        "no artifact is published for moderation yet. The pipeline is in training/ and "
+        "ran end to end on an L4 on 2026-08-11, so what is missing is a corpus rather "
+        "than a method: the seed set is 1240 templated English rows and the model "
+        "reached macro-F1 0.472 on English with the other 25 languages untested. That "
+        "is a pipeline validation and not a model. See training/README.md."
+    ),
     "semantic-mapper": (
         "flowxai/semantic-mapper is a 4B Qwen3 LoRA published as GGUF. It "
         "generates JSON against a frozen prompt, which is a local LLM call "

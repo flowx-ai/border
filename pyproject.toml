@@ -118,6 +118,22 @@ ignore = ["RUF001", "RUF002", "RUF003"]
 # renaming it to _pii would stop pytest resolving it.
 # B008 is here for FastAPI: `Depends(...)` in a parameter default is that framework's
 # documented idiom, and the rule exists to catch a mutable default shared by accident.
+# training/ is not shipped: pyproject packages src/flowx_border only, so nothing here
+# reaches a wheel. It is exempted from the annotation rules because transformers, torch
+# and peft ship no useful types, so every model and tokenizer is Any and annotating them
+# would be writing `Any` two hundred times rather than adding information. The library
+# itself stays under mypy --strict, which is where the rule earns its keep.
+# S311 is here because the randomness is a corpus shuffle seeded from the config for
+# reproducibility, which is the opposite of a cryptographic use: a secure generator
+# would make the split unrepeatable, and a split that changes is a different
+# measurement.
+"training/**" = [
+  "ANN401", "ANN001", "ANN201", "ANN202", "ANN204", "S101", "T201", "PTH123",
+  "S311",
+  # ARG002: subclassing transformers.Trainer means matching its signature, and
+  # compute_loss takes a **kwargs this override does not read.
+  "ARG002",
+]
 "tests/**" = ["S101", "SLF001", "ANN401", "ARG002", "ARG001", "ARG005", "B008", "ANN001"]
 
 [tool.mypy]

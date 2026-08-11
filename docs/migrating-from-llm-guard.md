@@ -111,8 +111,9 @@ Behaviour differences that the tuple cannot express:
 - `postal_code` (T1, output)
 - `repetition` (T1, output)
 - `json_schema` (T1, output, needs the `schema` extra)
+- `moderation` (T2, input and output, no artifact published yet)
 
-The last eleven arrived on 2026-08-11 with the Guardrails Hub port, and six of them
+The last twelve arrived on 2026-08-11 with the Guardrails Hub port, and six of them
 moved a scanner out of the unsupported table above.
 
 ## Scanners that gained a detector on 2026-08-11

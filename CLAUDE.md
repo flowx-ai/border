@@ -120,7 +120,7 @@ way.
 **Core** is every detector that needs nothing beyond a CPU and the base install. It runs
 on a laptop with the network interface down, and it is what a caller gets unless they
 enable something else deliberately. As of 2026-08-11 it is twenty-one of the
-twenty-four.
+twenty-five.
 
 Two are outside it, and between them they exercise the whole mechanism:
 
@@ -167,7 +167,7 @@ than prohibitions.
    an embeddable library that always needs a GPU is one most callers cannot embed.
 3. **A new detector has to earn its place, and there is no cap on how many can.** The
    count gate went on 2026-08-11. It was eight for v1, thirteen on 2026-08-10, and
-   uncapped on 2026-08-11 when the Guardrails Hub port landed. v1 is twenty-four and
+   uncapped on 2026-08-11 when the Guardrails Hub port landed. v1 is twenty-five and
    nineteen landed the same day. What is left is three things a detector must do:
 
    - Work in all 26 languages, with fixtures for each and, if it is model-backed, a
@@ -239,6 +239,7 @@ length the model was trained on. Budgets are per detector, per scan, at that inp
 | `json_schema` | output | T1 | JSON Schema, `schema` extra | 5 ms | 0.02 ms | built |
 | `sql_injection` | output | T1 | SQL parse tree, `sql` extra | 5 ms | 0.31 ms | built |
 | `url_reachability` | output | T3 | HTTP request, needs network | 3000 ms | deadline | built |
+| `moderation` | input, output | T2 | 13-label classifier, Qwen3-0.6B | 150 ms | – | pipeline built, corpus outstanding |
 | `injection` | input | T2 | classifier | 75 ms | – | trained, not wired |
 | `regulated_advice` | output | T2 | classifier | 75 ms | – | trained, not wired |
 | `toxicity` | input, output | T2 | classifier | 75 ms | – | trained, not wired |
@@ -411,6 +412,7 @@ repository for this library. `models/registry.py` pins every entry to a commit s
 | `sql_injection` | – | the sqlglot parse tree, no weights |
 | `url_reachability` | – | an HTTP request, no weights |
 | `topic_scope` | `flowxai/semantic-mapper` | 4B generative, GGUF only, see the caveat below |
+| `moderation` | ours, Qwen3-0.6B, see `training/` | pipeline validated, corpus outstanding |
 | `injection` | none published | ships unavailable in v1 |
 | `regulated_advice` | none published | ships unavailable in v1 |
 | `groundedness` | none published | ships unavailable in v1 |
@@ -453,7 +455,7 @@ generative model.
 **Three detectors ship unavailable, and they ship loudly.** The registry entry names
 the intended repo, the detector raises an error naming the missing model, and the
 tests are `xfail` with the repo id in the comment. There is no silent no-op, because
-a silent no-op in a security library is a vulnerability. v1 is 15 of 24 detectors real,
+a silent no-op in a security library is a vulnerability. v1 is 15 of 25 detectors real,
 stated plainly in the README. Nothing on the site or in the docs may imply otherwise.
 
 **`semantic-mapper` does not fit the detector contract as it stands.** It is a 4B

@@ -11,10 +11,10 @@ from here. Regenerate with:
 
 | figure | value |
 |---|---|
-| detectors in the catalogue | 24 |
+| detectors in the catalogue | 25 |
 | implemented and running today | 15 |
-| catalogued but not yet implemented | 9 |
-| that need nothing beyond a CPU and the base install | 21 |
+| catalogued but not yet implemented | 10 |
+| that need nothing beyond a CPU and the base install | 22 |
 | that need something more, and declare it | 3 |
 | supported languages | 26 |
 
@@ -48,6 +48,7 @@ one on, so a caller finds out when they enable it rather than in production.
 | `system_prompt_leakage` | T1 | output | built | nothing beyond a CPU | 5 ms | Whether the answer gave away the instructions the model was operating under, by containment against the system prompt and by phrase match in 26 languages. |
 | `bias` | T2 | output | model trained, not yet wired in | nothing beyond a CPU | 75 ms | Output carrying bias related to a protected characteristic. |
 | `injection` | T2 | input | no model published yet | nothing beyond a CPU | 75 ms | Attempts to talk the model out of its instructions. |
+| `moderation` | T2 | input, output | trained, but on a seed corpus rather than a training set | nothing beyond a CPU | 150 ms | Thirteen hazard categories in one pass, from violent crime to election misinformation. Replaces the capability Llama Guard and ShieldGemma provide, with weights this project can ship. |
 | `nsfw` | T2 | input, output | model trained, not yet wired in | nothing beyond a CPU | 75 ms | Sexual or otherwise not-safe-for-work content. |
 | `politeness` | T2 | output | model trained, not yet wired in | nothing beyond a CPU | 75 ms | Whether the tone of an answer is acceptable. |
 | `regulated_advice` | T2 | output | no model published yet | nothing beyond a CPU | 75 ms | Output that reads as regulated financial, legal or medical advice. |
