@@ -99,6 +99,12 @@ CATALOGUE: Final[MappingProxyType[str, Spec]] = MappingProxyType(
         "nsfw": Spec("T2", frozenset({INPUT, OUTPUT}), 75.0),
         "bias": Spec("T2", frozenset({OUTPUT}), 75.0),
         "politeness": Spec("T2", frozenset({OUTPUT}), 75.0),
+        # The only detector that leaves the machine, and the only one whose budget
+        # is a deadline it enforces on itself rather than a figure somebody
+        # measured: it depends on a network the library does not control.
+        "url_reachability": Spec(
+            "T3", frozenset({OUTPUT}), 3000.0, frozenset({"network"})
+        ),
         "topic_scope": Spec("T3", frozenset({INPUT}), 300.0),
         "groundedness": Spec("T3", frozenset({OUTPUT}), 300.0),
     }

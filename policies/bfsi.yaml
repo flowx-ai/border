@@ -95,6 +95,13 @@ detectors:
     enabled: true
     on_fail: flag
 
+  # Disabled even here, and especially here. Every scan would put a third party in
+  # the request path of a regulated assistant, and this file fails T1 closed, so an
+  # outage at that third party would become an outage here.
+  url_reachability:
+    enabled: false
+    on_fail: flag
+
   topic_scope:
     on_fail: block
     threshold: 0.45

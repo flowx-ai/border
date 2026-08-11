@@ -254,7 +254,13 @@ def test_a_policy_enabling_it_gets_a_deployment_note() -> None:
         policy_id="sql",
         version=1,
         fail_mode=dict.fromkeys(("T0", "T1", "T2", "T3"), "open"),
-        detectors={"sql_injection": DetectorPolicy(enabled=True)},
+        detectors={
+            "sql_injection": DetectorPolicy(enabled=True),
+            # Disabled explicitly. It is the other detector outside CORE, and leaving it
+            # at its default would make this assert on both and stop being a test about
+            # sql_injection.
+            "url_reachability": DetectorPolicy(enabled=False),
+        },
     )
     notes = deployment_notes(policy)
     assert len(notes) == 1

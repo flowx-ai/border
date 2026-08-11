@@ -6,8 +6,8 @@ ships 65 validators. This is what happened to each of them. The tables are rende
 the document cannot drift away from the decision. `tests/test_guardrails_hub.py` fails
 if it does.
 
-**Twenty-six validators became six detectors. Twenty-five are already answered by a
-detector that exists. Fourteen are not built yet, and each says what it would need.**
+**Twenty-seven validators became seven detectors. Twenty-five are already answered by
+a detector that exists. Thirteen are not built yet, and each says what it would need.**
 
 That last group used to say "declined". It changed on 2026-08-11, when the constraints
 that blocked most of them stopped being prohibitions. A validator that needs a network
@@ -51,17 +51,27 @@ English and merges real unrelated words in Romanian, Polish and Finnish.
 
 ## What each detector costs
 
-All six are rules rather than models, so they sit at T1 with a 5 ms budget rather than
-the 75 ms an encoder-backed detector carries, and none of them has weights. Measured p95
-at the reference input: `banned_terms` 0.23, `system_prompt_leakage` 0.36,
+Six of the seven are rules rather than models, so they sit at T1 with a 5 ms budget
+rather than the 75 ms an encoder-backed detector carries, and none of them has weights.
+Measured p95 at the reference input: `banned_terms` 0.23, `system_prompt_leakage` 0.36,
 `markup_injection` 0.23, `internal_domains` 0.23, `output_format` 0.02 and
-`sql_injection` 0.02 ms. `tests/test_budgets.py` asserts them.
+`sql_injection` 0.22 ms. `tests/test_budgets.py` asserts them.
 
-Five of the six are in `CORE` and work on a machine that has never downloaded a model
-and has no network. `sql_injection` is the exception: it needs the sqlglot parser, so it
-declares `requires={"dependency"}`, ships in the `sql` extra, and is absent from the
-registry rather than degraded to a pass when that extra is not installed. A policy
-enabling it gets a line from `registry.deployment_notes` saying so.
+Five of the seven are in `CORE` and work on a machine that has never downloaded a model
+and has no network. Two are not, and they are the worked examples of the packaging:
+
+- `sql_injection` needs the sqlglot parser, so it declares `requires={"dependency"}`,
+  ships in the `sql` extra, and is absent from the registry rather than degraded to a
+  pass when that extra is not installed.
+- `url_reachability` makes an HTTP request, so it declares `requires={"network"}` and
+  is T3 rather than T1. Its budget is the odd one in the whole table: it is a deadline
+  the detector enforces on itself rather than a figure somebody measured, because it
+  depends on a network the library does not control. The deadline is total across every
+  URL in a scan, not per request, since per-request timeouts multiply by the number of
+  links and a model can emit fifty.
+
+Either one produces a line from `registry.deployment_notes` when a policy enables it,
+and both are disabled in the shipped policies.
 
 ## Reason codes
 
@@ -69,13 +79,13 @@ enabling it gets a line from `registry.deployment_notes` saying so.
 | --- | --- |
 | `covered` | an existing detector already answers this question |
 | `llm` | needs a generative model to make the judgement, and no detector here answers the same question. Permitted since 2026-08-11, when the constraints were lifted, and not yet built: there is no published model for it. Filed by what this library can answer rather than by how upstream implements it, so nine validators that call an LLM upstream are listed as covered instead |
-| `network` | needs a network call while scanning. Permitted since 2026-08-11 and not yet built, and the cost is worth stating: it puts a third party in the latency path of every scan and breaks the offline guarantee tests/conftest.py enforces |
 | `retrain` | kept as a capability, dropped as a port: the upstream weights are unusable here and the intent is to train our own |
 | `scope` | the check itself does not survive the port. Each of the four is a specific reason rather than a category judgement, and the note says which |
+| `vendor` | is a wrapper around one commercial service rather than a check. Porting it would mean shipping that vendor relationship, its credential and its terms, inside a library, and the thing being sent is customer data |
 
 ## Ported
 
-Twenty-six validators, six detectors. Two collapses do most of the work.
+Twenty-seven validators, seven detectors. Two collapses do most of the work.
 
 `ban_list`, `contains_string`, `competitor_check`, `mentions_drugs` and `sky_validator`
 are one mechanism with a different list baked in, and the list in every case is the
@@ -121,18 +131,32 @@ instead of sixteen.
 | `exclude_sql_predicates` | `sql_injection` | inverted into an allowlist of statement kinds. A denylist of SQL statement types is a list somebody has to keep complete, and the consequence of missing one is a statement that runs. |
 | `valid_sql` | `sql_injection` | the parse half. Reported as `sql_unparseable` rather than as its own detector, because whether generated SQL parses and whether it does more than was asked are the same question with one parser behind it. |
 | `detect_system_prompt_leakage` | `system_prompt_leakage` | rewritten from whole-string similarity to containment. The original passes a long answer that quotes the prompt verbatim. |
+| `endpoint_is_reachable` | `url_reachability` | with a deadline, a refusal to request private addresses, and 3xx counted as reachable. Upstream has no timeout at all, fetches whatever the model emitted from inside your network, and reports a redirect as unreachable. |
 
 ## Not ported
 
-`gap` marks the ones worth building. Thirteen of the fourteen are marked, which is the
+`gap` marks the ones worth building. Twelve of the thirteen are marked, which is the
 honest state after 2026-08-11: most were blocked by a rule rather than by the check not
 being worth having, and the rules are gone.
 
 The `reason` column doubles as the requirement each would declare in `Spec.requires` if
 it were built, so this table is also the backlog, sorted by what each item would cost a
-caller to enable. `exclude_sql_predicates` and `valid_sql` left it the same day by being
-built: they are `sql_injection`, the first detector outside `CORE`, and the shape of
-what the rest of this list looks like once it is done.
+caller to enable. Three left it the same day by being built: `exclude_sql_predicates`
+and `valid_sql` are `sql_injection`, and `endpoint_is_reachable` is `url_reachability`.
+Between them they are the two detectors outside `CORE`, and the shape of what the rest
+of this list looks like once it is done.
+
+`valid_address` is the one entry that is not a gap for a reason worth reading, because
+it is the only validator in the 65 declined on grounds other than effort. It is a
+wrapper around Google's Address Validation API. The network call is not the problem;
+`url_reachability` makes one. The problem is that it needs a paid credential, that the
+credential cannot live in a policy because policies are reviewable documents that get
+hashed, and that the payload is a customer's postal address going to a named third party
+under that third party's terms. A library whose `pii` detector exists to stop personal
+data leaving should not ship a detector that posts it somewhere. If you want the check,
+the vendor relationship already exists in your code and the call belongs there. The
+local alternative that would fit here is a per-country postcode and address-shape check,
+which is a data task across the 26 and a different detector from this one.
 
 | hub validator | reason | detail | gap |
 | --- | --- | --- | --- |
@@ -167,14 +191,13 @@ what the rest of this list looks like once it is done.
 | `response_evaluator` | llm | calls a model through litellm. | yes |
 | `saliency_check` | llm | calls a model through litellm. | yes |
 | `wiki_provenance` | llm | calls a model and fetches Wikipedia while scanning. | yes |
-| `endpoint_is_reachable` | network | makes an HTTP request to check. | yes |
-| `valid_address` | network | calls the Google Maps Address Validation API. | yes |
 | `llamaguard_7b` | retrain | Llama Guard is a 7B generative model under the Llama Community Licence, which is not Apache-2.0 compatible, and 7B cannot meet a CPU budget. The capability is wanted: the plan is our own smaller model rather than a port. See the note in the document about what still has to be decided. | yes |
 | `shieldgemma_2b` | retrain | ShieldGemma is 2B under the Gemma Terms of Use, which is not Apache-2.0. Same disposition as llamaguard_7b: the capability is wanted, the weights are not usable here. | yes |
 | `reading_level` | scope | a US grade-level readability metric. Not a security check, and the formula is defined for English only, so a 26-language version of it does not exist to port. | no |
 | `redundant_sentences` | scope | a writing-quality check. | yes |
 | `similar_to_previous_values` | scope | consistency against previous answers, not a security property. | yes |
 | `valid_open_api_spec` | scope | validates an OpenAPI document. | yes |
+| `valid_address` | vendor | sends the address to Google's Address Validation API. Three things make this different from the reachability check, which was built: it needs a paid credential, the credential cannot live in a policy because policies are reviewable documents that get hashed, and the payload is a customer's postal address going to a named third party under that third party's terms. A library whose `pii` detector exists to stop personal data leaving should not ship a detector that posts it somewhere. If you want the check, the vendor relationship already exists in your code and the call belongs there. A local alternative that would fit here is a per-country postcode and address-shape check, which is a data task across the 26 and a different detector from this one. | yes |
 
 ## The two moderation models
 

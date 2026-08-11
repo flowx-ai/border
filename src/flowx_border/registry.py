@@ -96,6 +96,13 @@ def _build() -> dict[str, Detector]:
     if is_available():
         built["sql_injection"] = SqlInjectionDetector()
 
+    # Also outside CORE, but always importable: it needs a network rather than a
+    # package. Loaded here and disabled in the shipped policies, so nothing reaches the
+    # network unless a caller turns it on and reads the deployment note.
+    from flowx_border.detectors.url_reachability import UrlReachabilityDetector
+
+    built["url_reachability"] = UrlReachabilityDetector()
+
     # Phase 4 adds: injection, regulated_advice, toxicity, nsfw, bias, gibberish,
     # politeness. Phase 5 adds: topic_scope, groundedness.
 

@@ -106,8 +106,9 @@ Behaviour differences that the tuple cannot express:
 - `internal_domains` (T1, output)
 - `output_format` (T1, output)
 - `sql_injection` (T1, output, needs the `sql` extra)
+- `url_reachability` (T3, output, makes an HTTP request)
 
-The last six arrived on 2026-08-11 with the Guardrails Hub port, and two of them change
+The last seven arrived on 2026-08-11 with the Guardrails Hub port, and two of them change
 what the unsupported table above is really saying.
 
 **`BanSubstrings` and `BanCompetitors` now have a detector-level answer.** `banned_terms`
@@ -119,6 +120,8 @@ mapping existed while the code raised would be worse than one that says this pla
 See `docs/porting-guardrails-validators.md`.
 
 **`JSON`, `Regex`, `TokenLimit` and `ReadingTime` now have a destination too.** `output_format` carries JSON parseability, a full-match regex, a length limit in graphemes and a reading-time ceiling as policy options. Same caveat as the two above: the shim still raises for them, because mapping them across is an edit to `adapters/llm_guard_compat.py` that this port did not make.
+
+**`URLReachability` and `MaliciousURLs` are worth a second look.** The unsupported table above declines both because a network call at scan time was forbidden. It is not any more, and `url_reachability` is that check: it declares `requires={"network"}`, enforces a deadline, and refuses to request private addresses, which is a server-side request forgery the naive version performs on request. `MaliciousURLs` needs a reputation feed and is still absent. As with the entries above, the shim still raises for both.
 
 **`BanCode` and `Code` are still absent, and `sql_injection` is not them.** That detector parses generated SQL and reports statements the policy does not allow. It says nothing about code in any other language, and nothing about whether prose contains a code block.
 

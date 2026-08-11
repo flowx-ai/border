@@ -111,6 +111,12 @@ detectors:
     threshold: 0.5
 
   # T3. Runs only on escalation unless 'always' is set.
+  url_reachability:
+    enabled: false          # leaves the machine; see registry.deployment_notes
+    on_fail: flag           # a dead link is worth reporting, not worth refusing over
+    options:
+      deadline_ms: 2000     # total for the whole detector, not per URL
+      max_urls: 5
   topic_scope:
     on_fail: flag
     threshold: 0.45

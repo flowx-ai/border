@@ -108,12 +108,22 @@ way.
 on a laptop with the network interface down, and it is what a caller gets unless they
 enable something else deliberately. As of 2026-08-11 it is eighteen of the nineteen.
 
-`sql_injection` is the one outside it. It needs the sqlglot parser, so it declares
-`requires={"dependency"}`, ships in the `sql` extra, and is absent from the registry
-rather than degraded to a pass when that extra is not installed. It is the worked
-example of the whole mechanism: a text-to-SQL product wants it and takes the
-dependency, everyone else neither pays the install weight nor hears about it, and a
-policy that enables it gets told at load rather than in production.
+Two are outside it, and between them they exercise the whole mechanism:
+
+- `sql_injection` needs the sqlglot parser, so it declares `requires={"dependency"}`,
+  ships in the `sql` extra, and is absent from the registry rather than degraded to a
+  pass when that extra is not installed.
+- `url_reachability` makes an HTTP request, so it declares `requires={"network"}`. It is
+  T3, it is disabled in both shipped policies, and `tests/test_offline.py` excludes it
+  by definition: the claim that a scan works with the interface down is a claim about
+  CORE, and this is not in CORE. Its budget is the one entry in the whole table that is
+  a deadline the detector enforces on itself rather than a figure somebody measured,
+  because it depends on a network the library does not control.
+
+A text-to-SQL product wants the first and takes the dependency; a product that cites
+links wants the second and accepts the latency. Everyone else neither pays for them nor
+hears about them, and a policy that enables either gets told at load rather than in
+production.
 
 Beyond core, a detector declares one or more of these, and enabling it produces a note:
 
@@ -143,7 +153,7 @@ than prohibitions.
    an embeddable library that always needs a GPU is one most callers cannot embed.
 3. **A new detector has to earn its place, and there is no cap on how many can.** The
    count gate went on 2026-08-11. It was eight for v1, thirteen on 2026-08-10, and
-   uncapped on 2026-08-11 when the Guardrails Hub port landed. v1 is nineteen and
+   uncapped on 2026-08-11 when the Guardrails Hub port landed. v1 is twenty and
    nineteen landed the same day. What is left is three things a detector must do:
 
    - Work in all 26 languages, with fixtures for each and, if it is model-backed, a
@@ -210,6 +220,7 @@ length the model was trained on. Budgets are per detector, per scan, at that inp
 | `internal_domains` | output | T1 | policy domain list | 5 ms | 0.23 ms | built |
 | `output_format` | output | T1 | policy shape assertions | 5 ms | 0.02 ms | built |
 | `sql_injection` | output | T1 | SQL parse tree, `sql` extra | 5 ms | 0.31 ms | built |
+| `url_reachability` | output | T3 | HTTP request, needs network | 3000 ms | deadline | built |
 | `injection` | input | T2 | classifier | 75 ms | – | trained, not wired |
 | `regulated_advice` | output | T2 | classifier | 75 ms | – | trained, not wired |
 | `toxicity` | input, output | T2 | classifier | 75 ms | – | trained, not wired |
@@ -329,7 +340,8 @@ src/flowx_border/
     markup_injection.py# T1
     internal_domains.py# T1, policy-supplied domain list
     output_format.py   # T1, policy-supplied shape assertions, the only non-security one
-    sql_injection.py   # T1, sqlglot parse tree, the only one outside CORE
+    sql_injection.py   # T1, sqlglot parse tree, requires the sql extra
+    url_reachability.py# T3, the only detector that leaves the machine
     guardrails_hub.py  # provenance: which hub validators went where, and which did not
     catalogue.py       # id to tier, sides and budget
   models/
@@ -371,6 +383,7 @@ repository for this library. `models/registry.py` pins every entry to a commit s
 | `internal_domains` | – | rules over a policy-supplied domain list |
 | `output_format` | – | rules over policy-supplied shape assertions |
 | `sql_injection` | – | the sqlglot parse tree, no weights |
+| `url_reachability` | – | an HTTP request, no weights |
 | `topic_scope` | `flowxai/semantic-mapper` | 4B generative, GGUF only, see the caveat below |
 | `injection` | none published | ships unavailable in v1 |
 | `regulated_advice` | none published | ships unavailable in v1 |
@@ -394,7 +407,7 @@ fallback. A real UK NINo carries no checksum, so a fallback is defensible, but t
 model learned a German-shaped number as a UK identifier. Do not state that English
 national IDs are checksum validated.
 
-**The six ported from the Guardrails Hub carry no weights at all**, which is why they
+**The seven ported from the Guardrails Hub carry no weights at all**, which is why they
 work on a machine that has never downloaded a model, the same as the T0 pair. Their
 provenance, and the 57 hub validators that were declined with the reason for each, are in
 `docs/porting-guardrails-validators.md`, rendered from `detectors/guardrails_hub.py` so
@@ -414,7 +427,7 @@ generative model.
 **Three detectors ship unavailable, and they ship loudly.** The registry entry names
 the intended repo, the detector raises an error naming the missing model, and the
 tests are `xfail` with the repo id in the comment. There is no silent no-op, because
-a silent no-op in a security library is a vulnerability. v1 is 11 of 19 detectors real,
+a silent no-op in a security library is a vulnerability. v1 is 12 of 20 detectors real,
 stated plainly in the README. Nothing on the site or in the docs may imply otherwise.
 
 **`semantic-mapper` does not fit the detector contract as it stands.** It is a 4B

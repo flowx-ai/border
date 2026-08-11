@@ -80,6 +80,7 @@ def test_the_ported_detectors_are_all_represented() -> None:
         "internal_domains",
         "output_format",
         "sql_injection",
+        "url_reachability",
     }
 
 
@@ -90,7 +91,7 @@ def test_the_gaps_are_the_declines_worth_revisiting() -> None:
     these were declined because a rule forbade them rather than because the check was
     not worth having, so lifting the rules turned them from refusals into a backlog.
     """
-    assert len(gaps()) == 13
+    assert len(gaps()) == 12
     assert "llamaguard_7b" in gaps()
     # exclude_sql_predicates and valid_sql left this list on 2026-08-11 by being
     # built: they are `sql_injection`, the first detector outside CORE.
@@ -173,8 +174,9 @@ def test_only_the_detectors_that_declare_a_requirement_are_outside_core() -> Non
     """
     from flowx_border.detectors.catalogue import CORE
 
-    assert set(CATALOGUE) - CORE == {"sql_injection"}
+    assert set(CATALOGUE) - CORE == {"sql_injection", "url_reachability"}
     assert CATALOGUE["sql_injection"].requires == {"dependency"}
+    assert CATALOGUE["url_reachability"].requires == {"network"}
 
 
 def test_a_detector_declaring_a_requirement_is_reported_against_it() -> None:
@@ -206,6 +208,19 @@ def _policy(**detectors: object) -> object:
     )
 
 
+def test_the_two_requirement_codes_in_use_are_the_ones_declared() -> None:
+    # The vocabulary in the catalogue and the vocabulary in the backlog are the same
+    # words on purpose, so "this validator would need network" and "this detector needs
+    # network" read as the same statement.
+    from flowx_border.detectors.catalogue import REQUIREMENTS
+
+    in_use = {
+        requirement for spec in CATALOGUE.values() for requirement in spec.requires
+    }
+    assert in_use == {"dependency", "network"}
+    assert in_use <= set(REQUIREMENTS)
+
+
 def test_a_core_only_policy_produces_no_deployment_notes() -> None:
     """Silence is the common case and has to stay silent.
 
@@ -214,7 +229,8 @@ def test_a_core_only_policy_produces_no_deployment_notes() -> None:
     """
     from flowx_border.registry import deployment_notes
 
-    assert deployment_notes(_policy(sql_injection=False)) == ()  # type: ignore[arg-type]
+    core_only = _policy(sql_injection=False, url_reachability=False)
+    assert deployment_notes(core_only) == ()  # type: ignore[arg-type]
 
 
 def test_a_policy_that_states_nothing_is_told_about_the_non_core_detector() -> None:
@@ -228,8 +244,9 @@ def test_a_policy_that_states_nothing_is_told_about_the_non_core_detector() -> N
     from flowx_border.registry import deployment_notes
 
     notes = deployment_notes(_policy())  # type: ignore[arg-type]
-    assert len(notes) == 1
-    assert "sql_injection" in notes[0]
+    assert len(notes) == 2
+    assert any("sql_injection" in note for note in notes)
+    assert any("url_reachability" in note for note in notes)
 
 
 def test_the_shipped_policies_stay_inside_core() -> None:

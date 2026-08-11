@@ -65,11 +65,11 @@ REASONS: Final[MappingProxyType[str, str]] = MappingProxyType(
             "implements it, so nine validators that call an LLM upstream are listed as "
             "covered instead"
         ),
-        "network": (
-            "needs a network call while scanning. Permitted since 2026-08-11 and not "
-            "yet built, and the cost is worth stating: it puts a third party in the "
-            "latency path of every scan and breaks the offline guarantee "
-            "tests/conftest.py enforces"
+        "vendor": (
+            "is a wrapper around one commercial service rather than a check. "
+            "Porting it "
+            "would mean shipping that vendor relationship, its credential and its "
+            "terms, inside a library, and the thing being sent is customer data"
         ),
         "retrain": (
             "kept as a capability, dropped as a port: the upstream weights are "
@@ -174,6 +174,12 @@ PORTED: Final[MappingProxyType[str, Port]] = MappingProxyType(
         "quotes_price": Port(
             "output_format", "`regex`. A price assertion is a pattern, not a feature."
         ),
+        "endpoint_is_reachable": Port(
+            "url_reachability",
+            "with a deadline, a refusal to request private addresses, and 3xx counted "
+            "as reachable. Upstream has no timeout at all, fetches whatever the model "
+            "emitted from inside your network, and reports a redirect as unreachable.",
+        ),
         "exclude_sql_predicates": Port(
             "sql_injection",
             "inverted into an allowlist of statement kinds. A denylist of SQL "
@@ -211,9 +217,6 @@ DECLINED: Final[MappingProxyType[str, Decline]] = MappingProxyType(
             "covered",
             "`injection`. Upstream calls OpenAI through the Rebuff library to "
             "answer it; the encoder here answers the same question locally.",
-        ),
-        "endpoint_is_reachable": Decline(
-            "network", "makes an HTTP request to check.", gap=True
         ),
         "extracted_summary_sentences_match": Decline("llm", "calls OpenAI.", gap=True),
         "gibberish_text": Decline("covered", "`gibberish`."),
@@ -308,8 +311,18 @@ DECLINED: Final[MappingProxyType[str, Decline]] = MappingProxyType(
             "`injection`. Upstream asks a model whether the prompt is tricky.",
         ),
         "valid_address": Decline(
-            "network",
-            "calls the Google Maps Address Validation API.",
+            "vendor",
+            "sends the address to Google's Address Validation API. Three things make "
+            "this different from the reachability check, which was built: it needs a "
+            "paid credential, the credential cannot live in a policy because policies "
+            "are reviewable documents that get hashed, and the payload is a customer's "
+            "postal address going to a named third party under that third party's "
+            "terms. A library whose `pii` detector exists to stop personal data "
+            "leaving should not ship a detector that posts it somewhere. If you want "
+            "the check, the vendor relationship already exists in your code and the "
+            "call belongs there. A local alternative that would fit here is a "
+            "per-country postcode and address-shape check, which is a data task across "
+            "the 26 and a different detector from this one.",
             gap=True,
         ),
         "valid_open_api_spec": Decline(
