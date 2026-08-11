@@ -443,7 +443,7 @@ generative model.
 **Three detectors ship unavailable, and they ship loudly.** The registry entry names
 the intended repo, the detector raises an error naming the missing model, and the
 tests are `xfail` with the repo id in the comment. There is no silent no-op, because
-a silent no-op in a security library is a vulnerability. v1 is 13 of 21 detectors real,
+a silent no-op in a security library is a vulnerability. v1 is 12 of 21 detectors real,
 stated plainly in the README. Nothing on the site or in the docs may imply otherwise.
 
 **`semantic-mapper` does not fit the detector contract as it stands.** It is a 4B
