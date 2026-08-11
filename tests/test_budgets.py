@@ -90,8 +90,8 @@ def p95(
     `before` runs outside the timed region on every iteration, and it exists because
     of a trap this file walked into. `pii` memoises its inference, so repeating one
     text makes every iteration after the first a cache hit, and a budget suite that
-    measures cache hits measures nothing while still passing. Model measurements pass a hook that
-    drops the cache, so each iteration is a real encoder pass.
+    measures cache hits measures nothing while still passing. Model measurements pass
+    a hook that drops the cache, so each iteration is a real encoder pass.
     """
     for _ in range(3):
         if before is not None:
