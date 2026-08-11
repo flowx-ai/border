@@ -39,6 +39,7 @@ NOT_BUILT: Final[MappingProxyType[str, str]] = MappingProxyType(
         "bias": "model trained, not yet wired in",
         "politeness": "model trained, not yet wired in",
         "topic_scope": "needs an encoder export before it can meet its budget",
+        "moderation": "trained, but on a seed corpus rather than a training set",
     }
 )
 
@@ -111,6 +112,11 @@ SUMMARIES: Final[MappingProxyType[str, str]] = MappingProxyType(
         ),
         "gibberish": "Input that is not meaningful text.",
         "injection": "Attempts to talk the model out of its instructions.",
+        "moderation": (
+            "Thirteen hazard categories in one pass, from violent crime to election "
+            "misinformation. Replaces the capability Llama Guard and ShieldGemma "
+            "provide, with weights this project can ship."
+        ),
         "regulated_advice": (
             "Output that reads as regulated financial, legal or medical advice."
         ),

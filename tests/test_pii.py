@@ -459,7 +459,10 @@ def test_a_corrupted_weight_file_is_refused(
         registry.resolve("piiguard")
 
 
-def test_the_session_declares_the_inputs_the_detector_feeds() -> None:
+def test_the_session_declares_the_inputs_the_detector_feeds(pii: PiiDetector) -> None:
+    # Takes the fixture purely for its skip: every other test in this file gets a
+    # readable reason when the weights are absent, and this one resolved the session
+    # directly and failed in CI instead.
     # piiguard takes input_ids and attention_mask and no token_type_ids. Feeding an
     # input the graph does not declare is an error, so the feed is filtered against
     # this.

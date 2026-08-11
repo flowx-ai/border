@@ -2,7 +2,8 @@
 """Fine-tune a multi-label hazard head on Qwen3-0.6B.
 
 A classification head rather than a generative model, for the two reasons the README
-gives: a generative verdict costs roughly twenty sequential forward passes to answer what
+gives: a generative verdict costs roughly twenty sequential forward passes to answer
+what
 one pass answers, and it is only reproducible with decoding pinned, which an evidence
 record depends on.
 

@@ -31,7 +31,6 @@ import argparse
 import json
 import shutil
 from pathlib import Path
-from typing import Any
 
 import numpy as np
 import torch
@@ -136,8 +135,14 @@ def main() -> None:
         quantize_dynamic(str(onnx_path), str(int8_path), weight_type=QuantType.QInt8)
         print(f"quantised {int8_path}")
 
-    for name in ("tokenizer.json", "tokenizer_config.json", "special_tokens_map.json",
-                 "config.json", "categories.json", "thresholds.json"):
+    for name in (
+        "tokenizer.json",
+        "tokenizer_config.json",
+        "special_tokens_map.json",
+        "config.json",
+        "categories.json",
+        "thresholds.json",
+    ):
         candidate = source / name
         if candidate.exists():
             shutil.copy2(candidate, out_dir / name)

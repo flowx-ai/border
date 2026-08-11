@@ -109,6 +109,13 @@ CATALOGUE: Final[MappingProxyType[str, Spec]] = MappingProxyType(
         "sql_injection": Spec(
             "T1", frozenset({OUTPUT}), 5.0, frozenset({"dependency"})
         ),
+        # The moderation model trained on 2026-08-11: a multi-label hazard
+        # classifier on a Qwen3-0.6B base, replacing what llamaguard_7b and
+        # shieldgemma_2b provide without their weights. 150 ms rather than 75 because
+        # the base is 0.6B where the other classifiers are 278M, and it is a second
+        # architecture rather than a session shared with them. training/ has the
+        # pipeline; no artifact is published yet, so it ships unavailable.
+        "moderation": Spec("T2", frozenset({INPUT, OUTPUT}), 150.0),
         "injection": Spec("T2", frozenset({INPUT}), 75.0),
         "regulated_advice": Spec("T2", frozenset({OUTPUT}), 75.0),
         "toxicity": Spec("T2", frozenset({INPUT, OUTPUT}), 75.0),
