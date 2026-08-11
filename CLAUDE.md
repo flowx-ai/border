@@ -119,7 +119,8 @@ way.
 
 **Core** is every detector that needs nothing beyond a CPU and the base install. It runs
 on a laptop with the network interface down, and it is what a caller gets unless they
-enable something else deliberately. As of 2026-08-11 it is twenty of the twenty-two.
+enable something else deliberately. As of 2026-08-11 it is twenty-one of the
+twenty-four.
 
 Two are outside it, and between them they exercise the whole mechanism:
 
@@ -166,7 +167,7 @@ than prohibitions.
    an embeddable library that always needs a GPU is one most callers cannot embed.
 3. **A new detector has to earn its place, and there is no cap on how many can.** The
    count gate went on 2026-08-11. It was eight for v1, thirteen on 2026-08-10, and
-   uncapped on 2026-08-11 when the Guardrails Hub port landed. v1 is twenty-two and
+   uncapped on 2026-08-11 when the Guardrails Hub port landed. v1 is twenty-four and
    nineteen landed the same day. What is left is three things a detector must do:
 
    - Work in all 26 languages, with fixtures for each and, if it is model-backed, a
@@ -234,6 +235,8 @@ length the model was trained on. Budgets are per detector, per scan, at that inp
 | `internal_domains` | output | T1 | policy domain list | 5 ms | 0.23 ms | built |
 | `output_format` | output | T1 | policy shape assertions | 5 ms | 0.02 ms | built |
 | `postal_code` | output | T1 | per-country format + range | 5 ms | 0.02 ms | built |
+| `repetition` | output | T1 | sentence similarity | 5 ms | 0.09 ms | built |
+| `json_schema` | output | T1 | JSON Schema, `schema` extra | 5 ms | 0.02 ms | built |
 | `sql_injection` | output | T1 | SQL parse tree, `sql` extra | 5 ms | 0.31 ms | built |
 | `url_reachability` | output | T3 | HTTP request, needs network | 3000 ms | deadline | built |
 | `injection` | input | T2 | classifier | 75 ms | – | trained, not wired |
@@ -357,6 +360,8 @@ src/flowx_border/
     internal_domains.py# T1, policy-supplied domain list
     output_format.py   # T1, policy-supplied shape assertions, the only non-security one
     postal_code.py     # T1, per-country postcode shape and range, 29 countries
+    repetition.py      # T1, a sentence said twice
+    json_schema.py     # T1, the policy's schema, requires the schema extra
     sql_injection.py   # T1, sqlglot parse tree, requires the sql extra
     url_reachability.py# T3, the only detector that leaves the machine
     guardrails_hub.py  # provenance: which hub validators went where, and which did not
@@ -401,6 +406,8 @@ repository for this library. `models/registry.py` pins every entry to a commit s
 | `internal_domains` | – | rules over a policy-supplied domain list |
 | `output_format` | – | rules over policy-supplied shape assertions |
 | `postal_code` | – | per-country formats in a packaged data file |
+| `repetition` | – | stdlib difflib, no weights |
+| `json_schema` | – | the caller's schema, from the policy |
 | `sql_injection` | – | the sqlglot parse tree, no weights |
 | `url_reachability` | – | an HTTP request, no weights |
 | `topic_scope` | `flowxai/semantic-mapper` | 4B generative, GGUF only, see the caveat below |
@@ -446,7 +453,7 @@ generative model.
 **Three detectors ship unavailable, and they ship loudly.** The registry entry names
 the intended repo, the detector raises an error naming the missing model, and the
 tests are `xfail` with the repo id in the comment. There is no silent no-op, because
-a silent no-op in a security library is a vulnerability. v1 is 13 of 22 detectors real,
+a silent no-op in a security library is a vulnerability. v1 is 15 of 24 detectors real,
 stated plainly in the README. Nothing on the site or in the docs may imply otherwise.
 
 **`semantic-mapper` does not fit the detector contract as it stands.** It is a 4B

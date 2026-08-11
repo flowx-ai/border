@@ -45,6 +45,10 @@ signing = ["cryptography>=42.0"]
 # requires={"dependency"} so a policy enabling it tells the caller. The detector is
 # absent from the registry when this is not installed, rather than degraded to a pass.
 sql = ["sqlglot>=25"]
+# json_schema validates output against a schema the policy carries. Same shape of
+# decision as `sql`: only a product with a schema wants it, the detector declares
+# requires={"dependency"}, and it is absent rather than degraded when not installed.
+schema = ["jsonschema>=4.21"]
 
 [project.urls]
 Source = "https://github.com/flowx-ai/flowx-border"
@@ -59,6 +63,7 @@ dev = [
   # check to stop running.
   "cryptography>=42.0",
   "sqlglot>=25",
+  "jsonschema>=4.21",
   "fastapi>=0.141.1",
   "httpx>=0.28.1",
   "mypy>=1.11",
@@ -131,6 +136,12 @@ enable_error_code = ["redundant-expr", "truthy-bool", "ignore-without-code"]
 # still checked, only the library's own type stubs are missing.
 [[tool.mypy.overrides]]
 module = ["onnxruntime", "onnxruntime.*"]
+ignore_missing_imports = true
+
+# jsonschema ships no py.typed marker either. Scoped to that module rather than
+# relaxed globally: everything the library does with a validator is still checked.
+[[tool.mypy.overrides]]
+module = ["jsonschema", "jsonschema.*"]
 ignore_missing_imports = true
 
 [tool.pytest.ini_options]

@@ -76,11 +76,6 @@ REASONS: Final[MappingProxyType[str, str]] = MappingProxyType(
             "unusable "
             "here and the intent is to train our own"
         ),
-        "scope": (
-            "the check itself does not survive the port. Each of the four is a "
-            "specific "
-            "reason rather than a category judgement, and the note says which"
-        ),
     }
 )
 
@@ -174,6 +169,31 @@ PORTED: Final[MappingProxyType[str, Port]] = MappingProxyType(
         "quotes_price": Port(
             "output_format", "`regex`. A price assertion is a pattern, not a feature."
         ),
+        "redundant_sentences": Port(
+            "repetition",
+            "the two dependencies are gone: stdlib difflib replaces `thefuzz` and "
+            "multilingual.sentences replaces `nltk`, which is what keeps the detector "
+            "in CORE.",
+        ),
+        "similar_to_previous_values": Port(
+            "output_format",
+            "`choices` with `choices_similarity`. Upstream compares with "
+            "sentence-transformer embeddings; a ratio over the folded strings answers "
+            "the same question for the case it is used for, and needs no model.",
+        ),
+        "reading_level": Port(
+            "output_format",
+            "`max_lix`. Its Flesch-Kincaid counts syllables by English rules and does "
+            "not survive the trip, so LIX is used instead: sentence length plus the "
+            "share of long words, computable identically in all 26. The scale is not "
+            "comparable between languages, which is why the threshold has no default.",
+        ),
+        "valid_open_api_spec": Port(
+            "json_schema",
+            "generalised. Upstream validates against one schema; this validates "
+            "against whichever schema the policy carries, and pointing it at the "
+            "OpenAPI meta-schema is the original.",
+        ),
         "endpoint_is_reachable": Port(
             "url_reachability",
             "with a deadline, a refusal to request private addresses, and 3xx counted "
@@ -261,13 +281,6 @@ DECLINED: Final[MappingProxyType[str, Decline]] = MappingProxyType(
             "`topic_scope`. Upstream asks the model whether its own answer was "
             "relevant, which is a model grading itself.",
         ),
-        "reading_level": Decline(
-            "scope",
-            "a US grade-level readability metric. Not a security check, and the "
-            "formula is defined for English only, so a 26-language version of it does "
-            "not exist to port.",
-        ),
-        "redundant_sentences": Decline("scope", "a writing-quality check.", gap=True),
         "relevancy_evaluator": Decline(
             "covered", "`topic_scope`. Upstream calls a model."
         ),
@@ -295,11 +308,6 @@ DECLINED: Final[MappingProxyType[str, Decline]] = MappingProxyType(
             gap=True,
         ),
         "similar_to_document": Decline("covered", "`groundedness`."),
-        "similar_to_previous_values": Decline(
-            "scope",
-            "consistency against previous answers, not a security property.",
-            gap=True,
-        ),
         "toxic_language": Decline("covered", "`toxicity`."),
         "toxic_language_llm": Decline(
             "covered",
@@ -323,9 +331,6 @@ DECLINED: Final[MappingProxyType[str, Decline]] = MappingProxyType(
             "product serves, and whether it falls inside a published province or "
             "department range. Whether the address exists still needs a postal "
             "authority's database and is still not answered here.",
-        ),
-        "valid_open_api_spec": Decline(
-            "scope", "validates an OpenAPI document.", gap=True
         ),
         "wiki_provenance": Decline(
             "llm",

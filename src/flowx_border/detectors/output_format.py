@@ -58,9 +58,30 @@ Options, all optional, all off unless set
     ends_with / starts_with
     regex: "..."            a full-match pattern
     max_reading_seconds     with words_per_minute, default 200
+    max_lix                 a readability ceiling, see below
+    choices_similarity      0 to 1, accept a choice that is merely close
 
 An enabled detector with no options reports `format_not_configured` at action `log`
 rather than a clean scan, for the reason banned_terms gives.
+
+Readability, and why the number means something different per language
+-----------------------------------------------------------------------
+
+`max_lix` ports the `reading_level` hub validator, which uses Flesch-Kincaid. That
+formula counts syllables by English rules and does not survive the trip: it is defined
+for English and there is no correct way to apply it to Finnish.
+
+LIX is used instead. It is sentence length plus the proportion of words over six
+characters, with no syllable counting, so the method is language-independent and it can
+be computed the same way in all 26.
+
+**The scale is not language-independent, and this is the part to get right.** Measured
+across the 26: a simple English sentence scores about 4 and the same idea in Finnish
+scores about 45, because Finnish compounds and its ordinary words are long. German and
+Hungarian sit high for the same reason. So a `max_lix` of 40 is a moderate ceiling in
+English and rejects plain speech in Finnish. The threshold is a policy option with no
+default for exactly this reason, and a deployment serving several languages needs a
+different policy per language rather than one number.
 
 Budget is 5 ms at p95 at the reference input.
 """
@@ -70,11 +91,12 @@ from __future__ import annotations
 import json
 import re
 import unicodedata
+from difflib import SequenceMatcher
 from html.parser import HTMLParser
 from typing import Any, Final
 
 from flowx_border.detectors.base import OUTPUT, Context, DetectorConfig
-from flowx_border.detectors.multilingual import fold_text
+from flowx_border.detectors.multilingual import fold_text, sentences
 from flowx_border.types import Finding
 
 #: Words per minute for `max_reading_seconds`. 200 is the figure the upstream
@@ -104,6 +126,8 @@ _KNOWN: Final[frozenset[str]] = frozenset(
         "regex",
         "max_reading_seconds",
         "words_per_minute",
+        "max_lix",
+        "choices_similarity",
     }
 )
 
@@ -272,9 +296,7 @@ class OutputFormatDetector:
 
         choices = options.get("choices")
         if choices is not None:
-            folded = {fold_text(str(choice)) for choice in choices}
-            if fold_text(stripped) not in folded:
-                out.append("not_a_choice")
+            out.extend(_choice_failure(stripped, choices, options))
 
         span = options.get("numeric_range")
         if span is not None:
@@ -303,6 +325,10 @@ class OutputFormatDetector:
             if compiled.fullmatch(stripped) is None:
                 out.append("regex_mismatch")
 
+        ceiling = options.get("max_lix")
+        if ceiling is not None and lix(text) > float(ceiling):
+            out.append("too_hard_to_read")
+
         limit = options.get("max_reading_seconds")
         if limit is not None:
             rate = float(options.get("words_per_minute", DEFAULT_WORDS_PER_MINUTE))
@@ -314,6 +340,57 @@ class OutputFormatDetector:
                 out.append("too_long_to_read")
 
         return out
+
+
+def lix(text: str) -> float:
+    """The LIX readability index: sentence length plus the share of long words.
+
+    Chosen over Flesch-Kincaid because that one counts syllables by English rules and
+    cannot be applied to the other 25. LIX needs neither syllables nor a dictionary, so
+    it computes identically everywhere.
+
+    Its scale still is not comparable between languages. Measured on the same simple
+    sentence: English about 4, Finnish about 45. That is a property of the languages
+    rather than of the text, which is why the threshold is a policy option and why a
+    deployment serving several languages needs a policy per language.
+    """
+    spans = sentences(text)
+    words = [word for word in text.split() if any(c.isalnum() for c in word)]
+    if not spans or not words:
+        return 0.0
+    long_words = sum(1 for word in words if len(word.strip(".,;:!?()[]\"'")) > 6)
+    return len(words) / len(spans) + long_words * 100 / len(words)
+
+
+def _choice_failure(text: str, choices: object, options: dict[str, Any]) -> list[str]:
+    """Whether the output is one of the permitted values, exactly or nearly.
+
+    `choices_similarity` ports `similar_to_previous_values`, which upstream compares
+    with sentence-transformer embeddings. A ratio over the folded strings answers the
+    same question for the case that validator is actually used for, which is a value
+    that should match one of a known set and might differ in spacing or a suffix. It
+    needs no model, so the detector stays in CORE.
+    """
+    if not isinstance(choices, (list, tuple)):
+        raise OutputFormatError("output_format choices must be a list")
+    folded = [fold_text(str(choice)) for choice in choices]
+    candidate = fold_text(text)
+    if candidate in folded:
+        return []
+
+    threshold = options.get("choices_similarity")
+    if threshold is None:
+        return ["not_a_choice"]
+    ratio = float(threshold)
+    if not 0.0 <= ratio <= 1.0:
+        raise OutputFormatError(
+            "output_format choices_similarity must be between 0 and 1"
+        )
+    best = max(
+        (SequenceMatcher(None, candidate, choice).ratio() for choice in folded),
+        default=0.0,
+    )
+    return [] if best >= ratio else ["not_a_choice"]
 
 
 def _parses_as_json(text: str) -> bool:

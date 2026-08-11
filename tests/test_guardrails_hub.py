@@ -81,6 +81,8 @@ def test_the_ported_detectors_are_all_represented() -> None:
         "output_format",
         "sql_injection",
         "url_reachability",
+        "repetition",
+        "json_schema",
     }
 
 
@@ -94,7 +96,9 @@ def test_the_gaps_are_the_declines_worth_revisiting() -> None:
     # Twelve until 2026-08-11, when `valid_address` stopped being one: the half of
     # it that can be answered without a vendor is built as `postal_code`, and the
     # half that cannot is declined for good rather than pending.
-    assert len(gaps()) == 11
+    # Eight since the scope group was built on 2026-08-11. What is left is six that
+    # need a local generative model and the two moderation retrains.
+    assert len(gaps()) == 8
     assert "llamaguard_7b" in gaps()
     assert "valid_address" not in gaps()
     # exclude_sql_predicates and valid_sql left this list on 2026-08-11 by being
@@ -178,8 +182,13 @@ def test_only_the_detectors_that_declare_a_requirement_are_outside_core() -> Non
     """
     from flowx_border.detectors.catalogue import CORE
 
-    assert set(CATALOGUE) - CORE == {"sql_injection", "url_reachability"}
+    assert set(CATALOGUE) - CORE == {
+        "sql_injection",
+        "url_reachability",
+        "json_schema",
+    }
     assert CATALOGUE["sql_injection"].requires == {"dependency"}
+    assert CATALOGUE["json_schema"].requires == {"dependency"}
     assert CATALOGUE["url_reachability"].requires == {"network"}
 
 
@@ -231,10 +240,13 @@ def test_a_core_only_policy_produces_no_deployment_notes() -> None:
     A library that printed a note for every scan would train the caller to ignore the
     one that matters.
     """
+    # Derived from CORE rather than named, so adding a non-CORE detector does not
+    # silently turn this into a test that asserts nothing.
+    from flowx_border.detectors.catalogue import CORE
     from flowx_border.registry import deployment_notes
 
-    core_only = _policy(sql_injection=False, url_reachability=False)
-    assert deployment_notes(core_only) == ()  # type: ignore[arg-type]
+    off = dict.fromkeys(set(CATALOGUE) - CORE, False)
+    assert deployment_notes(_policy(**off)) == ()  # type: ignore[arg-type]
 
 
 def test_a_policy_that_states_nothing_is_told_about_the_non_core_detector() -> None:
@@ -245,12 +257,14 @@ def test_a_policy_that_states_nothing_is_told_about_the_non_core_detector() -> N
     taken on a parser dependency. The opposite default, silence unless asked, would put
     the discovery in production.
     """
+    from flowx_border.detectors.catalogue import CORE
     from flowx_border.registry import deployment_notes
 
     notes = deployment_notes(_policy())  # type: ignore[arg-type]
-    assert len(notes) == 2
-    assert any("sql_injection" in note for note in notes)
-    assert any("url_reachability" in note for note in notes)
+    assert notes, "a policy that states nothing enables the non-CORE detectors"
+    named = " ".join(notes)
+    for detector_id in set(CATALOGUE) - CORE:
+        assert detector_id in named, detector_id
 
 
 def test_the_shipped_policies_stay_inside_core() -> None:

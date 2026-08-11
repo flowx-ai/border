@@ -97,6 +97,12 @@ CATALOGUE: Final[MappingProxyType[str, Spec]] = MappingProxyType(
         # rules per country, no network and no vendor. In CORE because the data
         # ships with the package.
         "postal_code": Spec("T1", frozenset({OUTPUT}), 5.0),
+        # Ported from the same shape group as output_format, and portable for the
+        # same reason: no model is needed. stdlib difflib replaces the two
+        # dependencies upstream uses, so it stays in CORE.
+        "repetition": Spec("T1", frozenset({OUTPUT}), 5.0),
+        # Needs jsonschema, so it is outside CORE alongside sql_injection.
+        "json_schema": Spec("T1", frozenset({OUTPUT}), 5.0, frozenset({"dependency"})),
         # The first entry to leave CORE. It needs the sqlglot parser, which is the
         # `sql` extra rather than a base dependency, because only a text-to-SQL
         # product wants it and nobody else should pay the install weight.

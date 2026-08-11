@@ -410,8 +410,10 @@ def test_enabling_it_produces_a_deployment_note() -> None:
         version=1,
         fail_mode=dict.fromkeys(("T0", "T1", "T2", "T3"), "open"),
         detectors={
+            # Every non-CORE detector named explicitly, so this asserts about
+            # url_reachability rather than about however many others exist today.
             name: DetectorPolicy(enabled=name == "url_reachability")
-            for name in ("url_reachability", "sql_injection")
+            for name in ("url_reachability", "sql_injection", "json_schema")
         },
     )
     notes = deployment_notes(policy)
