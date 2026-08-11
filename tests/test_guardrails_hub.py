@@ -91,8 +91,12 @@ def test_the_gaps_are_the_declines_worth_revisiting() -> None:
     these were declined because a rule forbade them rather than because the check was
     not worth having, so lifting the rules turned them from refusals into a backlog.
     """
-    assert len(gaps()) == 12
+    # Twelve until 2026-08-11, when `valid_address` stopped being one: the half of
+    # it that can be answered without a vendor is built as `postal_code`, and the
+    # half that cannot is declined for good rather than pending.
+    assert len(gaps()) == 11
     assert "llamaguard_7b" in gaps()
+    assert "valid_address" not in gaps()
     # exclude_sql_predicates and valid_sql left this list on 2026-08-11 by being
     # built: they are `sql_injection`, the first detector outside CORE.
     assert "exclude_sql_predicates" not in gaps()

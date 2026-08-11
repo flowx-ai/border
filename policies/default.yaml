@@ -79,6 +79,11 @@ detectors:
     on_fail: block          # a statement that does more than asked is not redactable
     options:
       allow: [select]
+  postal_code:
+    enabled: false          # only the deployment knows which countries it serves
+    on_fail: flag           # a wrong postcode is worth reporting, not refusing over
+    options:
+      countries: []         # ISO codes, for example [ro] or [de, at]
   system_prompt_leakage:
     on_fail: flag           # needs no list: the phrase signal works in all 26 languages
     threshold: 0.5

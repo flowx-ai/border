@@ -11,10 +11,10 @@ from here. Regenerate with:
 
 | figure | value |
 |---|---|
-| detectors in the catalogue | 21 |
-| implemented and running today | 12 |
+| detectors in the catalogue | 22 |
+| implemented and running today | 13 |
 | catalogued but not yet implemented | 9 |
-| that need nothing beyond a CPU and the base install | 19 |
+| that need nothing beyond a CPU and the base install | 20 |
 | that need something more, and declare it | 2 |
 | supported languages | 26 |
 
@@ -41,6 +41,7 @@ one on, so a caller finds out when they enable it rather than in production.
 | `output_format` | T1 | output | built | nothing beyond a CPU | 5 ms | Shape assertions a policy states: JSON, HTML, URL presence, length in graphemes, word count, case, choices, ranges, a regex, reading time. |
 | `output_leakage` | T1 | output | built | nothing beyond a CPU | 75 ms | Personal data in the output that the user did not supply, which is the narrower and more useful question than whether any is present. |
 | `pii` | T1 | input, output | built | nothing beyond a CPU | 75 ms | Personal data in input or output, as named entity spans with checksum validation where the identifier has one. |
+| `postal_code` | T1 | output | built | nothing beyond a CPU | 5 ms | Postal codes that cannot exist in the countries the product serves: the wrong shape, or outside a published province or department range. |
 | `sql_injection` | T1 | output | built | dependency | 5 ms | Generated SQL that does more than the product asked for: a second statement, a forbidden statement kind, a tautology, an unexpected UNION. |
 | `system_prompt_leakage` | T1 | output | built | nothing beyond a CPU | 5 ms | Whether the answer gave away the instructions the model was operating under, by containment against the system prompt and by phrase match in 26 languages. |
 | `bias` | T2 | output | model trained, not yet wired in | nothing beyond a CPU | 75 ms | Output carrying bias related to a protected characteristic. |
