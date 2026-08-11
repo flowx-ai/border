@@ -43,8 +43,9 @@ those. What does not exist yet: the policy loader, the engine, every detector, t
 model runtime, the adapters, the benchmarks, and the README. The rest of the "Repo
 layout" section below is still the target, not the present.
 
-**Phase 1 is next**, the policy layer and the engine. `scan_input`, `scan_output` and
-`load_policy` raise `NotImplementedError` until it lands.
+**Phase 7 is next, and it is the README.** Phases 0 to 6 are done and tagged. Every number
+in it must come from `benchmarks/collect.py`, which writes `docs/reference/performance.json`,
+and `tests/test_performance.py` fails if a score there loses its sample size.
 
 **Nothing is published to Hugging Face until the end of the project.** Decided
 2026-08-11 by the owner. The artifacts exist and are verified, and they stay on the training
