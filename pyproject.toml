@@ -49,6 +49,8 @@ dev = [
   # Present so that mypy --strict can see the signing path and the tests can exercise
   # it. It stays an optional extra at runtime.
   "cryptography>=42.0",
+  "fastapi>=0.141.1",
+  "httpx>=0.28.1",
   "mypy>=1.11",
   "pytest>=8.0",
   "ruff>=0.6",
@@ -99,7 +101,9 @@ ignore = ["RUF001", "RUF002", "RUF003"]
 # ordering, so that the shared model session is warmed before they inspect how many
 # sessions exist. Requesting the fixture is the only way to express that dependency, and
 # renaming it to _pii would stop pytest resolving it.
-"tests/**" = ["S101", "SLF001", "ANN401", "ARG002", "ARG001", "ARG005"]
+# B008 is here for FastAPI: `Depends(...)` in a parameter default is that framework's
+# documented idiom, and the rule exists to catch a mutable default shared by accident.
+"tests/**" = ["S101", "SLF001", "ANN401", "ARG002", "ARG001", "ARG005", "B008", "ANN001"]
 
 [tool.mypy]
 python_version = "3.11"

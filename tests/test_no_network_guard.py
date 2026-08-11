@@ -13,9 +13,30 @@ import socket
 import pytest
 
 
-def test_opening_a_socket_is_blocked_by_default() -> None:
-    with pytest.raises(RuntimeError, match="network access during a test"):
-        socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+def test_connecting_out_is_blocked_by_default() -> None:
+    # Connecting, not constructing. The guard used to block construction, which was
+    # a proxy for egress and a wrong one: asyncio builds a socketpair for its own
+    # self-pipe, so every test touching an event loop failed with a message about
+    # network access it never attempted.
+    with (
+        socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock,
+        pytest.raises(RuntimeError, match="network access during a test"),
+    ):
+        sock.connect(("huggingface.co", 443))
+
+
+def test_constructing_a_socket_is_allowed() -> None:
+    # A socket that never connects is not egress, and asyncio needs to make them.
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+        assert sock.family == socket.AF_INET
+
+
+def test_an_in_process_socketpair_is_allowed() -> None:
+    # This is what asyncio's self-pipe uses. It cannot leave the machine.
+    left, right = socket.socketpair()
+    with left, right:
+        left.send(b"x")
+        assert right.recv(1) == b"x"
 
 
 def test_resolving_a_name_is_blocked_by_default() -> None:
