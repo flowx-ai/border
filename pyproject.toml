@@ -27,13 +27,28 @@ classifiers = [
 dependencies = [
   "pydantic>=2.7",
   "pyyaml>=6.0",
+  # Phase 3. All three are in the allowed runtime set in CLAUDE.md constraint 7, so no
+  # approval was needed. onnxruntime runs the detectors, tokenizers is the fast tokenizer
+  # whose character offsets make spans possible at all, and huggingface-hub fetches the
+  # weights once. None of them is touched during a scan once a session is warm.
+  "onnxruntime>=1.17",
+  "tokenizers>=0.15",
+  "huggingface-hub>=0.23",
 ]
+
+# Signing is optional because most callers archive records without signing them, and
+# because the library never holds a key: `sign_record` takes one the caller owns.
+[project.optional-dependencies]
+signing = ["cryptography>=42.0"]
 
 [project.urls]
 Source = "https://github.com/flowx-ai/flowx-border"
 
 [dependency-groups]
 dev = [
+  # Present so that mypy --strict can see the signing path and the tests can exercise
+  # it. It stays an optional extra at runtime.
+  "cryptography>=42.0",
   "mypy>=1.11",
   "pytest>=8.0",
   "ruff>=0.6",
@@ -67,10 +82,24 @@ select = [
   "W",
 ]
 
+# RUF001/002/003 flag non-ASCII letters that resemble ASCII ones, which is a real
+# homoglyph defence in a codebase that is meant to be ASCII. This one is not: Turkish
+# dotless i, Azerbaijani schwa, Greek and Cyrillic appear in keyword tables, disclosure
+# phrasings and test fixtures because they are what the library reads. Ignored project
+# wide rather than per line, since every occurrence is deliberate.
+ignore = ["RUF001", "RUF002", "RUF003"]
+
 [tool.ruff.lint.per-file-ignores]
 # Tests assert, they poke at private helpers on purpose, and their builders take
-# arbitrary field overrides so that one helper can drive a parametrised sweep.
-"tests/**" = ["S101", "SLF001", "ANN401"]
+# arbitrary field overrides so that one helper can drive a parametrised sweep. ARG002
+# is here because a fake detector has to carry the whole Detector signature whether or
+# not it reads every argument, and renaming the unused ones to _cfg would leave a
+# template that no longer matches the protocol a real detector must implement.
+# ARG001 joins them for pytest fixtures. Several tests depend on a fixture purely for
+# ordering, so that the shared model session is warmed before they inspect how many
+# sessions exist. Requesting the fixture is the only way to express that dependency, and
+# renaming it to _pii would stop pytest resolving it.
+"tests/**" = ["S101", "SLF001", "ANN401", "ARG002", "ARG001", "ARG005"]
 
 [tool.mypy]
 python_version = "3.11"
@@ -82,6 +111,13 @@ files = ["src"]
 # A detector that silently returns Any is a detector that silently passes.
 warn_unreachable = true
 enable_error_code = ["redundant-expr", "truthy-bool", "ignore-without-code"]
+
+# onnxruntime ships no py.typed marker, so strict mode cannot see into it. Scoped to that
+# one module rather than relaxed globally: everything the library does with a session is
+# still checked, only the library's own type stubs are missing.
+[[tool.mypy.overrides]]
+module = ["onnxruntime", "onnxruntime.*"]
+ignore_missing_imports = true
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

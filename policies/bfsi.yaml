@@ -1,0 +1,71 @@
+# BFSI: banking, financial services and insurance.
+#
+# The differences from default.yaml are all in one direction, and each has a reason:
+#
+#   fail_mode closed for T0 and T1  an unavailable check is a failed check. In a
+#                                   regulated context, "we could not tell" is not an
+#                                   answer you can put in front of a supervisor.
+#   regulated_advice blocks         this is the whole reason the file exists
+#   every detector enabled          including the ones default.yaml leaves off
+#   groundedness always: true       claims about a customer's money get checked against
+#                                   their sources every time, not on escalation
+#
+# T2 and T3 stay open on purpose. Failing closed on a 300 ms model that did not load
+# would take the whole assistant down, and the T0/T1 floor already holds.
+
+policy_id: bfsi
+version: 1
+description: >
+  For regulated financial contexts. Fails closed on the cheap tiers, blocks regulated
+  advice, and grounds every outbound claim against its sources.
+
+fail_mode:
+  T0: closed
+  T1: closed
+  T2: open
+  T3: open
+
+detectors:
+  secrets:
+    on_fail: block
+  disclosure:
+    on_fail: block          # a missing AI disclosure is itself a compliance finding here
+
+  pii:
+    on_fail: redact
+    threshold: 0.4          # lower threshold: prefer over-redaction to a leak
+    options:
+      entities: [CARD, DATE, EMAIL, IBAN, NATIONAL_ID, PERSON, PHONE]
+  output_leakage:
+    on_fail: block          # personal data on the way out is a reportable event
+    threshold: 0.4
+  gibberish:
+    on_fail: flag
+    threshold: 0.7
+
+  injection:
+    on_fail: block
+    threshold: 0.35
+  regulated_advice:
+    on_fail: block          # the reason this policy exists
+    threshold: 0.4
+  toxicity:
+    on_fail: block
+    threshold: 0.5
+  nsfw:
+    on_fail: block
+    threshold: 0.5
+  bias:
+    on_fail: block
+    threshold: 0.5
+  politeness:
+    enabled: true
+    on_fail: flag
+
+  topic_scope:
+    on_fail: block
+    threshold: 0.45
+  groundedness:
+    always: true            # every outbound claim, every time
+    on_fail: block
+    threshold: 0.5
