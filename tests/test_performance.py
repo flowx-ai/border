@@ -163,7 +163,14 @@ def test_the_metric_is_named_rather_than_assumed(performance: dict[str, Any]) ->
     accuracy because P/R/F1 over "did it fire" is 1.000 by construction for argmax.
     """
     for name, entry in scored(performance).items():
-        assert entry["metrics"]["metric"] in ("f1", "exact_match_accuracy"), name
+        assert entry["metrics"]["metric"] in (
+            "f1",
+            "exact_match_accuracy",
+            # topic_scope, a bi-encoder: the share of inputs whose nearest taxonomy node
+            # was the right one. Not comparable with either of the others, which is the
+            # reason this list is an allow-list rather than a free string.
+            "top1_accuracy",
+        ), name
 
 
 # --------------------------------------------------- silence over staleness

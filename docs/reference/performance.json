@@ -452,16 +452,138 @@
     },
     "groundedness": {
       "budget_ms": 300.0,
-      "caveats": [],
+      "caveats": [
+        "no calibrated threshold recorded, so this detector runs at the policy default. Several detectors in this family reported nothing at 0.5 while separating positives from negatives well below it."
+      ],
       "in_core": true,
-      "metrics": null,
+      "metrics": {
+        "best": 1.0,
+        "languages_evaluated": 26,
+        "languages_without_a_count": [],
+        "macro": 0.8824,
+        "median": 0.8889,
+        "metric": "exact_match_accuracy",
+        "n_means": "examples evaluated",
+        "per_language": {
+          "az": {
+            "n": 20,
+            "score": 0.95
+          },
+          "bg": {
+            "n": 20,
+            "score": 0.95
+          },
+          "cs": {
+            "n": 17,
+            "score": 0.9412
+          },
+          "da": {
+            "n": 19,
+            "score": 0.7895
+          },
+          "de": {
+            "n": 18,
+            "score": 0.8889
+          },
+          "el": {
+            "n": 19,
+            "score": 0.8947
+          },
+          "en": {
+            "n": 16,
+            "score": 0.875
+          },
+          "es": {
+            "n": 21,
+            "score": 0.9524
+          },
+          "et": {
+            "n": 20,
+            "score": 0.95
+          },
+          "fi": {
+            "n": 17,
+            "score": 0.9412
+          },
+          "fr": {
+            "n": 16,
+            "score": 1.0
+          },
+          "ga": {
+            "n": 22,
+            "score": 0.6364
+          },
+          "hr": {
+            "n": 19,
+            "score": 0.9474
+          },
+          "hu": {
+            "n": 19,
+            "score": 0.7895
+          },
+          "it": {
+            "n": 18,
+            "score": 0.7778
+          },
+          "lt": {
+            "n": 21,
+            "score": 1.0
+          },
+          "lv": {
+            "n": 17,
+            "score": 0.8235
+          },
+          "mt": {
+            "n": 19,
+            "notes": [
+              "absent from the base model's pretraining, which no data fixes"
+            ],
+            "score": 0.7895
+          },
+          "nl": {
+            "n": 18,
+            "score": 0.8889
+          },
+          "pl": {
+            "n": 16,
+            "score": 1.0
+          },
+          "pt": {
+            "n": 18,
+            "score": 0.8889
+          },
+          "ro": {
+            "n": 18,
+            "score": 0.8889
+          },
+          "sk": {
+            "n": 18,
+            "score": 0.8333
+          },
+          "sl": {
+            "n": 18,
+            "score": 0.8333
+          },
+          "sv": {
+            "n": 18,
+            "score": 0.8889
+          },
+          "tr": {
+            "n": 17,
+            "score": 0.8235
+          }
+        },
+        "threshold": null,
+        "threshold_chosen_by": null,
+        "total_examples": 479,
+        "worst": 0.6364
+      },
       "requires": {},
       "sides": [
         "output"
       ],
-      "status": "not built",
-      "tier": "T3",
-      "why_not_built": "weights are not published yet and no local override provides them"
+      "status": "built",
+      "tier": "T3"
     },
     "injection": {
       "budget_ms": 75.0,
@@ -1441,16 +1563,242 @@
     },
     "topic_scope": {
       "budget_ms": 300.0,
-      "caveats": [],
+      "caveats": [
+        "the evaluation recorded no sample size for 26 of 26 languages, so those scores cannot be checked for how much they rest on. Treat them as unverified.",
+        "no calibrated threshold recorded, so this detector runs at the policy default. Several detectors in this family reported nothing at 0.5 while separating positives from negatives well below it."
+      ],
       "in_core": true,
-      "metrics": null,
+      "metrics": {
+        "best": 1.0,
+        "languages_evaluated": 26,
+        "languages_without_a_count": [
+          "az",
+          "bg",
+          "cs",
+          "da",
+          "de",
+          "el",
+          "en",
+          "es",
+          "et",
+          "fi",
+          "fr",
+          "ga",
+          "hr",
+          "hu",
+          "it",
+          "lt",
+          "lv",
+          "mt",
+          "nl",
+          "pl",
+          "pt",
+          "ro",
+          "sk",
+          "sl",
+          "sv",
+          "tr"
+        ],
+        "macro": 0.8718,
+        "median": 0.8571,
+        "metric": "top1_accuracy",
+        "n_means": "not recorded",
+        "per_language": {
+          "az": {
+            "n": null,
+            "notes": [
+              "the evaluation did not record how many examples this rests on, so the score is unverifiable rather than measured"
+            ],
+            "score": 0.8571
+          },
+          "bg": {
+            "n": null,
+            "notes": [
+              "the evaluation did not record how many examples this rests on, so the score is unverifiable rather than measured"
+            ],
+            "score": 0.8571
+          },
+          "cs": {
+            "n": null,
+            "notes": [
+              "the evaluation did not record how many examples this rests on, so the score is unverifiable rather than measured"
+            ],
+            "score": 1.0
+          },
+          "da": {
+            "n": null,
+            "notes": [
+              "the evaluation did not record how many examples this rests on, so the score is unverifiable rather than measured"
+            ],
+            "score": 0.8571
+          },
+          "de": {
+            "n": null,
+            "notes": [
+              "the evaluation did not record how many examples this rests on, so the score is unverifiable rather than measured"
+            ],
+            "score": 1.0
+          },
+          "el": {
+            "n": null,
+            "notes": [
+              "the evaluation did not record how many examples this rests on, so the score is unverifiable rather than measured"
+            ],
+            "score": 0.8571
+          },
+          "en": {
+            "n": null,
+            "notes": [
+              "the evaluation did not record how many examples this rests on, so the score is unverifiable rather than measured"
+            ],
+            "score": 1.0
+          },
+          "es": {
+            "n": null,
+            "notes": [
+              "the evaluation did not record how many examples this rests on, so the score is unverifiable rather than measured"
+            ],
+            "score": 1.0
+          },
+          "et": {
+            "n": null,
+            "notes": [
+              "the evaluation did not record how many examples this rests on, so the score is unverifiable rather than measured"
+            ],
+            "score": 1.0
+          },
+          "fi": {
+            "n": null,
+            "notes": [
+              "the evaluation did not record how many examples this rests on, so the score is unverifiable rather than measured"
+            ],
+            "score": 0.8333
+          },
+          "fr": {
+            "n": null,
+            "notes": [
+              "the evaluation did not record how many examples this rests on, so the score is unverifiable rather than measured"
+            ],
+            "score": 1.0
+          },
+          "ga": {
+            "n": null,
+            "notes": [
+              "the evaluation did not record how many examples this rests on, so the score is unverifiable rather than measured"
+            ],
+            "score": 0.375
+          },
+          "hr": {
+            "n": null,
+            "notes": [
+              "the evaluation did not record how many examples this rests on, so the score is unverifiable rather than measured"
+            ],
+            "score": 1.0
+          },
+          "hu": {
+            "n": null,
+            "notes": [
+              "the evaluation did not record how many examples this rests on, so the score is unverifiable rather than measured"
+            ],
+            "score": 0.625
+          },
+          "it": {
+            "n": null,
+            "notes": [
+              "the evaluation did not record how many examples this rests on, so the score is unverifiable rather than measured"
+            ],
+            "score": 0.8333
+          },
+          "lt": {
+            "n": null,
+            "notes": [
+              "the evaluation did not record how many examples this rests on, so the score is unverifiable rather than measured"
+            ],
+            "score": 0.7143
+          },
+          "lv": {
+            "n": null,
+            "notes": [
+              "the evaluation did not record how many examples this rests on, so the score is unverifiable rather than measured"
+            ],
+            "score": 1.0
+          },
+          "mt": {
+            "n": null,
+            "notes": [
+              "the evaluation did not record how many examples this rests on, so the score is unverifiable rather than measured",
+              "absent from the base model's pretraining, which no data fixes"
+            ],
+            "score": 0.5
+          },
+          "nl": {
+            "n": null,
+            "notes": [
+              "the evaluation did not record how many examples this rests on, so the score is unverifiable rather than measured"
+            ],
+            "score": 0.8333
+          },
+          "pl": {
+            "n": null,
+            "notes": [
+              "the evaluation did not record how many examples this rests on, so the score is unverifiable rather than measured"
+            ],
+            "score": 0.8333
+          },
+          "pt": {
+            "n": null,
+            "notes": [
+              "the evaluation did not record how many examples this rests on, so the score is unverifiable rather than measured"
+            ],
+            "score": 1.0
+          },
+          "ro": {
+            "n": null,
+            "notes": [
+              "the evaluation did not record how many examples this rests on, so the score is unverifiable rather than measured"
+            ],
+            "score": 1.0
+          },
+          "sk": {
+            "n": null,
+            "notes": [
+              "the evaluation did not record how many examples this rests on, so the score is unverifiable rather than measured"
+            ],
+            "score": 1.0
+          },
+          "sl": {
+            "n": null,
+            "notes": [
+              "the evaluation did not record how many examples this rests on, so the score is unverifiable rather than measured"
+            ],
+            "score": 0.8571
+          },
+          "sv": {
+            "n": null,
+            "notes": [
+              "the evaluation did not record how many examples this rests on, so the score is unverifiable rather than measured"
+            ],
+            "score": 0.8333
+          },
+          "tr": {
+            "n": null,
+            "notes": [
+              "the evaluation did not record how many examples this rests on, so the score is unverifiable rather than measured"
+            ],
+            "score": 1.0
+          }
+        },
+        "threshold": null,
+        "threshold_chosen_by": null,
+        "total_examples": null,
+        "worst": 0.375
+      },
       "requires": {},
       "sides": [
         "input"
       ],
-      "status": "not built",
-      "tier": "T3",
-      "why_not_built": "weights are not published yet and no local override provides them"
+      "status": "built",
+      "tier": "T3"
     },
     "toxicity": {
       "budget_ms": 75.0,
@@ -1714,88 +2062,96 @@
         "p95": 0.03
       },
       "bias": {
-        "p50": 488.242,
-        "p95": 658.013
+        "p50": 151.958,
+        "p95": 359.504
       },
       "disclosure": {
-        "p50": 0.041,
-        "p95": 0.081
-      },
-      "gibberish": {
-        "p50": 456.468,
-        "p95": 545.452
-      },
-      "injection": {
-        "p50": 477.606,
-        "p95": 661.401
-      },
-      "internal_domains": {
-        "p50": 0.002,
-        "p95": 0.017
-      },
-      "invisible_text": {
-        "p50": 0.048,
+        "p50": 0.037,
         "p95": 0.069
       },
+      "gibberish": {
+        "p50": 151.215,
+        "p95": 353.2
+      },
+      "groundedness": {
+        "p50": 59.956,
+        "p95": 276.575
+      },
+      "injection": {
+        "p50": 152.095,
+        "p95": 338.547
+      },
+      "internal_domains": {
+        "p50": 0.001,
+        "p95": 0.014
+      },
+      "invisible_text": {
+        "p50": 0.034,
+        "p95": 0.056
+      },
       "json_schema": {
-        "p50": 0.002,
-        "p95": 0.006
+        "p50": 0.001,
+        "p95": 0.004
       },
       "markup_injection": {
-        "p50": 0.317,
-        "p95": 0.405
+        "p50": 0.206,
+        "p95": 0.28
       },
       "nsfw": {
-        "p50": 490.957,
-        "p95": 641.257
+        "p50": 152.317,
+        "p95": 350.228
       },
       "output_format": {
-        "p50": 0.002,
-        "p95": 0.028
+        "p50": 0.001,
+        "p95": 0.025
       },
       "output_leakage": {
-        "p50": 59.852,
-        "p95": 62.849
+        "p50": 50.158,
+        "p95": 51.514
       },
       "pii": {
-        "p50": 52.526,
-        "p95": 55.378
+        "p50": 50.261,
+        "p95": 50.816
       },
       "politeness": {
-        "p50": 429.932,
-        "p95": 517.007
+        "p50": 153.836,
+        "p95": 354.597
       },
       "postal_code": {
         "p50": 0.002,
-        "p95": 0.027
+        "p95": 0.033
       },
       "regulated_advice": {
-        "p50": 426.497,
-        "p95": 547.416
+        "p50": 153.02,
+        "p95": 371.225
       },
       "repetition": {
-        "p50": 0.389,
-        "p95": 0.56
+        "p50": 0.393,
+        "p95": 0.524
       },
       "secrets": {
         "p50": 0.039,
-        "p95": 0.051
+        "p95": 0.05
       },
       "sql_injection": {
-        "p50": 0.191,
-        "p95": 0.317
+        "p50": 0.185,
+        "p95": 0.339
       },
       "system_prompt_leakage": {
-        "p50": 0.242,
-        "p95": 1.959
+        "p50": 0.245,
+        "p95": 2.025
+      },
+      "topic_scope": {
+        "p50": 0.005,
+        "p95": 0.057
       },
       "toxicity": {
-        "p50": 450.039,
-        "p95": 466.5
+        "p50": 153.163,
+        "p95": 362.515
       },
       "url_reachability": {
         "p50": 0.007,
-        "p95": 0.024
+        "p95": 0.016
       }
     },
     "provider": "CPUExecutionProvider",

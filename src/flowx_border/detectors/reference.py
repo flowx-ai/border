@@ -31,13 +31,11 @@ NOT_BUILT: Final[MappingProxyType[str, str]] = MappingProxyType(
     {
         "injection": "no model published yet",
         "regulated_advice": "no model published yet",
-        "groundedness": "no model published yet",
         "gibberish": "model trained, not yet wired in",
         "toxicity": "model trained, not yet wired in",
         "nsfw": "model trained, not yet wired in",
         "bias": "model trained, not yet wired in",
         "politeness": "model trained, not yet wired in",
-        "topic_scope": "needs an encoder export before it can meet its budget",
         "moderation": "trained, but on a seed corpus rather than a training set",
     }
 )

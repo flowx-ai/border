@@ -12,10 +12,10 @@ from here. Regenerate with:
 | figure | value |
 |---|---|
 | detectors in the catalogue | 25 |
-| implemented in the library | 22 |
+| implemented in the library | 24 |
 | that run on a fresh install, with no model download | 15 |
-| implemented but waiting on weights that are not published | 7 |
-| catalogued but not yet implemented | 3 |
+| implemented but waiting on weights that are not published | 9 |
+| catalogued but not yet implemented | 1 |
 | that need nothing beyond a CPU and the base install | 22 |
 | that need something more, and declare it | 3 |
 | supported languages | 26 |
@@ -55,8 +55,8 @@ one on, so a caller finds out when they enable it rather than in production.
 | `politeness` | T2 | output | built | nothing beyond a CPU | 75 ms | Whether the tone of an answer is acceptable. |
 | `regulated_advice` | T2 | output | built | nothing beyond a CPU | 75 ms | Output that reads as regulated financial, legal or medical advice. |
 | `toxicity` | T2 | input, output | built | nothing beyond a CPU | 75 ms | Abusive or hateful language, in input or output. |
-| `groundedness` | T3 | output | no model published yet | nothing beyond a CPU | 300 ms | Whether the claims in an answer are supported by the sources it was given. |
-| `topic_scope` | T3 | input | needs an encoder export before it can meet its budget | nothing beyond a CPU | 300 ms | Whether a request is inside the subject matter the product covers. |
+| `groundedness` | T3 | output | built | nothing beyond a CPU | 300 ms | Whether the claims in an answer are supported by the sources it was given. |
+| `topic_scope` | T3 | input | built | nothing beyond a CPU | 300 ms | Whether a request is inside the subject matter the product covers. |
 | `url_reachability` | T3 | output | built | network | 3000 ms | Whether links in the answer resolve to something that answers, with a deadline and a refusal to request private addresses. |
 
 ## What the non-core detectors ask for

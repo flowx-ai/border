@@ -10,11 +10,11 @@ the session the first loaded. That sharing is what this cache is for, and it is 
 key is the model id rather than the detector id.
 
 **One thread by default.** The library runs inside someone else's application. ONNX
-Runtime defaults to using every core, which means a scan on a 16 core host takes 16
-away from the request handler that called it, and under concurrency the threads fight
-each other for worse total throughput than one thread each. So the default is 1, and
-raising it is a deliberate choice a policy makes. All latency figures quoted anywhere
-describe one thread, because that is the configuration that ships.
+Runtime defaults to using every core, which means a scan on a 16 core host takes 16 away
+from the request handler that called it, and under concurrency the threads fight each
+other for worse total throughput than one thread each. So the default is 1, and raising
+it is a deliberate choice a policy makes. All latency figures quoted anywhere describe
+one thread, because that is the configuration that ships.
 
 **Warm before the first real scan.** The first inference on a fresh session pays for
 memory arena allocation and kernel selection, and it can be an order of magnitude slower
@@ -38,6 +38,7 @@ if TYPE_CHECKING:
     from pathlib import Path
 
     import numpy as np
+    from tokenizers import Tokenizer
 
     from flowx_border.models.registry import ModelSpec
 
@@ -174,3 +175,45 @@ def unload_all() -> None:
     """
     with _LOCK:
         _SESSIONS.clear()
+        _TOKENIZERS.clear()
+
+
+_TOKENIZERS: dict[str, Tokenizer] = {}
+
+
+def tokenizer_for(model_id: str) -> Tokenizer:
+    """The tokenizer that ships with a model, loaded once per process.
+
+    Lives here beside the session cache because it is the same kind of resource and has
+    the same lifetime, and because the measured cost of getting this wrong is large:
+    `tokenizer.json` for an XLM-R model is 16 MB and `Tokenizer.from_file` takes 437 ms
+    on the reference machine. Three detectors were calling it inside `run`, once per
+    scan, which put nearly half a second of file parsing in front of a 51 ms inference
+    and made every classifier miss its budget for a reason that had nothing to do with
+    the model.
+
+    From the model's own repo and revision, never a similarly-named one: character
+    offsets are only correct for the tokenizer the model was trained with, and a span
+    computed against a different vocabulary is wrong rather than approximate.
+
+    A caller configures truncation and padding on the object it gets back. That is safe
+    because each model id is used by one detector, apart from `piiguard`, whose two
+    detectors want the same settings. It is not safe to hand the same object to two
+    callers wanting different truncation, and if that ever happens the answer is a
+    per-caller copy rather than a second cache.
+    """
+    cached = _TOKENIZERS.get(model_id)
+    if cached is not None:
+        return cached
+    with _LOCK:
+        cached = _TOKENIZERS.get(model_id)
+        if cached is not None:
+            return cached
+
+        from tokenizers import Tokenizer
+
+        from flowx_border.models.registry import companion
+
+        loaded = Tokenizer.from_file(str(companion(model_id, "tokenizer.json")))
+        _TOKENIZERS[model_id] = loaded
+        return loaded

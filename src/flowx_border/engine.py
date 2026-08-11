@@ -96,19 +96,26 @@ def _redact(text: str, findings: Iterable[Finding]) -> str:
     return out
 
 
-def _should_escalate(findings: Sequence[Finding], policy: Policy) -> bool:
-    """True when some finding met its detector's threshold.
+def _escalation_trigger(findings: Sequence[Finding], policy: Policy) -> str | None:
+    """The detector whose finding escalated to T3, or None if nothing did.
+
+    Returns the name rather than a boolean so the reason can be recorded. A record
+    saying the 300 ms tier ran, without saying what made it run, cannot be audited
+    afterwards by somebody asking why one scan cost six times another.
 
     Compared against the threshold rather than just existing: a detector may report a
     low-confidence finding, and escalating the expensive tier on a 0.1 score would make
     T3 run on nearly every scan.
+
+    The first qualifying finding wins, in the order the tiers produced them, which makes
+    the reason the earliest cause rather than an arbitrary one.
     """
     for finding in findings:
         if finding.action == "log":
             continue
         if finding.score >= policy.for_detector(finding.detector_id).threshold:
-            return True
-    return False
+            return finding.detector_id
+    return None
 
 
 def run_scan(
@@ -146,17 +153,45 @@ def run_scan(
         if not candidates:
             continue
 
+        escalation: list[Finding] = []
         if tier == "T3":
-            escalated = _should_escalate(findings, policy)
+            trigger = _escalation_trigger(findings, policy)
             candidates = [
                 (detector_id, detector)
                 for detector_id, detector in candidates
-                if escalated or policy.for_detector(detector_id).always
+                if trigger is not None or policy.for_detector(detector_id).always
             ]
             if not candidates:
                 continue
+            # Why the expensive tier ran, recorded per detector that it ran. The engine
+            # is the only thing that knows: a detector is handed text and a config, not
+            # the history of the scan. Emitted here rather than by each T3 detector so
+            # the answer is uniform and so nothing branches on a particular detector's
+            # id.
+            for detector_id, _ in candidates:
+                escalation.append(
+                    Finding(
+                        detector_id=detector_id,
+                        tier=tier,
+                        label=(
+                            f"escalated_by_{trigger}"
+                            if trigger is not None
+                            else "escalated_by_policy_always"
+                        ),
+                        # Zero, because this is bookkeeping and not a detection. A
+                        # confidence of 1.0 would be a claim that something was found
+                        # with certainty, and any consumer reading the highest score per
+                        # detector would report the T3 detector as having objected. The
+                        # llm-guard shim does exactly that, and reported
+                        # `url_reachability` invalid on a clean scan until this was 0.0.
+                        score=0.0,
+                        span=None,
+                        action="log",
+                    )
+                )
 
         tiers_run.append(tier)
+        findings.extend(escalation)
         fail_closed = policy.fail_mode[tier] == "closed"
 
         for detector_id, detector in candidates:

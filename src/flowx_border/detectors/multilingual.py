@@ -1,11 +1,11 @@
 # SPDX-License-Identifier: Apache-2.0
 """Text folding and term matching that behave the same in all 26 languages.
 
-Shared by the four detectors ported from the Guardrails Hub. It exists because every
-one of those validators matches text against a list of strings, and every one of them
-does it in a way that is correct in English and wrong somewhere in Europe. The bugs are
-not exotic. They are the first thing you hit in Greek, German, Turkish or Romanian, and
-each is reproduced as a test in tests/test_multilingual.py.
+Shared by the four detectors ported from the Guardrails Hub. It exists because every one
+of those validators matches text against a list of strings, and every one of them does
+it in a way that is correct in English and wrong somewhere in Europe. The bugs are not
+exotic. They are the first thing you hit in Greek, German, Turkish or Romanian, and each
+is reproduced as a test in tests/test_multilingual.py.
 
 What folding fixes, with the case that proves it
 ------------------------------------------------
@@ -26,8 +26,8 @@ COMBINING DOT ABOVE, so casefolding alone leaves Turkish `"İSTANBUL"` unable to
 Maltese ż and Lithuanian ė decompose to a dot above too and stripping it would silently
 merge distinct letters.
 
-**Comma-below and cedilla are two encodings of one Romanian letter.** ș is U+0219 and
-ş is U+015F, both in daily use for the same letter because a generation of software
+**Comma-below and cedilla are two encodings of one Romanian letter.** ș is U+0219 and ş
+is U+015F, both in daily use for the same letter because a generation of software
 emitted the Turkish cedilla form. NFC does not unify them: they normalise to themselves.
 So they are unified here, and ț/ţ with them. This is not the same as ignoring
 diacritics, which is a separate opt-in below: unifying two spellings of one letter is
@@ -45,13 +45,13 @@ span still covers them, so a redaction removes the whole run.
 Offsets survive all of it
 -------------------------
 
-Folding changes length: ß becomes two characters, a zero-width character becomes none,
-a whitespace run becomes one space. A detector that folded text and then reported an
+Folding changes length: ß becomes two characters, a zero-width character becomes none, a
+whitespace run becomes one space. A detector that folded text and then reported an
 offset into the folded string would hand the caller a span that does not index their
 string, and the engine would redact the wrong characters. So `fold` returns the offset
 of every folded character in the original, and `Folded.span` converts back. This is the
-part that is easy to get wrong and the reason the whole thing is one module with its
-own tests rather than a helper inside each detector.
+part that is easy to get wrong and the reason the whole thing is one module with its own
+tests rather than a helper inside each detector.
 """
 
 from __future__ import annotations
@@ -69,7 +69,6 @@ Form = Literal["NFC", "NFKC"]
 
 #: Two encodings of one letter, plus the dotted capital I. Applied before casefold, on
 #: the raw cluster, so that every later step sees one spelling.
-#:
 #: Deliberately small. It unifies characters that are the same letter, and nothing else.
 #: The moment it starts mapping ö to o it becomes diacritic folding, which is a
 #: different operation with different false positives, and it is opt-in below.
@@ -82,10 +81,10 @@ _SAME_LETTER: Final = str.maketrans(
         0x0162: "ț",  # Ţ
         0x0163: "ț",  # ţ
         0x021A: "ț",  # Ț
-        # Typographic apostrophes onto the ASCII one. A French, Irish or Italian
-        # phrase is written `j'ai` in a term list and arrives as `j’ai` from any
-        # editor with smart quotes on, and NFC does not bring the two together.
-        # Without this the elided languages match strictly less than the others.
+        # Typographic apostrophes onto the ASCII one. A French, Irish or Italian phrase
+        # is written `j'ai` in a term list and arrives as `j’ai` from any editor with
+        # smart quotes on, and NFC does not bring the two together. Without this the
+        # elided languages match strictly less than the others.
         0x2019: "'",  # right single quotation mark
         0x02BC: "'",  # modifier letter apostrophe
         0x00B4: "'",  # acute accent used as an apostrophe
@@ -106,8 +105,8 @@ class Folded(NamedTuple):
     """Folded text, plus where each of its characters came from.
 
     `starts[i]` and `ends[i]` bracket the original characters that produced `text[i]`.
-    They are not always one character wide: a decomposed cluster contributes several,
-    a decoded entity contributes the whole `&#106;`, and both fold to one character.
+    They are not always one character wide: a decomposed cluster contributes several, a
+    decoded entity contributes the whole `&#106;`, and both fold to one character.
     """
 
     text: str
@@ -117,9 +116,9 @@ class Folded(NamedTuple):
     def span(self, start: int, end: int) -> tuple[int, int]:
         """Convert a half-open span in the folded text to one in the original.
 
-        Raises on an empty span rather than returning a zero-width one, because an
-        empty match is a bug in the caller's pattern and a zero-width span in a
-        Finding would redact nothing while claiming to have redacted something.
+        Raises on an empty span rather than returning a zero-width one, because an empty
+        match is a bug in the caller's pattern and a zero-width span in a Finding would
+        redact nothing while claiming to have redacted something.
         """
         if end <= start:
             raise ValueError("an empty folded span has no original counterpart")
@@ -138,15 +137,16 @@ def fold(
     diacritics
         Also strip combining marks, so `ă` matches `a`. Off by default. It is the
         difference between matching a word someone typed without diacritics, which
-        happens constantly in Romanian and Turkish, and matching a different word,
-        which also happens: Swedish `far` and `fär` are not the same. A policy that
-        wants the first has to accept the second, so it says so.
+        happens constantly in Romanian and Turkish, and matching a different word, which
+        also happens: Swedish `far` and `fär` are not the same. A policy that wants the
+        first has to accept the second, so it says so.
     compat
-        Normalise NFKC rather than NFC, folding full-width and other compatibility
-        forms onto their ASCII counterparts. This is for markup rather than prose:
+        Normalise NFKC rather than NFC, folding full-width and other compatibility forms
+        onto their ASCII counterparts. This is for markup rather than prose:
         full-width `ｊａｖａｓｃｒｉｐｔ:` is a script URL and a browser treats it as
-        one. It is off for prose because NFKC also rewrites ligatures and superscripts
-        in ordinary text.
+        one. It is
+        off for prose because NFKC also rewrites ligatures and superscripts in ordinary
+        text.
     entities
         Decode HTML character references. Same reason as compat, same caveat: only
         useful where the text is markup.
@@ -186,8 +186,8 @@ def fold(
 
         if all(unicodedata.category(c) == "Cf" for c in cluster):
             # Zero-width and other format characters contribute nothing to the folded
-            # text. They keep their place in the original, so a span that steps over
-            # one still covers it and a redaction removes it.
+            # text. They keep their place in the original, so a span that steps over one
+            # still covers it and a redaction removes it.
             index = end
             continue
 
@@ -209,13 +209,13 @@ def fold(
 def _decode_entity(reference: str) -> str | None:
     """One HTML character reference to its character, or None if it is not one.
 
-    Deliberately stricter than `html.unescape`. That function resolves a named
-    reference from a prefix, because HTML5 permits references without a trailing
-    semicolon, so it turns the ordinary word `&notareference;` into `¬areference;`.
-    Harmless for the patterns here, but it means folded text stops being a faithful
-    reading of the original, and the next person to add a pattern would be matching
-    against something they cannot predict. An exact lookup keeps the folded text
-    explainable: a reference decodes, and anything else is literal.
+    Deliberately stricter than `html.unescape`. That function resolves a named reference
+    from a prefix, because HTML5 permits references without a trailing semicolon, so it
+    turns the ordinary word `&notareference;` into `¬areference;`. Harmless for the
+    patterns here, but it means folded text stops being a faithful reading of the
+    original, and the next person to add a pattern would be matching against something
+    they cannot predict. An exact lookup keeps the folded text explainable: a reference
+    decodes, and anything else is literal.
     """
     body = reference[1:-1]
     if body.startswith("#"):
@@ -224,8 +224,8 @@ def _decode_entity(reference: str) -> str | None:
             code = int(digits[1:], 16) if digits[:1] in ("x", "X") else int(digits)
         except ValueError:  # pragma: no cover - the pattern already constrains this
             return None
-        # Surrogates and out-of-range values are not characters. chr would raise on
-        # the second and produce an unpaired surrogate on the first.
+        # Surrogates and out-of-range values are not characters. chr would raise on the
+        # second and produce an unpaired surrogate on the first.
         if code > 0x10FFFF or 0xD800 <= code <= 0xDFFF:
             return None
         return chr(code)
@@ -273,19 +273,19 @@ def compile_terms(terms: tuple[str, ...], whole_words: bool) -> re.Pattern[str] 
 
     whole_words
         Wrap the alternation in lookarounds so a term only matches on a word boundary.
-        On by default at every call site, and it is the fix for the upstream
-        `ban_list` behaviour: that validator strips every space from the text before
-        searching, so banning `arse` flags `car sedan`. Lookarounds rather than \\b
-        because a term may begin or end with a non-word character, where \\b asserts
-        the opposite of what is wanted.
+        On by default at every call site, and it is the fix for the upstream `ban_list`
+        behaviour: that validator strips every space from the text before searching, so
+        banning `arse` flags `car sedan`. Lookarounds rather than \\b because a term may
+        begin or end with a non-word character, where \\b asserts the opposite of what
+        is wanted.
 
     Returns None for an empty term list. A pattern built from no alternatives matches
     the empty string everywhere, which would be worse than matching nothing: every
     caller here treats None as "nothing configured" and says so out loud.
     """
-    # Stripped, because a term that is only whitespace would compile into an
-    # alternative that matches a space anywhere in the text, and a policy listing an
-    # accidental blank line would turn the detector into a finding per word.
+    # Stripped, because a term that is only whitespace would compile into an alternative
+    # that matches a space anywhere in the text, and a policy listing an accidental
+    # blank line would turn the detector into a finding per word.
     cleaned = sorted(
         {stripped for term in terms if (stripped := term.strip())},
         key=len,
@@ -338,8 +338,17 @@ def shingles(text: str, size: int) -> list[str]:
 #: `[.!?]`: U+037E is the Greek question mark and looks like a semicolon without being
 #: one, and U+0387 ano teleia ends a clause. A splitter that knew only ASCII punctuation
 #: would read a Greek paragraph as one sentence, which silently changes what any
-#: per-sentence measure means in that language.
-_SENTENCE_END: Final = re.compile(r"[.!?\u037e\u0387\u2026]+[\s\"'\u201d\u00bb]*")
+#: per-sentence measure means in that language. A full stop between two digits is a
+#: decimal point, not the end of a sentence. Without the lookahead, "the rate is 3.1
+#: percent" is two sentences, and every per-sentence measure downstream inherits the
+#: error: `repetition` compares fragments, and `groundedness` asks a cross-encoder
+#: whether "the rate is 3" is supported by its source. Measured on 2026-08-11, which is
+#: how this was found.
+#: Only a lookahead, deliberately. `\.(?!\d)` leaves "see item 3." terminating, which a
+#: lookbehind for a digit would break, and the case to exclude is a stop with digits on
+#: both sides rather than a stop after a number.
+_TERMINATOR: Final = r"(?:\.(?!\d)|[!?\u037e\u0387\u2026])"
+_SENTENCE_END: Final = re.compile(rf"{_TERMINATOR}{_TERMINATOR}*[\s\"'\u201d\u00bb]*")
 
 
 def sentences(text: str) -> list[tuple[int, int]]:
@@ -349,11 +358,10 @@ def sentences(text: str) -> list[tuple[int, int]]:
     a span survives being handed to the engine for redaction.
 
     Deliberately simple, and the limit is worth stating: an abbreviation ending in a
-    full
-    stop splits a sentence in two. German `z.B.`, Hungarian `pl.` and English `e.g.` all
-    do it. Handling that needs a per-language abbreviation list, which is a data task
-    nobody has done here, so a caller counting sentences gets a number that is right for
-    prose and slightly high for text full of abbreviations.
+    full stop splits a sentence in two. German `z.B.`, Hungarian `pl.` and English
+    `e.g.` all do it. Handling that needs a per-language abbreviation list, which is a
+    data task nobody has done here, so a caller counting sentences gets a number that is
+    right for prose and slightly high for text full of abbreviations.
     """
     out: list[tuple[int, int]] = []
     start = 0

@@ -135,16 +135,18 @@ class ClassifierDetector:
     # ------------------------------------------------------------------ inference
 
     def _tokenizer(self) -> object:
-        from tokenizers import Tokenizer
+        # Cached in models.onnx rather than loaded here. This function used to call
+        # Tokenizer.from_file on every scored window, which is 437 ms of parsing a 16 MB
+        # file in front of a 51 ms inference.
+        from flowx_border.models.onnx import tokenizer_for
 
-        from flowx_border.models.registry import companion
-
-        tokenizer = Tokenizer.from_file(
-            str(companion(self._model_id, "tokenizer.json"))
-        )
+        tokenizer = tokenizer_for(self._model_id)
         # Truncation off for the same reason as in pii: these tokenizers ship with
         # truncation at the training length, and leaving it on means a long document is
-        # scored on its first paragraph while the rest is reported clean.
+        # scored on its first paragraph while the rest is reported clean. Idempotent, so
+        # calling it on the cached object each time is free and keeps the setting
+        # local to
+        # the detector that wants it.
         tokenizer.no_truncation()
         tokenizer.no_padding()
         return tokenizer

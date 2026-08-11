@@ -162,7 +162,17 @@ def _build() -> tuple[dict[str, Detector], frozenset[str]]:
         if available(detector_id):
             built[detector_id] = ClassifierDetector(detector_id, detector_id)
 
-    # Phase 5 adds: topic_scope, groundedness.
+    # T3, both model-backed, both conditional on their weights for the same reason the
+    # classifiers are: a detector that is present but cannot warm would let a policy
+    # enforce with it and the failure would land inside a scan.
+    from flowx_border.detectors.groundedness import GroundednessDetector
+    from flowx_border.detectors.topic_scope import TopicScopeDetector
+
+    implemented.update({"groundedness", "topic_scope"})
+    if available("groundedness"):
+        built["groundedness"] = GroundednessDetector()
+    if available("topic_scope"):
+        built["topic_scope"] = TopicScopeDetector()
 
     return built, frozenset(implemented)
 

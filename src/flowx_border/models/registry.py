@@ -149,13 +149,23 @@ UNPUBLISHED: Final[dict[str, str]] = {
         "trained and reached 0.983 macro-F1, still at an uncalibrated threshold."
     ),
     "groundedness": (
-        "no ONNX artifact is published for groundedness yet. The trained model scores "
-        "0.840 exact-match accuracy across 26 languages, 0.882 after 14 epochs. An "
-        "earlier note here said 1.000 and called it saturated: that number came from a "
-        "per-language F1 computed over 'did the detector fire', which is 1.000 by "
-        "construction for an argmax head because argmax always fires. It measured "
-        "nothing. Weakest registers are lexical_overlap at 0.708 and "
-        "negation_contradiction at 0.754, which is where a harder corpus would pay."
+        "no ONNX artifact is published for groundedness, and the trained model should "
+        "not be published as it stands: it scores string similarity rather than "
+        "entailment. Measured through the detector on 2026-08-11, a verbatim copy of "
+        "the source reads supported at 0.9998, a paraphrase of the same fact reads "
+        "contradicted at 0.9988, and a strictly weaker claim the source fully supports"
+        " also reads contradicted. An LLM answer paraphrases its sources by "
+        "definition, so this would flag nearly every grounded answer, and "
+        "'unsupported' is almost never predicted at all. Its 0.882 exact-match "
+        "accuracy is real and measures the wrong thing, because the test split shares "
+        "the corpus flaw that caused it: the supported class was generated as near-"
+        "copies rather than paraphrases. The fix is corpus-side and the two failures "
+        "are pinned as strict xfails in tests/test_t3.py, so regenerating the corpus "
+        "turns them into a signal. An earlier note here quoted 1.000 and called it "
+        "saturated; that came from a per-language F1 over 'did the detector fire', "
+        "which is 1.000 by construction for an argmax head. Weakest registers are "
+        "lexical_overlap at 0.708 and negation_contradiction at 0.754, which is "
+        "consistent with all of the above."
     ),
     "toxicity": _HELD_BACK.format(
         detector="toxicity", note="macro-F1 0.882 at threshold 0.32"
@@ -215,14 +225,12 @@ def offline() -> bool:
 
 
 #: Where to look for unreleased weights. A directory holding one folder per model, in
-#: the
-#: layout the training repo produces: `<root>/<model>-full/onnx/model.int8.onnx`.
+#: the layout the training repo produces: `<root>/<model>-full/onnx/model.int8.onnx`.
 LOCAL_DIR_ENV: Final = "FLOWX_BORDER_MODEL_DIR"
 
 #: Specs that `resolve` actually used, keyed by model id. `attestation_for` reads this
 #: first, which is what makes a record describe the weights that ran rather than the
-#: ones
-#: the table hoped for. Without it, loading a local override and then attesting the
+#: ones the table hoped for. Without it, loading a local override and then attesting the
 #: published revision would be trivial and silent.
 _RESOLVED: dict[str, ModelSpec] = {}
 
@@ -239,9 +247,9 @@ def local_root() -> Path | None:
 def local_spec_for(model_id: str) -> ModelSpec | None:
     """A spec for weights found on this machine, or None.
 
-    Exists because nothing is published until the end of the project. Without it,
-    every detector past the T0 pair would be unloadable and phases 4 and 5 could not
-    be tested at all.
+    Exists because nothing is published until the end of the project. Without it, every
+    detector past the T0 pair would be unloadable and phases 4 and 5 could not be tested
+    at all.
 
     The revision is `local:` plus the first 12 characters of the file's own hash. It is
     deliberately not a commit and cannot be mistaken for one, which is the point: a
@@ -322,8 +330,8 @@ def available(model_id: str) -> bool:
 
     Deliberately cheap. `spec_for` hashes the file to build a local spec, and `_build`
     needs this answer for seven models on the first call to `loaded_detectors`: hashing
-    3.7 GB to decide what goes in a dictionary would put four seconds on the first
-    scan of every process.
+    3.7 GB to decide what goes in a dictionary would put four seconds on the first scan
+    of every process.
 
     True means published and pinned, or present on disk under the local override. It
     does not mean the file is intact, which `resolve` checks when it loads.
