@@ -93,6 +93,10 @@ CATALOGUE: Final[MappingProxyType[str, Spec]] = MappingProxyType(
         # Shape rather than security, and the only entry here that is. It exists so
         # that sixteen hub shape validators have one destination instead of sixteen.
         "output_format": Spec("T1", frozenset({OUTPUT}), 5.0),
+        # The local half of the valid_address validator: shape and published range
+        # rules per country, no network and no vendor. In CORE because the data
+        # ships with the package.
+        "postal_code": Spec("T1", frozenset({OUTPUT}), 5.0),
         # The first entry to leave CORE. It needs the sqlglot parser, which is the
         # `sql` extra rather than a base dependency, because only a text-to-SQL
         # product wants it and nobody else should pay the install weight.

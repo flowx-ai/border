@@ -89,6 +89,10 @@ SUMMARIES: Final[MappingProxyType[str, str]] = MappingProxyType(
             "Shape assertions a policy states: JSON, HTML, URL presence, length in "
             "graphemes, word count, case, choices, ranges, a regex, reading time."
         ),
+        "postal_code": (
+            "Postal codes that cannot exist in the countries the product serves: the "
+            "wrong shape, or outside a published province or department range."
+        ),
         "sql_injection": (
             "Generated SQL that does more than the product asked for: a second "
             "statement, a forbidden statement kind, a tautology, an unexpected UNION."

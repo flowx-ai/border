@@ -85,6 +85,7 @@ MEASURED_MS = {
     # fails at the first character and so never exercises. A pathological `regex` in
     # a policy can cost more than this, and that cost belongs to whoever wrote it.
     "output_format": 0.02,
+    "postal_code": 0.02,
     # Measured on the reference input, which is prose and so fails to parse at the
     # first token. A realistic statement is measured separately below, because a
     # budget taken only on the cheap path is not a budget.
@@ -240,6 +241,12 @@ RULE_DETECTORS: list[tuple[str, object, DetectorConfig, Context]] = [
         CTX,
     ),
     (
+        "postal_code",
+        None,
+        DetectorConfig(on_fail="flag", options={"countries": ["ro", "de"]}),
+        CTX,
+    ),
+    (
         "output_format",
         None,
         DetectorConfig(
@@ -268,6 +275,7 @@ def _rule_detector(detector_id: str) -> object:
     from flowx_border.detectors.internal_domains import InternalDomainsDetector
     from flowx_border.detectors.markup_injection import MarkupInjectionDetector
     from flowx_border.detectors.output_format import OutputFormatDetector
+    from flowx_border.detectors.postal_code import PostalCodeDetector
     from flowx_border.detectors.sql_injection import SqlInjectionDetector
     from flowx_border.detectors.system_prompt_leakage import (
         SystemPromptLeakageDetector,
@@ -279,6 +287,7 @@ def _rule_detector(detector_id: str) -> object:
         "markup_injection": MarkupInjectionDetector,
         "internal_domains": InternalDomainsDetector,
         "output_format": OutputFormatDetector,
+        "postal_code": PostalCodeDetector,
         "sql_injection": SqlInjectionDetector,
     }[detector_id]()
 

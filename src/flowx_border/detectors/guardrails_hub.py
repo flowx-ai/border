@@ -312,18 +312,17 @@ DECLINED: Final[MappingProxyType[str, Decline]] = MappingProxyType(
         ),
         "valid_address": Decline(
             "vendor",
-            "sends the address to Google's Address Validation API. Three things make "
-            "this different from the reachability check, which was built: it needs a "
-            "paid credential, the credential cannot live in a policy because policies "
-            "are reviewable documents that get hashed, and the payload is a customer's "
-            "postal address going to a named third party under that third party's "
-            "terms. A library whose `pii` detector exists to stop personal data "
-            "leaving should not ship a detector that posts it somewhere. If you want "
-            "the check, the vendor relationship already exists in your code and the "
-            "call belongs there. A local alternative that would fit here is a "
-            "per-country postcode and address-shape check, which is a data task across "
-            "the 26 and a different detector from this one.",
-            gap=True,
+            "the vendor half is declined and the local half is built. It wraps "
+            "Google's Address Validation API, which needs a paid credential, cannot "
+            "carry that credential in a policy because policies are reviewable "
+            "documents that get hashed, and sends a customer's postal address to a "
+            "named third party under that party's terms. A library whose `pii` "
+            "detector exists to stop personal data leaving should not ship one that "
+            "posts it somewhere. What the check can answer without a vendor is now "
+            "`postal_code`: whether a code is well formed for the countries the "
+            "product serves, and whether it falls inside a published province or "
+            "department range. Whether the address exists still needs a postal "
+            "authority's database and is still not answered here.",
         ),
         "valid_open_api_spec": Decline(
             "scope", "validates an OpenAPI document.", gap=True

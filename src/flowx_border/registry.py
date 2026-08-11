@@ -53,6 +53,7 @@ def _build() -> dict[str, Detector]:
     from flowx_border.detectors.output_format import OutputFormatDetector
     from flowx_border.detectors.output_leakage import OutputLeakageDetector
     from flowx_border.detectors.pii import PiiDetector
+    from flowx_border.detectors.postal_code import PostalCodeDetector
     from flowx_border.detectors.secrets import SecretsDetector
     from flowx_border.detectors.system_prompt_leakage import (
         SystemPromptLeakageDetector,
@@ -76,6 +77,7 @@ def _build() -> dict[str, Detector]:
         "markup_injection": MarkupInjectionDetector(),
         "internal_domains": InternalDomainsDetector(),
         "output_format": OutputFormatDetector(),
+        "postal_code": PostalCodeDetector(),
         # T1. Both share one piiguard session: constructing them does not load weights,
         # `warm()` does, and the second `warm()` is a cache hit rather than another
         # 279 MB.

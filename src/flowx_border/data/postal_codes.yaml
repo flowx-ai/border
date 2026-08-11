@@ -1,0 +1,283 @@
+# SPDX-License-Identifier: Apache-2.0
+#
+# Postal code formats per country, and the cues that let a postcode be recognised as one.
+#
+# Keyed by country, not by language, and that distinction is the first thing to get
+# right. German is official in Germany, Austria, Luxembourg and Belgium, and those are
+# four different postcode systems: five digits, four digits, four digits and four
+# digits, with different valid ranges. A file keyed by language would have to pick one
+# and would be wrong for the other three. The library supports 26 languages; this file
+# covers the 29 countries those languages are official in.
+#
+# What this file supports, precisely
+# ----------------------------------
+#
+# A claim about the *shape* of a postcode, and where documented, its *range*. Not a
+# claim that the address exists, that the postcode is in use, or that it matches the
+# town beside it. Answering those needs a postal authority's database, which is the
+# thing this detector exists to avoid needing. See the module docstring for what that
+# means for the finding labels.
+#
+# `reviewed` is false everywhere. The patterns come from published national formats and
+# have not been checked against a postal authority's own validator. False means: this
+# will accept a well-formed code and reject a malformed one, and it may accept a
+# well-formed code that is not allocated.
+#
+# `ranges` is optional and is the part that goes beyond shape. Spain's first two digits
+# are a province, 01 to 52, so 99123 is well-formed and cannot exist. France's first two
+# are a departement. Where a country has no such rule published, the entry has no
+# `ranges` and the check is shape only, which the finding says.
+
+version: 1
+
+countries:
+  at:
+    reviewed: false
+    name: Austria
+    pattern: '[1-9][0-9]{3}'
+    example: "1010"
+  az:
+    reviewed: false
+    name: Azerbaijan
+    pattern: 'AZ[ -]?[0-9]{4}'
+    example: "AZ 1000"
+  be:
+    reviewed: false
+    name: Belgium
+    pattern: '[1-9][0-9]{3}'
+    example: "1000"
+  bg:
+    reviewed: false
+    name: Bulgaria
+    pattern: '[1-9][0-9]{3}'
+    example: "1000"
+  cy:
+    reviewed: false
+    name: Cyprus
+    pattern: '[1-9][0-9]{3}'
+    example: "1010"
+  cz:
+    reviewed: false
+    name: Czechia
+    pattern: '[1-7][0-9]{2} ?[0-9]{2}'
+    example: "110 00"
+  de:
+    reviewed: false
+    name: Germany
+    pattern: '[0-9]{5}'
+    example: "10115"
+  dk:
+    reviewed: false
+    name: Denmark
+    pattern: '[0-9]{4}'
+    example: "1050"
+  ee:
+    reviewed: false
+    name: Estonia
+    pattern: '[0-9]{5}'
+    example: "10111"
+  es:
+    reviewed: false
+    name: Spain
+    pattern: '[0-9]{5}'
+    example: "28001"
+    # The first two digits are a province, 01 to 52. A code outside that is well formed
+    # and cannot exist.
+    ranges:
+      prefix_length: 2
+      minimum: 1
+      maximum: 52
+  fi:
+    reviewed: false
+    name: Finland
+    pattern: '[0-9]{5}'
+    example: "00100"
+  fr:
+    reviewed: false
+    name: France
+    pattern: '[0-9]{5}'
+    example: "75001"
+    # The first two digits are a departement: 01 to 95 for metropolitan France, plus
+    # 97 and 98 for the overseas ones. 96 and 99 are not allocated. Corsica is 2A and
+    # 2B in administrative use but 20 in postal use, so it needs no special case here.
+    ranges:
+      prefix_length: 2
+      minimum: 1
+      maximum: 98
+      excluded: [96]
+  gr:
+    reviewed: false
+    name: Greece
+    pattern: '[0-9]{3} ?[0-9]{2}'
+    example: "104 31"
+  hr:
+    reviewed: false
+    name: Croatia
+    pattern: '(?:HR[ -]?)?[0-9]{5}'
+    example: "10000"
+  hu:
+    reviewed: false
+    name: Hungary
+    pattern: '[1-9][0-9]{3}'
+    example: "1051"
+  ie:
+    reviewed: false
+    name: Ireland
+    # Eircode: a routing key of one letter and two alphanumerics, then four
+    # alphanumerics. The letters V and W are absent from the second block by design.
+    pattern: '[A-Za-z][0-9][0-9Ww] ?[0-9A-Za-z]{4}'
+    example: "D02 AF30"
+  it:
+    reviewed: false
+    name: Italy
+    pattern: '[0-9]{5}'
+    example: "00184"
+  lt:
+    reviewed: false
+    name: Lithuania
+    pattern: '(?:LT[ -]?)?[0-9]{5}'
+    example: "01100"
+  lu:
+    reviewed: false
+    name: Luxembourg
+    pattern: '(?:L[ -]?)?[0-9]{4}'
+    example: "1009"
+  lv:
+    reviewed: false
+    name: Latvia
+    pattern: '(?:LV[ -]?)?[0-9]{4}'
+    example: "LV-1050"
+  mt:
+    reviewed: false
+    name: Malta
+    pattern: '[A-Za-z]{3} ?[0-9]{4}'
+    example: "VLT 1117"
+  nl:
+    reviewed: false
+    name: Netherlands
+    # Four digits then two letters. SA, SD and SS are not issued, which is a documented
+    # national rule rather than a shape one, so it is in `excluded_suffixes`.
+    pattern: '[1-9][0-9]{3} ?[A-Za-z]{2}'
+    example: "1012 AB"
+    excluded_suffixes: [SA, SD, SS]
+  pl:
+    reviewed: false
+    name: Poland
+    pattern: '[0-9]{2}-[0-9]{3}'
+    example: "00-950"
+  pt:
+    reviewed: false
+    name: Portugal
+    pattern: '[0-9]{4}-[0-9]{3}'
+    example: "1000-100"
+  ro:
+    reviewed: false
+    name: Romania
+    pattern: '[0-9]{6}'
+    example: "010101"
+  se:
+    reviewed: false
+    name: Sweden
+    pattern: '[1-9][0-9]{2} ?[0-9]{2}'
+    example: "111 29"
+  si:
+    reviewed: false
+    name: Slovenia
+    pattern: '(?:SI[ -]?)?[1-9][0-9]{3}'
+    example: "1000"
+  sk:
+    reviewed: false
+    name: Slovakia
+    pattern: '[0-9]{3} ?[0-9]{2}'
+    example: "811 01"
+  tr:
+    reviewed: false
+    name: Turkey
+    # Shape only. The province rule lives in `ranges` below rather than in the
+    # pattern: a code that fails the pattern is reported as belonging to some other
+    # country, and a code that fails the range is reported as malformed. Encoding
+    # the same rule twice put Turkish codes in the wrong finding.
+    pattern: '[0-9]{5}'
+    example: "34010"
+    # The first two digits are a province, 01 to 81.
+    ranges:
+      prefix_length: 2
+      minimum: 1
+      maximum: 81
+
+# Words that mark the neighbourhood of an address, per language.
+#
+# This is what makes the detector usable on prose rather than on a form field. A postal
+# code cannot be recognised by shape alone: "412 EUR" and "2026" are four digits, and a
+# detector that validated every number in an answer would report on the price of things.
+# So a candidate is only checked when one of these appears near it.
+#
+# Two kinds, and both are needed. `street` catches the address written out, which is how
+# a model usually writes one. `postcode` catches the code named explicitly, which is how
+# a form or a table labels it.
+#
+# `reviewed` is false here too, for the reason it is false in the phrasings files: these
+# were written from general knowledge of each language and not checked by a speaker of
+# it. A missing word means a missed address, not a false positive, so the failure mode
+# is a check that does less than it could rather than one that fires wrongly.
+
+cues:
+  reviewed: false
+
+  # Cues that are a separate word: `rue de Rivoli`, `Strada Lipscani`, `Calle Mayor`.
+  # Matched on word boundaries, which matters because several are one or two letters
+  # and as substrings they appear inside ordinary words in every language.
+  languages:
+    en: {street: [street, road, avenue, lane, square], postcode: [postcode, postal code, zip, zip code]}
+    ro: {street: [strada, str, bulevardul, bd, calea, soseaua, șoseaua, piata, piața], postcode: [cod postal, cod poștal]}
+    bg: {street: [улица, ул, булевард, бул, площад], postcode: [пощенски код]}
+    cs: {street: [ulice, ul, náměstí, namesti, třída, trida], postcode: [psč, psc, poštovní směrovací číslo]}
+    da: {street: [gade, vej, allé, alle, plads], postcode: [postnummer]}
+    de: {street: [straße, strasse, str, gasse, weg, platz, allee], postcode: [postleitzahl, plz]}
+    el: {street: [οδός, οδοσ, λεωφόρος, πλατεία], postcode: [ταχυδρομικός κώδικας, τκ]}
+    es: {street: [calle, c, avenida, avda, plaza, paseo], postcode: [código postal, codigo postal, cp]}
+    et: {street: [tänav, tanav, tee, puiestee, väljak], postcode: [postiindeks, sihtnumber]}
+    fi: {street: [katu, tie, kuja, aukio], postcode: [postinumero]}
+    fr: {street: [rue, avenue, av, boulevard, bd, place, chemin, impasse], postcode: [code postal, cp]}
+    ga: {street: [sráid, sraid, bóthar, bothar, cearnóg], postcode: [eirchód, eircode]}
+    hr: {street: [ulica, ul, trg, avenija, cesta], postcode: [poštanski broj, postanski broj]}
+    hu: {street: [utca, u, út, ut, tér, ter, körút, korut], postcode: [irányítószám, iranyitoszam]}
+    it: {street: [via, viale, piazza, corso, largo, vicolo], postcode: [codice postale, cap]}
+    lt: {street: [gatvė, gatve, g, prospektas, aikštė, aikste], postcode: [pašto kodas, pasto kodas]}
+    lv: {street: [iela, bulvāris, bulvaris, laukums, prospekts], postcode: [pasta indekss]}
+    mt: {street: [triq, pjazza, vjal], postcode: [kodiċi postali, kodici postali]}
+    nl: {street: [straat, laan, weg, plein, gracht, kade], postcode: [postcode]}
+    pl: {street: [ulica, ul, aleja, al, plac, pl], postcode: [kod pocztowy]}
+    pt: {street: [rua, avenida, av, praça, praca, travessa, largo], postcode: [código postal, codigo postal]}
+    sk: {street: [ulica, ul, námestie, namestie, trieda], postcode: [psč, psc, poštové smerovacie číslo]}
+    sl: {street: [ulica, ul, cesta, trg], postcode: [poštna številka, postna stevilka]}
+    sv: {street: [gatan, gata, vägen, vagen, torg, gränd, grand], postcode: [postnummer]}
+    # Turkish attaches the possessive to the street word: a street is `Caddesi`
+    # rather than `cadde`, and the stem alone matches neither. The forms are
+    # regular and few, so they are listed rather than derived.
+    tr: {street: [sokak, sokağı, sokagi, sok, cadde, caddesi, cad, bulvar, bulvarı, bulvari, meydan, meydanı, meydani, mahalle, mahallesi, mah], postcode: [posta kodu]}
+    # Azerbaijani does the same as Turkish; see the note above.
+    az: {street: [küçə, kucə, küçəsi, kucesi, prospekt, prospekti, meydan, meydanı, meydani], postcode: [poçt kodu, poct kodu]}
+
+# Cues that are the tail of a compound word rather than a word of their own.
+#
+# This is the shape of a street name in the Germanic and Nordic languages, and a
+# whole-word cue never matches it: `Herengracht` is one word, and so are
+# `Bahnhofstrasse`, `Storgatan`, `Noerregade` and `Mannerheimintie`. Without this the
+# detector checks nothing in five of the 26 languages, which is a silent gap rather
+# than a visible one, and those are exactly the languages where addresses are most
+# often written as one token.
+#
+# Matched with a right boundary only: the cue has to end the word, and anything may
+# precede it. `gracht` therefore matches `Herengracht` and not `grachten`.
+suffix_cues:
+  reviewed: false
+  languages:
+    de: [strasse, straße, weg, platz, gasse, allee, ring]
+    nl: [straat, laan, weg, plein, gracht, kade, dijk]
+    sv: [gatan, gata, vagen, vägen, torget, granden, gränden]
+    da: [gade, vej, alle, allé, vaenget, vænget]
+    fi: [katu, katu, tie, kuja, aukio, polku]
+    et: [tanav, tänav, tee, puiestee]
+    lt: [gatve, gatvė]
+    lv: [iela, bulvaris, bulvāris]
