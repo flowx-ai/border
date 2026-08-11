@@ -93,6 +93,14 @@ SUMMARIES: Final[MappingProxyType[str, str]] = MappingProxyType(
             "Postal codes that cannot exist in the countries the product serves: the "
             "wrong shape, or outside a published province or department range."
         ),
+        "repetition": (
+            "Sentences the answer says twice, compared over folded text so a change of "
+            "case or diacritic spelling does not hide a repeat."
+        ),
+        "json_schema": (
+            "Output that does not satisfy a JSON Schema the policy carries. Point it "
+            "at the OpenAPI meta-schema and it validates an OpenAPI document."
+        ),
         "sql_injection": (
             "Generated SQL that does more than the product asked for: a second "
             "statement, a forbidden statement kind, a tautology, an unexpected UNION."

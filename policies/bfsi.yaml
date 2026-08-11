@@ -77,6 +77,15 @@ detectors:
     on_fail: flag           # a wrong postcode is worth reporting, not refusing over
     options:
       countries: []         # ISO codes, for example [ro] or [de, at]
+  repetition:
+    enabled: false          # a writing-quality check, not a security one
+    on_fail: flag
+    options:
+      similarity: 0.9
+  json_schema:
+    enabled: false          # needs the `schema` extra and a schema to check
+    on_fail: flag
+    options: {}
   system_prompt_leakage:
     on_fail: block          # the instructions behind a regulated assistant are not public
     threshold: 0.4          # lower than default: prefer a false positive to a leak

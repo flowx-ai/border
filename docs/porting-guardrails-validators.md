@@ -6,8 +6,12 @@ ships 65 validators. This is what happened to each of them. The tables are rende
 the document cannot drift away from the decision. `tests/test_guardrails_hub.py` fails
 if it does.
 
-**Twenty-seven validators became seven detectors. Twenty-five are already answered by
-a detector that exists. Thirteen are not built yet, and each says what it would need.**
+**Thirty-one validators became nine detectors. Twenty-five are already answered by a
+detector that exists. Nine are not built, and each says what it would need.**
+
+Of those nine, six need a local generative model that does not exist yet, two are
+the Llama Guard and ShieldGemma retrains, and one is the vendor half of
+`valid_address`. Nothing is left that is declined for want of effort alone.
 
 That last group used to say "declined". It changed on 2026-08-11, when the constraints
 that blocked most of them stopped being prohibitions. A validator that needs a network
@@ -80,12 +84,11 @@ and both are disabled in the shipped policies.
 | `covered` | an existing detector already answers this question |
 | `llm` | needs a generative model to make the judgement, and no detector here answers the same question. Permitted since 2026-08-11, when the constraints were lifted, and not yet built: there is no published model for it. Filed by what this library can answer rather than by how upstream implements it, so nine validators that call an LLM upstream are listed as covered instead |
 | `retrain` | kept as a capability, dropped as a port: the upstream weights are unusable here and the intent is to train our own |
-| `scope` | the check itself does not survive the port. Each of the four is a specific reason rather than a category judgement, and the note says which |
 | `vendor` | is a wrapper around one commercial service rather than a check. Porting it would mean shipping that vendor relationship, its credential and its terms, inside a library, and the thing being sent is customer data |
 
 ## Ported
 
-Twenty-seven validators, seven detectors. Two collapses do most of the work.
+Thirty-one validators, nine detectors. Two collapses do most of the work.
 
 `ban_list`, `contains_string`, `competitor_check`, `mentions_drugs` and `sky_validator`
 are one mechanism with a different list baked in, and the list in every case is the
@@ -111,6 +114,7 @@ instead of sixteen.
 | `mentions_drugs` | `banned_terms` | mechanism only. Its English drug list is not shipped, because a drug list in 26 languages that nobody here can review is worse than no list. |
 | `sky_validator` | `banned_terms` | the term half only. It is one customer's brand check, and the sentiment half of it is not a term list. |
 | `internal_domains` | `internal_domains` | kept, with host boundaries on both sides and internationalised domain spellings added. |
+| `valid_open_api_spec` | `json_schema` | generalised. Upstream validates against one schema; this validates against whichever schema the policy carries, and pointing it at the OpenAPI meta-schema is the original. |
 | `web_sanitization` | `markup_injection` | rewritten from `bleach.clean(x) != x`, which reports an attack in any text containing a bare `<`, `>` or `&`. |
 | `cucumber_expression_match` | `output_format` | `regex`. The cucumber expression grammar is not carried over: it is a test-fixture DSL, and the shape it expresses is a regex here. |
 | `ends_with` | `output_format` | `ends_with`, and `starts_with` with it. |
@@ -118,8 +122,10 @@ instead of sixteen.
 | `lowercase` | `output_format` | `case: lower`, asked as `text == text.lower()`. The obvious formulation, no character is uppercase, passes the Croatian titlecase digraphs. |
 | `one_line` | `output_format` | `one_line: true`. |
 | `quotes_price` | `output_format` | `regex`. A price assertion is a pattern, not a feature. |
+| `reading_level` | `output_format` | `max_lix`. Its Flesch-Kincaid counts syllables by English rules and does not survive the trip, so LIX is used instead: sentence length plus the share of long words, computable identically in all 26. The scale is not comparable between languages, which is why the threshold has no default. |
 | `reading_time` | `output_format` | `max_reading_seconds`, with `words_per_minute` as an option rather than a constant. Upstream bakes in an English silent-reading rate and applies it to every language. |
 | `regex_match` | `output_format` | `regex`, as a full match rather than a search. |
+| `similar_to_previous_values` | `output_format` | `choices` with `choices_similarity`. Upstream compares with sentence-transformer embeddings; a ratio over the folded strings answers the same question for the case it is used for, and needs no model. |
 | `two_words` | `output_format` | `max_words: 2` with `min_words: 2`. |
 | `uppercase` | `output_format` | `case: upper`, as above. |
 | `valid_choices` | `output_format` | `choices`, matched on folded text so a Romanian choice accepts either spelling of its diacritic. |
@@ -128,6 +134,7 @@ instead of sixteen.
 | `valid_length` | `output_format` | `max_length` and `min_length`, counted in graphemes rather than code points so one visible string is one length in every language. |
 | `valid_range` | `output_format` | `numeric_range`, accepting a comma decimal separator, which is correct in most of the 26. |
 | `valid_url` | `output_format` | `url: required`. |
+| `redundant_sentences` | `repetition` | the two dependencies are gone: stdlib difflib replaces `thefuzz` and multilingual.sentences replaces `nltk`, which is what keeps the detector in CORE. |
 | `exclude_sql_predicates` | `sql_injection` | inverted into an allowlist of statement kinds. A denylist of SQL statement types is a list somebody has to keep complete, and the consequence of missing one is a statement that runs. |
 | `valid_sql` | `sql_injection` | the parse half. Reported as `sql_unparseable` rather than as its own detector, because whether generated SQL parses and whether it does more than was asked are the same question with one parser behind it. |
 | `detect_system_prompt_leakage` | `system_prompt_leakage` | rewritten from whole-string similarity to containment. The original passes a long answer that quotes the prompt verbatim. |
@@ -135,9 +142,9 @@ instead of sixteen.
 
 ## Not ported
 
-`gap` marks the ones worth building. Twelve of the thirteen are marked, which is the
-honest state after 2026-08-11: most were blocked by a rule rather than by the check not
-being worth having, and the rules are gone.
+`gap` marks the ones worth building. Eight of the nine are marked, and the shape of
+what is left changed on 2026-08-11: everything blocked by a rule has been built, and
+what remains is blocked by a model that does not exist.
 
 The `reason` column doubles as the requirement each would declare in `Spec.requires` if
 it were built, so this table is also the backlog, sorted by what each item would cost a
@@ -193,10 +200,6 @@ which is a data task across the 26 and a different detector from this one.
 | `wiki_provenance` | llm | calls a model and fetches Wikipedia while scanning. | yes |
 | `llamaguard_7b` | retrain | Llama Guard is a 7B generative model under the Llama Community Licence, which is not Apache-2.0 compatible, and 7B cannot meet a CPU budget. The capability is wanted: the plan is our own smaller model rather than a port. See the note in the document about what still has to be decided. | yes |
 | `shieldgemma_2b` | retrain | ShieldGemma is 2B under the Gemma Terms of Use, which is not Apache-2.0. Same disposition as llamaguard_7b: the capability is wanted, the weights are not usable here. | yes |
-| `reading_level` | scope | a US grade-level readability metric. Not a security check, and the formula is defined for English only, so a 26-language version of it does not exist to port. | no |
-| `redundant_sentences` | scope | a writing-quality check. | yes |
-| `similar_to_previous_values` | scope | consistency against previous answers, not a security property. | yes |
-| `valid_open_api_spec` | scope | validates an OpenAPI document. | yes |
 | `valid_address` | vendor | the vendor half is declined and the local half is built. It wraps Google's Address Validation API, which needs a paid credential, cannot carry that credential in a policy because policies are reviewable documents that get hashed, and sends a customer's postal address to a named third party under that party's terms. A library whose `pii` detector exists to stop personal data leaving should not ship one that posts it somewhere. What the check can answer without a vendor is now `postal_code`: whether a code is well formed for the countries the product serves, and whether it falls inside a published province or department range. Whether the address exists still needs a postal authority's database and is still not answered here. | no |
 
 ## The two moderation models

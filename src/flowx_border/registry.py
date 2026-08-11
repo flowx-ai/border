@@ -54,6 +54,7 @@ def _build() -> dict[str, Detector]:
     from flowx_border.detectors.output_leakage import OutputLeakageDetector
     from flowx_border.detectors.pii import PiiDetector
     from flowx_border.detectors.postal_code import PostalCodeDetector
+    from flowx_border.detectors.repetition import RepetitionDetector
     from flowx_border.detectors.secrets import SecretsDetector
     from flowx_border.detectors.system_prompt_leakage import (
         SystemPromptLeakageDetector,
@@ -78,6 +79,7 @@ def _build() -> dict[str, Detector]:
         "internal_domains": InternalDomainsDetector(),
         "output_format": OutputFormatDetector(),
         "postal_code": PostalCodeDetector(),
+        "repetition": RepetitionDetector(),
         # T1. Both share one piiguard session: constructing them does not load weights,
         # `warm()` does, and the second `warm()` is a cache hit rather than another
         # 279 MB.
@@ -99,6 +101,12 @@ def _build() -> dict[str, Detector]:
 
     if is_available():
         built["sql_injection"] = SqlInjectionDetector()
+
+    from flowx_border.detectors.json_schema import JsonSchemaDetector
+    from flowx_border.detectors.json_schema import is_available as schema_available
+
+    if schema_available():
+        built["json_schema"] = JsonSchemaDetector()
 
     # Also outside CORE, but always importable: it needs a network rather than a
     # package. Loaded here and disabled in the shipped policies, so nothing reaches the

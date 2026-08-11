@@ -11,11 +11,11 @@ from here. Regenerate with:
 
 | figure | value |
 |---|---|
-| detectors in the catalogue | 22 |
-| implemented and running today | 13 |
+| detectors in the catalogue | 24 |
+| implemented and running today | 15 |
 | catalogued but not yet implemented | 9 |
-| that need nothing beyond a CPU and the base install | 20 |
-| that need something more, and declare it | 2 |
+| that need nothing beyond a CPU and the base install | 21 |
+| that need something more, and declare it | 3 |
 | supported languages | 26 |
 
 `status` is derived from whether the detector is in the registry, not from a list
@@ -37,11 +37,13 @@ one on, so a caller finds out when they enable it rather than in production.
 | `banned_terms` | T1 | input, output | built | nothing beyond a CPU | 5 ms | Terms the deploying organisation has decided must not appear, matched correctly in 26 languages. The list is policy; none ships. |
 | `gibberish` | T1 | input | model trained, not yet wired in | nothing beyond a CPU | 75 ms | Input that is not meaningful text. |
 | `internal_domains` | T1 | output | built | nothing beyond a CPU | 5 ms | Internal hostnames appearing in an answer meant for someone outside, in both their Unicode and punycode spellings. |
+| `json_schema` | T1 | output | built | dependency | 5 ms | Output that does not satisfy a JSON Schema the policy carries. Point it at the OpenAPI meta-schema and it validates an OpenAPI document. |
 | `markup_injection` | T1 | input, output | built | nothing beyond a CPU | 5 ms | Markup in the text that a browser would execute rather than display, found through case folding, entity decoding and compatibility folding. |
 | `output_format` | T1 | output | built | nothing beyond a CPU | 5 ms | Shape assertions a policy states: JSON, HTML, URL presence, length in graphemes, word count, case, choices, ranges, a regex, reading time. |
 | `output_leakage` | T1 | output | built | nothing beyond a CPU | 75 ms | Personal data in the output that the user did not supply, which is the narrower and more useful question than whether any is present. |
 | `pii` | T1 | input, output | built | nothing beyond a CPU | 75 ms | Personal data in input or output, as named entity spans with checksum validation where the identifier has one. |
 | `postal_code` | T1 | output | built | nothing beyond a CPU | 5 ms | Postal codes that cannot exist in the countries the product serves: the wrong shape, or outside a published province or department range. |
+| `repetition` | T1 | output | built | nothing beyond a CPU | 5 ms | Sentences the answer says twice, compared over folded text so a change of case or diacritic spelling does not hide a repeat. |
 | `sql_injection` | T1 | output | built | dependency | 5 ms | Generated SQL that does more than the product asked for: a second statement, a forbidden statement kind, a tautology, an unexpected UNION. |
 | `system_prompt_leakage` | T1 | output | built | nothing beyond a CPU | 5 ms | Whether the answer gave away the instructions the model was operating under, by containment against the system prompt and by phrase match in 26 languages. |
 | `bias` | T2 | output | model trained, not yet wired in | nothing beyond a CPU | 75 ms | Output carrying bias related to a protected characteristic. |

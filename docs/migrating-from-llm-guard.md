@@ -109,8 +109,10 @@ Behaviour differences that the tuple cannot express:
 - `url_reachability` (T3, output, makes an HTTP request)
 - `invisible_text` (T0, input and output)
 - `postal_code` (T1, output)
+- `repetition` (T1, output)
+- `json_schema` (T1, output, needs the `schema` extra)
 
-The last nine arrived on 2026-08-11 with the Guardrails Hub port, and six of them
+The last eleven arrived on 2026-08-11 with the Guardrails Hub port, and six of them
 moved a scanner out of the unsupported table above.
 
 ## Scanners that gained a detector on 2026-08-11

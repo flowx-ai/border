@@ -332,3 +332,36 @@ def shingles(text: str, size: int) -> list[str]:
     if len(words) <= size:
         return [" ".join(words)] if words else []
     return [" ".join(words[i : i + size]) for i in range(len(words) - size + 1)]
+
+
+#: Sentence terminators across the 26. The Greek ones are the reason this is not just
+#: `[.!?]`: U+037E is the Greek question mark and looks like a semicolon without being
+#: one, and U+0387 ano teleia ends a clause. A splitter that knew only ASCII punctuation
+#: would read a Greek paragraph as one sentence, which silently changes what any
+#: per-sentence measure means in that language.
+_SENTENCE_END: Final = re.compile(r"[.!?\u037e\u0387\u2026]+[\s\"'\u201d\u00bb]*")
+
+
+def sentences(text: str) -> list[tuple[int, int]]:
+    """Sentence spans in the original text, as (start, end).
+
+    Spans rather than strings, because the callers need to point at what they found and
+    a span survives being handed to the engine for redaction.
+
+    Deliberately simple, and the limit is worth stating: an abbreviation ending in a
+    full
+    stop splits a sentence in two. German `z.B.`, Hungarian `pl.` and English `e.g.` all
+    do it. Handling that needs a per-language abbreviation list, which is a data task
+    nobody has done here, so a caller counting sentences gets a number that is right for
+    prose and slightly high for text full of abbreviations.
+    """
+    out: list[tuple[int, int]] = []
+    start = 0
+    for match in _SENTENCE_END.finditer(text):
+        end = match.end()
+        if text[start:end].strip():
+            out.append((start, end))
+        start = end
+    if text[start:].strip():
+        out.append((start, len(text)))
+    return out
