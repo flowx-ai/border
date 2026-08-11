@@ -1,0 +1,8 @@
+# Everything a run produces. None of it belongs in git: the ONNX export alone is 2.3 GB,
+# and the artifact that matters ends up on the model hub rather than here.
+artifacts/
+runs/
+trained-adapter/
+data/
+eval.txt
+*.log

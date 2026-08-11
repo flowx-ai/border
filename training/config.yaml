@@ -1,0 +1,52 @@
+# SPDX-License-Identifier: Apache-2.0
+#
+# One config for the whole pipeline, so that a run is reproducible from a file rather
+# than from the shell history of whoever launched it.
+
+base_model: Qwen/Qwen3-0.6B
+
+# The head is multi-label sigmoid. detectors/classifier.py reads `problem_type` out of
+# the exported config to decide between sigmoid and argmax, and reading a multi-label
+# head with argmax reports one category where several apply, so this value is load
+# bearing rather than metadata.
+problem_type: multi_label_classification
+
+taxonomy: taxonomy.yaml
+
+data:
+  out_dir: data
+  seed: 20260811          # fixed, because a different split is a different measurement
+  dev_fraction: 0.1
+  test_fraction: 0.1
+
+train:
+  max_length: 256         # longer than the 96 the pii model uses: a hazard needs context
+  epochs: 3
+  batch_size: 16
+  grad_accum: 2           # effective 32, which fits an L4's 24 GB at this length
+  learning_rate: 2.0e-5
+  head_learning_rate: 1.0e-3   # the head is new and needs to move faster than the base
+  warmup_ratio: 0.06
+  weight_decay: 0.01
+  bf16: true              # L4 supports bf16; fp16 overflows more often on this base
+  lora:
+    enabled: true
+    r: 16
+    alpha: 32
+    dropout: 0.05
+    # Attention projections only. Touching the MLP as well roughly doubles the trainable
+    # parameters for a gain that a classification head does not need.
+    target_modules: [q_proj, k_proj, v_proj, o_proj]
+
+eval:
+  # Chosen per category on the dev split rather than fixed at 0.5, because CLAUDE.md
+  # records four detectors that reported F1 0.000 at 0.5 in all 26 languages: their
+  # scores separated positives from negatives well below it. A threshold left at a
+  # plausible default is how a detector becomes a no-op that still produces evidence.
+  threshold_search: true
+  threshold_grid: [0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.6, 0.7]
+
+export:
+  out_dir: artifacts
+  opset: 17
+  int8: true
