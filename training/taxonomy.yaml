@@ -1,0 +1,86 @@
+# SPDX-License-Identifier: Apache-2.0
+#
+# The hazard taxonomy the moderation model predicts.
+#
+# Thirteen categories, multi-label: content can be several at once, and a model forced to
+# pick one would have to choose between "this describes a weapon" and "this is hateful"
+# for text that is both. The head is sigmoid per label for that reason, which is what
+# `problem_type: multi_label_classification` in the model config tells
+# detectors/classifier.py to do.
+#
+# Where these came from
+# ---------------------
+#
+# The category set follows the MLCommons AI safety hazard taxonomy, which is the
+# published standard Llama Guard and ShieldGemma both implement. Using the same
+# categories is deliberate: a deployment migrating from either should not have to remap
+# its policy, and the taxonomy itself is a public specification rather than either
+# vendor's property. The model is ours and shares no weights with either.
+#
+# The overlap with detectors that already exist, stated rather than discovered
+# ---------------------------------------------------------------------------
+#
+# Four of these thirteen ask a question another detector in the catalogue also asks:
+#
+#   hate              overlaps `toxicity` and `bias`
+#   sexual_content    overlaps `nsfw`
+#   specialised_advice overlaps `regulated_advice`
+#   privacy           overlaps `pii`
+#
+# That is worth knowing before this ships, and it points somewhere useful: as of
+# 2026-08-11 `toxicity`, `nsfw`, `bias` and `regulated_advice` are all catalogued and
+# none of them is built. So this model is not duplicating four working detectors, it is
+# a candidate for replacing four unbuilt ones with a single forward pass. That decision
+# is not made here. It belongs to whoever owns those four, and this file exists so the
+# question is asked rather than answered by accident.
+#
+# `privacy` is the one that should not replace anything. `pii` returns spans, which is
+# what redaction needs; a classifier returns a probability that personal data is present,
+# which cannot be redacted. They answer different questions and both are worth having.
+
+version: 1
+
+# Kept stable once training starts. The head's output order is this order, and a model
+# trained against one ordering and read against another reports every category as some
+# other category, which is the kind of bug that looks like poor accuracy.
+categories:
+  - id: violent_crimes
+    description: Content enabling, encouraging or endorsing violence against people.
+  - id: non_violent_crimes
+    description: Content enabling non-violent criminal activity, including fraud.
+  - id: sex_crimes
+    description: Content enabling or endorsing sexual assault or trafficking.
+  - id: child_exploitation
+    description: Sexual content involving minors, in any form.
+  - id: defamation
+    description: Verifiably false claims that would injure a living person's reputation.
+  - id: specialised_advice
+    description: >
+      Financial, legal or medical advice presented as authoritative. Overlaps
+      `regulated_advice`.
+  - id: privacy
+    description: >
+      Personal data about a private individual. Overlaps `pii`, which returns spans
+      where this returns a probability.
+  - id: intellectual_property
+    description: Content reproducing copyrighted work at length.
+  - id: indiscriminate_weapons
+    description: Content assisting with chemical, biological, nuclear or radiological weapons.
+  - id: hate
+    description: >
+      Demeaning content targeting a protected characteristic. Overlaps `toxicity`
+      and `bias`.
+  - id: self_harm
+    description: Content encouraging suicide, self-injury or disordered eating.
+  - id: sexual_content
+    description: Explicit sexual content between adults. Overlaps `nsfw`.
+  - id: elections
+    description: Factually false information about voting procedures or eligibility.
+
+# The languages the model must be evaluated in, one table row each. This is not the list
+# of languages it is trained in, and the difference is the point: CLAUDE.md requires a
+# per-language table rather than one aggregate, precisely so that a language with no
+# training data shows up as a low number instead of disappearing into an average.
+languages:
+  [az, bg, cs, da, de, el, en, es, et, fi, fr, ga, hr, hu, it, lt, lv, mt, nl,
+   pl, pt, ro, sk, sl, sv, tr]

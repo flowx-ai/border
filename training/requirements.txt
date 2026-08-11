@@ -1,0 +1,16 @@
+# Training dependencies. Deliberately separate from the library's, and nothing here is a
+# runtime dependency: pyproject.toml packages src/flowx_border only, so none of this
+# reaches a wheel.
+#
+# torch is absent on purpose. The Deep Learning VM image carries it already, built
+# against that image's driver, and installing a different one over the top is how a run
+# gets an hour in and then cannot see the GPU.
+transformers>=4.49,<5
+peft>=0.14,<1
+accelerate>=1.4,<2
+datasets>=3.3,<4
+pyyaml>=6.0
+onnx>=1.17
+onnxruntime>=1.20
+# torch 2.9's default ONNX exporter imports it even when dynamo=False is requested.
+onnxscript>=0.1
