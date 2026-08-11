@@ -55,6 +55,15 @@ matter across sessions:
 - Check the definition of done yourself rather than trusting a summary.
 - Commit at the end of each phase, tagged `phase-N`, so a bad phase is one revert.
 
+**Queued, after the Guardrails Hub migration:** work out whether new detectors should be
+added to complete the set, as opposed to ported into it. Queued by the owner on
+2026-08-11, deliberately after the port rather than folded into it. The raw material is
+already assembled and is listed at the end of
+`docs/porting-guardrails-validators.md`: the `gap = yes` rows of the declined table, the
+`UNSUPPORTED` table in `adapters/llm_guard_compat.py`, and the three detectors that ship
+unavailable for want of published weights. The output is a proposal with a tier and a
+budget per candidate, not a set of new detectors.
+
 Two deliberate deviations from the specified core types were made in phase 0 and are
 open for reversal on instruction:
 
@@ -86,20 +95,37 @@ or an adapter.
    interface down. There is a test that asserts this. Do not weaken it.
 2. **CPU is the reference target.** Every detector must be usable on CPU within its
    stated latency budget. GPU is an optimisation, never a requirement.
-3. **The detector set grows on instruction, and only on instruction.** It was fixed at
-   eight for v1. On 2026-08-10 the owner explicitly lifted that, twice and in writing,
-   to add five more: toxicity, NSFW, bias, gibberish and politeness, derived from the
-   Guardrails Hub validator set. So v1 is thirteen detectors.
+3. **A new detector has to earn its place, and there is no longer a cap on how many
+   can.** The count gate is gone, removed by the owner on 2026-08-11. It was eight for
+   v1, lifted to thirteen on 2026-08-10 for toxicity, NSFW, bias, gibberish and
+   politeness, and lifted without a number on 2026-08-11, when the four rule-based
+   detectors ported from the Guardrails Hub landed: `banned_terms`,
+   `system_prompt_leakage`, `markup_injection` and `internal_domains`. So v1 is
+   seventeen detectors, and eighteen does not need anyone's permission.
 
-   The original reasoning is preserved here because it has not been refuted, only
-   overruled: breadth is how the predecessor projects died, and toxicity specifically
-   was the example this file used to name as commodity. Anyone reading this later should
-   know the tradeoff was made deliberately rather than drifted into. The tier budgets and
-   the per-language reporting rules are what stop breadth from becoming shallowness, so
-   they matter more now, not less: a thirteenth detector that misses its budget or ships
-   without a per-language table is worse than no thirteenth detector.
+   What replaces the gate is the bar the gate was standing in for. A new detector ships
+   only if it meets all of these, and none of them is new:
 
-   A fourteenth still needs an explicit instruction.
+   - It answers a security or governance question. Not output shape, not readability.
+   - It works in all 26 languages, with fixtures for each and, if it is model-backed, a
+     per-language evaluation table rather than one aggregate.
+   - It meets its tier's budget at the reference input, asserted in
+     `tests/test_budgets.py`.
+   - It cannot silently do nothing. Unconfigured, unavailable or uncomparable are
+     findings it reports, not conditions it passes through.
+
+   The original reasoning is kept because it was overruled rather than refuted, and it
+   is now the argument for the bar rather than for the count: breadth is how the
+   predecessor projects died, and toxicity specifically was the example this file used
+   to name as commodity. Removing the cap raises the stakes on the four rules above
+   rather than lowering them. A detector that misses its budget or ships without a
+   per-language table is worse than no detector, and that was true at thirteen and is
+   more true without a ceiling.
+
+   The slot is numbered 3 and stays numbered 3 even though the constraint changed,
+   because `adapters/llm_guard_compat.py`, `detectors/guardrails_hub.py` and the docs
+   cite these constraints by number, and renumbering would silently redirect every one
+   of those references.
 4. **No LLM calls inside detectors.** Detectors are rules, NER models, or small
    classifiers running locally. A detector that calls a hosted model is out of scope.
 5. **Policy is data, not code.** Policy lives in YAML validated by a Pydantic schema.
@@ -111,7 +137,7 @@ or an adapter.
    The current allowed runtime set is: `pydantic`, `pyyaml`, `onnxruntime`,
    `tokenizers`, `huggingface-hub`, `cryptography`. Anything else needs approval.
 
-## Detector set (fixed for v1)
+## Detector set
 
 **The reference input, without which no budget below means anything.** 87 tokens of
 prose, 396 characters, one thread, CPU execution provider, INT8 weights. Measured
@@ -130,6 +156,10 @@ length the model was trained on. Budgets are per detector, per scan, at that inp
 | `pii` | input, output | T1 | NER, XLM-R base ONNX | 75 ms | 51 ms | built |
 | `output_leakage` | output | T1 | NER, reuses `pii` weights | 75 ms | 51 ms | built |
 | `gibberish` | input | T1 | classifier | 75 ms | – | trained, not wired |
+| `banned_terms` | input, output | T1 | policy term list | 5 ms | 0.23 ms | built |
+| `system_prompt_leakage` | output | T1 | containment + phrases | 5 ms | 0.36 ms | built |
+| `markup_injection` | input, output | T1 | rule | 5 ms | 0.23 ms | built |
+| `internal_domains` | output | T1 | policy domain list | 5 ms | 0.23 ms | built |
 | `injection` | input | T2 | classifier | 75 ms | – | trained, not wired |
 | `regulated_advice` | output | T2 | classifier | 75 ms | – | trained, not wired |
 | `toxicity` | input, output | T2 | classifier | 75 ms | – | trained, not wired |
@@ -273,6 +303,10 @@ repository for this library. `models/registry.py` pins every entry to a commit s
 | `disclosure` | – | rules plus a phrasings data file |
 | `pii` | `flowxai/piiguard` default, `flowxai/cee-pii` policy-selectable | piiguard has ONNX and INT8 published |
 | `output_leakage` | whichever session `pii` loaded | never a second copy |
+| `banned_terms` | – | rules over a policy-supplied term list |
+| `system_prompt_leakage` | – | rules plus a phrasings data file |
+| `markup_injection` | – | rules, no weights |
+| `internal_domains` | – | rules over a policy-supplied domain list |
 | `topic_scope` | `flowxai/semantic-mapper` | 4B generative, GGUF only, see the caveat below |
 | `injection` | none published | ships unavailable in v1 |
 | `regulated_advice` | none published | ships unavailable in v1 |
@@ -296,10 +330,27 @@ fallback. A real UK NINo carries no checksum, so a fallback is defensible, but t
 model learned a German-shaped number as a UK identifier. Do not state that English
 national IDs are checksum validated.
 
+**The four ported from the Guardrails Hub carry no weights at all**, which is why they
+work on a machine that has never downloaded a model, the same as the T0 pair. Their
+provenance, and the 57 hub validators that were declined with the reason for each, are in
+`docs/porting-guardrails-validators.md`, rendered from `detectors/guardrails_hub.py` so
+the two cannot drift.
+
+**Llama Guard and ShieldGemma are a retrain, not a port.** Decided 2026-08-11. Both are
+moderation models whose entire value is weights this project cannot ship: Llama Guard is
+7B under the Llama Community Licence and ShieldGemma is 2B under the Gemma Terms of Use,
+and neither is Apache-2.0 compatible. The intent is our own, trained on a smaller Qwen
+base. Two things are unresolved and should be settled before that becomes a detector,
+because they are the same two that stopped `semantic-mapper`: a generative model reading a
+policy and writing a verdict is an LLM call inside a detector, which constraint 4 rules
+out at any size, and 1.6B generative is nowhere near a 75 ms CPU budget when the 278M
+encoders here cost 51 ms. Both point at a classification head on that base rather than a
+generative model.
+
 **Three detectors ship unavailable, and they ship loudly.** The registry entry names
 the intended repo, the detector raises an error naming the missing model, and the
 tests are `xfail` with the repo id in the comment. There is no silent no-op, because
-a silent no-op in a security library is a vulnerability. v1 is 5 of 8 detectors real,
+a silent no-op in a security library is a vulnerability. v1 is 9 of 17 detectors real,
 stated plainly in the README. Nothing on the site or in the docs may imply otherwise.
 
 **`semantic-mapper` does not fit the detector contract as it stands.** It is a 4B
@@ -461,7 +512,7 @@ Say that, and nothing more.
 ## When to stop and ask
 
 - A new runtime dependency.
-- A ninth detector.
+- A new detector that does not clear all four bars in constraint 3.
 - A change to `Decision` or `EvidenceRecord`.
 - A third public function.
 - Anything that requires network access during a scan.

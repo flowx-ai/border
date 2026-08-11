@@ -43,6 +43,30 @@ detectors:
     on_fail: flag
     threshold: 0.7
 
+  # Enabled with empty lists on purpose, which is the opposite of default.yaml's choice
+  # and follows from this file's philosophy rather than contradicting it. Until you fill
+  # these in, every evidence record carries `terms_not_configured` and
+  # `domains_not_configured` at action `log`. In a regulated context that line is the
+  # useful artifact: it is an enabled control with no configuration, visible to whoever
+  # reads the record, rather than a control that is quietly absent. Fill them in and the
+  # lines go away.
+  banned_terms:
+    enabled: true
+    on_fail: block          # a term list here is usually a prohibited-recommendation list
+    options:
+      terms: []             # fill in: sanctioned entities, prohibited product names
+      whole_words: true
+  internal_domains:
+    enabled: true
+    on_fail: block          # topology in an outbound answer is a reportable event
+    options:
+      domains: []           # fill in: your internal hostnames
+  system_prompt_leakage:
+    on_fail: block          # the instructions behind a regulated assistant are not public
+    threshold: 0.4          # lower than default: prefer a false positive to a leak
+  markup_injection:
+    on_fail: block
+
   injection:
     on_fail: block
     threshold: 0.35

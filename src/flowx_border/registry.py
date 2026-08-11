@@ -41,10 +41,16 @@ def _build() -> dict[str, Detector]:
     phrasings file is read on first use, not here. Nothing in this function touches the
     network, which is what lets `loaded_detectors` be called from a scan path.
     """
+    from flowx_border.detectors.banned_terms import BannedTermsDetector
     from flowx_border.detectors.disclosure import DisclosureDetector
+    from flowx_border.detectors.internal_domains import InternalDomainsDetector
+    from flowx_border.detectors.markup_injection import MarkupInjectionDetector
     from flowx_border.detectors.output_leakage import OutputLeakageDetector
     from flowx_border.detectors.pii import PiiDetector
     from flowx_border.detectors.secrets import SecretsDetector
+    from flowx_border.detectors.system_prompt_leakage import (
+        SystemPromptLeakageDetector,
+    )
 
     pii = PiiDetector()
 
@@ -53,6 +59,15 @@ def _build() -> dict[str, Detector]:
         # something useful on a machine that has never fetched a model.
         "secrets": SecretsDetector(),
         "disclosure": DisclosureDetector(),
+        # T1 rules, ported from the Guardrails Hub. Also no weights and no download,
+        # so they are available on the same machine the T0 pair is. Two of them need a
+        # list from the policy and report that they have none rather than reporting a
+        # clean scan, which is why they are loaded here but disabled in the shipped
+        # policies.
+        "banned_terms": BannedTermsDetector(),
+        "system_prompt_leakage": SystemPromptLeakageDetector(),
+        "markup_injection": MarkupInjectionDetector(),
+        "internal_domains": InternalDomainsDetector(),
         # T1. Both share one piiguard session: constructing them does not load weights,
         # `warm()` does, and the second `warm()` is a cache hit rather than another
         # 279 MB.

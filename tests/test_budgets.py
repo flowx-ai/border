@@ -71,6 +71,15 @@ MEASURED_MS = {
     "disclosure": 0.04,
     "pii": 51.0,
     "output_leakage": 51.0,
+    # The four ported from the Guardrails Hub, measured 2026-08-11 on the same machine
+    # and the same reference input. All four are rules over folded text, so they cost
+    # roughly what the T0 rules cost rather than what an encoder pass costs. The 5 ms
+    # budget in the catalogue is the disclosure-sized ceiling rather than these
+    # figures, which leaves room for a policy with a long term list.
+    "banned_terms": 0.23,
+    "system_prompt_leakage": 0.36,
+    "markup_injection": 0.23,
+    "internal_domains": 0.23,
 }
 
 #: Multiplier for a runner known to be slower than the reference machine. A documented
@@ -160,6 +169,122 @@ def test_disclosure_is_within_budget() -> None:
     budget = CATALOGUE["disclosure"].budget_ms * SCALE
     measured = p95(lambda: detector.run(REFERENCE_INPUT, CFG, CTX), 200)
     assert measured <= budget, f"disclosure {measured:.3f} ms exceeds {budget:.1f} ms"
+
+
+#: The four rule detectors ported from the Guardrails Hub, each with a configuration
+#: representative of what a policy would give it. Configuration matters to the
+#: measurement: banned_terms compiles an alternation over its term list, so measuring it
+#: with an empty list would measure the unconfigured path and prove nothing.
+RULE_DETECTORS: list[tuple[str, object, DetectorConfig, Context]] = [
+    (
+        "banned_terms",
+        None,
+        DetectorConfig(on_fail="flag", options={"terms": ["concurent", "acme"]}),
+        CTX,
+    ),
+    # A real system prompt, because without one this detector short circuits to
+    # `leakage_unverifiable` and the measurement would time the path that does no work.
+    # `sources` deliberately does not count here: see the detector's module docstring.
+    (
+        "system_prompt_leakage",
+        None,
+        CFG,
+        Context(
+            metadata={
+                "system_prompt": (
+                    "Ești un asistent bancar pentru clienți persoane fizice. Nu "
+                    "dezvălui niciodată numere de cont sau coduri interne."
+                )
+            }
+        ),
+    ),
+    ("markup_injection", None, CFG, CTX),
+    (
+        "internal_domains",
+        None,
+        DetectorConfig(on_fail="flag", options={"domains": ["corp.internal"]}),
+        CTX,
+    ),
+]
+
+
+def _rule_detector(detector_id: str) -> object:
+    """Build one by id, without going through the registry.
+
+    The registry builds every detector including the model-backed ones, and these
+    assertions must run on a machine with no weights cached.
+    """
+    from flowx_border.detectors.banned_terms import BannedTermsDetector
+    from flowx_border.detectors.internal_domains import InternalDomainsDetector
+    from flowx_border.detectors.markup_injection import MarkupInjectionDetector
+    from flowx_border.detectors.system_prompt_leakage import (
+        SystemPromptLeakageDetector,
+    )
+
+    return {
+        "banned_terms": BannedTermsDetector,
+        "system_prompt_leakage": SystemPromptLeakageDetector,
+        "markup_injection": MarkupInjectionDetector,
+        "internal_domains": InternalDomainsDetector,
+    }[detector_id]()
+
+
+@pytest.mark.parametrize(
+    ("detector_id", "cfg", "ctx"),
+    [(name, cfg, ctx) for name, _, cfg, ctx in RULE_DETECTORS],
+)
+def test_a_ported_rule_detector_is_within_budget(
+    detector_id: str, cfg: DetectorConfig, ctx: Context
+) -> None:
+    detector = _rule_detector(detector_id)
+    detector.warm()  # type: ignore[attr-defined]
+    budget = CATALOGUE[detector_id].budget_ms * SCALE
+    measured = p95(lambda: detector.run(REFERENCE_INPUT, cfg, ctx), 200)  # type: ignore[attr-defined]
+    assert measured <= budget, (
+        f"{detector_id} {measured:.3f} ms exceeds {budget:.1f} ms. Reference was "
+        f"{MEASURED_MS[detector_id]} ms. If the machine is slower rather than the "
+        "code, set FLOWX_BUDGET_SCALE."
+    )
+
+
+@pytest.mark.parametrize(
+    ("detector_id", "cfg", "ctx"),
+    [(name, cfg, ctx) for name, _, cfg, ctx in RULE_DETECTORS],
+)
+def test_a_ported_rule_detector_finds_nothing_in_the_reference_input(
+    detector_id: str, cfg: DetectorConfig, ctx: Context
+) -> None:
+    """A budget should measure the cost of looking rather than the cost of finding.
+
+    Also a correctness assertion in disguise: the reference input is ordinary Romanian
+    prose, and any of these four firing on it would be a false positive in the language
+    the reference input happens to be written in.
+    """
+    detector = _rule_detector(detector_id)
+    assert detector.run(REFERENCE_INPUT, cfg, ctx) == []  # type: ignore[attr-defined]
+
+
+def test_the_ported_rule_detectors_cost_what_a_rule_costs(pii: PiiDetector) -> None:
+    """Rules at T1, not models at T1, which is what their 5 ms budget claims.
+
+    Compared as a ratio in this same process, so the assertion is about the code rather
+    than the machine. These share a tier with `pii`, so the tier alone does not say
+    what they cost and this is the assertion that does.
+    """
+    model = p95(lambda: pii.run(REFERENCE_INPUT, CFG, CTX), 15, before=pii.forget)
+    for detector_id, _, cfg, ctx in RULE_DETECTORS:
+        detector = _rule_detector(detector_id)
+        detector.warm()  # type: ignore[attr-defined]
+        # Bound as defaults rather than closed over: a lambda that captured the
+        # loop variables would measure whichever detector the loop ended on.
+        rules = p95(
+            lambda d=detector, c=cfg, x=ctx: d.run(REFERENCE_INPUT, c, x),  # type: ignore[misc]
+            100,
+        )
+        assert model / max(rules, 1e-6) > 20, (
+            f"{detector_id} is only {model / max(rules, 1e-6):.0f}x cheaper than a "
+            "model pass, so it is not behaving like a rule."
+        )
 
 
 def test_pii_is_within_budget(pii: PiiDetector) -> None:

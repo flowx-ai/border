@@ -6,8 +6,15 @@ and filter it, and the policy loader needs to know which ids are real so an unkn
 is an error rather than a silently ignored typo. A policy that says `pii_detector:` when
 it means `pii:` would otherwise disable PII checking and report success.
 
-Thirteen entries as of 2026-08-10, when the set was extended past the original eight on
-explicit instruction. See constraint 3 in CLAUDE.md for what that traded away.
+Seventeen entries as of 2026-08-11. Eight originally, thirteen on 2026-08-10 when the
+Guardrails Hub classifiers were added, and four more when the cap on the detector set
+was lifted and the rule-based validators from that hub were ported. See constraint 3 in
+CLAUDE.md for the tradeoff each of those steps made, which the lifting overruled rather
+than refuted.
+
+The four added on 2026-08-11 are all rules, which is why they cost 5 ms rather than 75:
+`banned_terms`, `system_prompt_leakage`, `markup_injection`, `internal_domains`.
+docs/porting-guardrails-validators.md records where each came from.
 """
 
 from __future__ import annotations
@@ -44,6 +51,15 @@ CATALOGUE: Final[MappingProxyType[str, Spec]] = MappingProxyType(
         "pii": Spec("T1", frozenset({INPUT, OUTPUT}), 75.0),
         "output_leakage": Spec("T1", frozenset({OUTPUT}), 75.0),
         "gibberish": Spec("T1", frozenset({INPUT}), 75.0),
+        # Ported from the Guardrails Hub, 2026-08-11. Rules rather than models, so they
+        # sit at T1 with a rule-sized budget. T1 rather than T0 because each can be
+        # wrong in a way a deployment has to be able to switch off: banned_terms and
+        # internal_domains need a list only the deployer has, and markup_injection
+        # fires on a coding assistant doing its job.
+        "banned_terms": Spec("T1", frozenset({INPUT, OUTPUT}), 5.0),
+        "system_prompt_leakage": Spec("T1", frozenset({OUTPUT}), 5.0),
+        "markup_injection": Spec("T1", frozenset({INPUT, OUTPUT}), 5.0),
+        "internal_domains": Spec("T1", frozenset({OUTPUT}), 5.0),
         "injection": Spec("T2", frozenset({INPUT}), 75.0),
         "regulated_advice": Spec("T2", frozenset({OUTPUT}), 75.0),
         "toxicity": Spec("T2", frozenset({INPUT, OUTPUT}), 75.0),

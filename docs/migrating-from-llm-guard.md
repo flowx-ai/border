@@ -75,10 +75,12 @@ instruction, not because it is a bad idea.
 # before
 from llm_guard import scan_prompt
 from llm_guard.input_scanners import Anonymize, PromptInjection
+
 sanitised, valid, scores = scan_prompt(prompt, [Anonymize(vault), PromptInjection()])
 
 # after
 from flowx_border.adapters.llm_guard_compat import scan_prompt
+
 sanitised, valid, scores = scan_prompt(prompt, ["Anonymize", "PromptInjection"])
 ```
 
@@ -98,6 +100,27 @@ Behaviour differences that the tuple cannot express:
 
 - `disclosure` (T0, output)
 - `regulated_advice` (T2, output)
+- `banned_terms` (T1, input and output)
+- `system_prompt_leakage` (T1, output)
+- `markup_injection` (T1, input and output)
+- `internal_domains` (T1, output)
+
+The last four arrived on 2026-08-11 with the Guardrails Hub port, and two of them change
+what the unsupported table above is really saying.
+
+**`BanSubstrings` and `BanCompetitors` now have a detector-level answer.** `banned_terms`
+is that mechanism, with word boundaries and 26-language folding, so the reason those two
+scanners were declined ("keep it in your own code") is weaker than it was. The shim
+above still raises for them: mapping them across is an edit to
+`adapters/llm_guard_compat.py` that the port did not make, and a doc that claimed the
+mapping existed while the code raised would be worse than one that says this plainly.
+See `docs/porting-guardrails-validators.md`.
+
+**`InvisibleText` is closer than it was.** The zero-width and format-character stripping
+that the note above asks for is implemented, in `detectors/multilingual.py`, and every
+ported detector matches through it. What is missing is a detector that reports the
+presence of those characters as a finding in its own right rather than quietly seeing
+past them. That is still a gap, and it is still cheap.
 
 `disclosure` is the one to look at if you are here for an AI Act evidence trail: it
 reports whether a required disclosure is present in the output, in any of 26 languages,
