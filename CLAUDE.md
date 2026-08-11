@@ -465,6 +465,21 @@ out at any size, and 1.6B generative is nowhere near a 75 ms CPU budget when the
 encoders here cost 51 ms. Both point at a classification head on that base rather than a
 generative model.
 
+**Corpus size was the binding constraint, not the models.** Demonstrated on 2026-08-11 and
+worth holding onto, because it changes where effort should go. `nsfw` and `gibberish` were the
+two weakest detectors in the table. Their corpora were rebuilt with more positives per
+language, nothing about either model or its training changed, and:
+
+| detector | positives, test | macro F1 | worst language |
+|---|---|---|---|
+| `nsfw` | 52 to 262 | 0.817 to 0.976 | 0.000 to 0.870 |
+| `gibberish` | 78 to 276 | 0.834 to 0.966 | 0.400 to 0.870 |
+
+Maltese went from 0.000 to 1.000 in `nsfw`, which is the number that disproved this file's own
+claim that the pretraining gap bounded it. Four detectors still sit on single-digit
+per-language positives: `toxicity`, `injection`, `politeness` and `bias`. Read their scores as
+understated rather than as ceilings, and reach for the corpus before the architecture.
+
 **Three detectors ship unavailable, and they ship loudly.** The registry entry names
 the intended repo, the detector raises an error naming the missing model, and the
 tests are `xfail` with the repo id in the comment. There is no silent no-op, because

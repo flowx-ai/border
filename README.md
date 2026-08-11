@@ -206,20 +206,28 @@ column.**
 | detector | metric | macro | worst language | examples |
 |---|---|---|---|---|
 | `regulated_advice` | F1 | 0.995 | 0.957 | 622 positives |
+| `nsfw` | F1 | 0.976 | 0.870 | 262 positives |
+| `gibberish` | F1 | 0.966 | 0.870 | 276 positives |
 | `toxicity` | F1 | 0.960 | 0.400 | 104 positives |
 | `injection` | F1 | 0.888 | 0.444 | 182 positives |
 | `politeness` | F1 | 0.887 | 0.400 | 77 positives |
 | `groundedness` | exact match | 0.882 | 0.636 | 479 evaluated |
-| `bias` | F1 | 0.869 | 0.571 | 130 positives |
-| `gibberish` | F1 | 0.834 | 0.400 | 78 positives |
-| `nsfw` | F1 | 0.817 | 0.000 | 52 positives |
 | `topic_scope` | top-1 accuracy | 0.872 | 0.375 | not recorded |
+| `bias` | F1 | 0.869 | 0.571 | 130 positives |
 
-**Six of those rest on fewer than ten positive examples in every one of the 26 languages**,
-between two and seven each. Their per-language scores are indicative rather than measured,
-and the JSON says so per language rather than in a footnote. Only `regulated_advice` has
-real per-language support, at about 24 positives each. `topic_scope`'s evaluation recorded
-no sample sizes at all, so its rows publish a null and say why.
+**Four of those rest on fewer than ten positive examples in every one of the 26 languages**:
+`toxicity`, `injection`, `politeness` and `bias`, between two and seven each. Their
+per-language scores are indicative rather than measured, and the JSON says so per language
+rather than in a footnote. `topic_scope`'s evaluation recorded no sample sizes at all, so its
+rows publish a null and say why.
+
+`nsfw` and `gibberish` were two of that group until their corpora were rebuilt on 2026-08-11,
+and what happened is the reason the support column is printed first. Neither model changed
+architecture and neither gained a training trick. `nsfw` went from 52 positives to 262 and
+from 0.817 to 0.976; `gibberish` from 78 to 276 and from 0.834 to 0.966. The corpora had been
+9 and 11 percent positive because one generation weight was doing two jobs, so the test splits
+held 2 and 3 positives per language. `nsfw` now clears ten positives per language in all 26,
+and `gibberish` in 24 of 26, with Bulgarian and English at nine and flagged for it.
 
 Maltese is absent from XLM-RoBERTa's pretraining entirely, which is worth knowing about any
 score in that language. It is not, on the evidence here, what bounds one: `nsfw` scored 0.000
@@ -275,8 +283,11 @@ Where a language underperforms, the number is published rather than the language
 
 The honest list, in rough order of how likely each is to matter to you.
 
-1. **Thin evaluation corpora.** Covered above. Six detectors have single-digit positive
-   counts per language.
+1. **Thin evaluation corpora.** Covered above. Four detectors still have single-digit
+   positive counts per language: `toxicity`, `injection`, `politeness` and `bias`. Two more
+   did until their corpora were rebuilt, which moved them by 0.13 to 0.16 macro F1 without
+   touching the models, so treat the remaining four as understated rather than as measured
+   ceilings.
 2. **`groundedness` has a model that cannot do its task.** The detector is implemented and
    correct; the trained model scores string similarity rather than entailment. A verbatim
    copy of a source reads supported at 0.9998, a paraphrase of the same fact reads

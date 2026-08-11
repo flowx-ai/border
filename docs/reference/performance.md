@@ -16,7 +16,7 @@ means the score is unverified rather than good or bad.
 | `banned_terms` | T1 | built | – | – | – | – | – | – |
 | `bias` | T2 | built | f1 | 0.869 | 0.889 | 0.571 | 130 | positive examples |
 | `disclosure` | T0 | built | – | – | – | – | – | – |
-| `gibberish` | T1 | built | f1 | 0.834 | 0.857 | 0.400 | 78 | positive examples |
+| `gibberish` | T1 | built | f1 | 0.966 | 0.958 | 0.870 | 276 | positive examples |
 | `groundedness` | T3 | built | exact_match_accuracy | 0.882 | 0.889 | 0.636 | 479 | examples evaluated |
 | `injection` | T2 | built | f1 | 0.888 | 0.923 | 0.444 | 182 | positive examples |
 | `internal_domains` | T1 | built | – | – | – | – | – | – |
@@ -24,7 +24,7 @@ means the score is unverified rather than good or bad.
 | `json_schema` | T1 | built | – | – | – | – | – | – |
 | `markup_injection` | T1 | built | – | – | – | – | – | – |
 | `moderation` | T2 | not built | – | – | – | – | – | – |
-| `nsfw` | T2 | built | f1 | 0.817 | 0.800 | 0.000 | 52 | positive examples |
+| `nsfw` | T2 | built | f1 | 0.976 | 1.000 | 0.870 | 262 | positive examples |
 | `output_format` | T1 | built | – | – | – | – | – | – |
 | `output_leakage` | T1 | built | – | – | – | – | – | – |
 | `pii` | T1 | built | – | – | – | – | – | – |
@@ -42,11 +42,9 @@ means the score is unverified rather than good or bad.
 ## Caveats
 
 - **`bias`**: 26 of 26 languages have fewer than 10 positive examples: az, bg, cs, da, de, el, en, es, et, fi, fr, ga, hr, hu, it, lt, lv, mt, nl, pl, pt, ro, sk, sl, sv, tr. Their individual scores are indicative rather than measured.
-- **`gibberish`**: 26 of 26 languages have fewer than 10 positive examples: az, bg, cs, da, de, el, en, es, et, fi, fr, ga, hr, hu, it, lt, lv, mt, nl, pl, pt, ro, sk, sl, sv, tr. Their individual scores are indicative rather than measured.
+- **`gibberish`**: 2 of 26 languages have fewer than 10 positive examples: bg, en. Their individual scores are indicative rather than measured.
 - **`groundedness`**: no calibrated threshold recorded, so this detector runs at the policy default. Several detectors in this family reported nothing at 0.5 while separating positives from negatives well below it.
 - **`injection`**: 26 of 26 languages have fewer than 10 positive examples: az, bg, cs, da, de, el, en, es, et, fi, fr, ga, hr, hu, it, lt, lv, mt, nl, pl, pt, ro, sk, sl, sv, tr. Their individual scores are indicative rather than measured.
-- **`nsfw`**: 26 of 26 languages have fewer than 10 positive examples: az, bg, cs, da, de, el, en, es, et, fi, fr, ga, hr, hu, it, lt, lv, mt, nl, pl, pt, ro, sk, sl, sv, tr. Their individual scores are indicative rather than measured.
-- **`nsfw`**: scores zero in mt, which is absent from XLM-RoBERTa's pretraining. A different base model would be required, not more data.
 - **`politeness`**: 26 of 26 languages have fewer than 10 positive examples: az, bg, cs, da, de, el, en, es, et, fi, fr, ga, hr, hu, it, lt, lv, mt, nl, pl, pt, ro, sk, sl, sv, tr. Their individual scores are indicative rather than measured.
 - **`topic_scope`**: the evaluation recorded no sample size for 26 of 26 languages, so those scores cannot be checked for how much they rest on. Treat them as unverified.
 - **`topic_scope`**: no calibrated threshold recorded, so this detector runs at the policy default. Several detectors in this family reported nothing at 0.5 while separating positives from negatives well below it.
@@ -58,27 +56,27 @@ At a 396 character reference input, 1 thread, CPUExecutionProvider. Romanian pro
 
 | Detector | p95 ms | Budget ms | note |
 |---|---|---|---|
-| `banned_terms` | 0.218 | 5.0 | – |
-| `bias` | 152.287 | 225.0 | – |
+| `banned_terms` | 0.222 | 5.0 | – |
+| `bias` | 153.791 | 225.0 | – |
 | `disclosure` | 0.035 | 5.0 | – |
-| `gibberish` | 152.257 | 225.0 | – |
-| `groundedness` | 60.773 | 300.0 | – |
-| `injection` | 153.072 | 225.0 | – |
-| `internal_domains` | 0.204 | 5.0 | – |
-| `invisible_text` | 0.031 | 5.0 | – |
+| `gibberish` | 153.599 | 225.0 | – |
+| `groundedness` | 60.826 | 300.0 | – |
+| `injection` | 153.043 | 225.0 | – |
+| `internal_domains` | 0.208 | 5.0 | – |
+| `invisible_text` | 0.034 | 5.0 | – |
 | `json_schema` | 0.001 | 5.0 | – |
-| `markup_injection` | 0.213 | 5.0 | – |
-| `nsfw` | 153.137 | 225.0 | – |
+| `markup_injection` | 0.214 | 5.0 | – |
+| `nsfw` | 153.199 | 225.0 | – |
 | `output_format` | 0.001 | 5.0 | – |
-| `output_leakage` | 50.344 | 75.0 | – |
-| `pii` | 50.588 | 75.0 | – |
-| `politeness` | 152.524 | 225.0 | – |
+| `output_leakage` | 50.475 | 75.0 | – |
+| `pii` | 50.670 | 75.0 | – |
+| `politeness` | 152.974 | 225.0 | – |
 | `postal_code` | 0.001 | 5.0 | – |
-| `regulated_advice` | 152.815 | 225.0 | – |
-| `repetition` | 0.375 | 5.0 | – |
-| `secrets` | 0.039 | 1.0 | – |
-| `sql_injection` | 0.215 | 5.0 | – |
-| `system_prompt_leakage` | 0.257 | 5.0 | the unconfigured path |
-| `topic_scope` | 213.116 | 300.0 | – |
-| `toxicity` | 153.057 | 225.0 | – |
-| `url_reachability` | 0.007 | 3000.0 | – |
+| `regulated_advice` | 153.133 | 225.0 | – |
+| `repetition` | 0.369 | 5.0 | – |
+| `secrets` | 0.037 | 1.0 | – |
+| `sql_injection` | 0.202 | 5.0 | – |
+| `system_prompt_leakage` | 0.245 | 5.0 | the unconfigured path |
+| `topic_scope` | 212.226 | 300.0 | – |
+| `toxicity` | 153.175 | 225.0 | – |
+| `url_reachability` | 0.006 | 3000.0 | – |
