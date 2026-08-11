@@ -66,8 +66,20 @@ or an adapter.
    interface down. There is a test that asserts this. Do not weaken it.
 2. **CPU is the reference target.** Every detector must be usable on CPU within its
    stated latency budget. GPU is an optimisation, never a requirement.
-3. **Eight detectors.** The v1 detector set is fixed (see below). Do not add a ninth
-   without an explicit instruction. Breadth is how the predecessor projects died.
+3. **The detector set grows on instruction, and only on instruction.** It was fixed at
+   eight for v1. On 2026-08-10 the owner explicitly lifted that, twice and in writing,
+   to add five more: toxicity, NSFW, bias, gibberish and politeness, derived from the
+   Guardrails Hub validator set. So v1 is thirteen detectors.
+
+   The original reasoning is preserved here because it has not been refuted, only
+   overruled: breadth is how the predecessor projects died, and toxicity specifically
+   was the example this file used to name as commodity. Anyone reading this later should
+   know the tradeoff was made deliberately rather than drifted into. The tier budgets and
+   the per-language reporting rules are what stop breadth from becoming shallowness, so
+   they matter more now, not less: a thirteenth detector that misses its budget or ships
+   without a per-language table is worse than no thirteenth detector.
+
+   A fourteenth still needs an explicit instruction.
 4. **No LLM calls inside detectors.** Detectors are rules, NER models, or small
    classifiers running locally. A detector that calls a hosted model is out of scope.
 5. **Policy is data, not code.** Policy lives in YAML validated by a Pydantic schema.
@@ -81,16 +93,54 @@ or an adapter.
 
 ## Detector set (fixed for v1)
 
-| ID | Side | Tier | Type | Budget (CPU, p95) |
-|---|---|---|---|---|
-| `secrets` | input | T0 | regex + entropy | 1 ms |
-| `disclosure` | output | T0 | rule + template match | 5 ms |
-| `pii` | input, output | T1 | NER, GLiNER-class ONNX | 15 ms |
-| `injection` | input | T2 | classifier ~0.6B ONNX | 50 ms |
-| `regulated_advice` | output | T2 | classifier ~0.6B ONNX | 50 ms |
-| `topic_scope` | input | T3 | semantic mapper vs taxonomy | 300 ms |
-| `groundedness` | output | T3 | evidence scoring vs sources | 300 ms |
-| `output_leakage` | output | T1 | NER, reuses `pii` model | 15 ms |
+**The reference input, without which no budget below means anything.** 87 tokens of
+prose, 396 characters, one thread, CPU execution provider, INT8 weights. Measured
+2026-08-11 on an Apple M-series laptop. The exact string is `REFERENCE_INPUT` in
+`tests/test_budgets.py` so a figure can be reproduced rather than argued about.
+
+Stating the length and the thread count is the whole point. The previous version of this
+table gave bare millisecond figures with neither, which made every one of them
+unfalsifiable: `pii` at "15 ms" is true at 27 tokens and false by a factor of three at the
+length the model was trained on. Budgets are per detector, per scan, at that input.
+
+| ID | Side | Tier | Type | Budget (p95) | Measured | Status |
+|---|---|---|---|---|---|---|
+| `secrets` | input | T0 | regex + entropy | 1 ms | 0.04 ms | built |
+| `disclosure` | output | T0 | rule + template match | 5 ms | 0.04 ms | built |
+| `pii` | input, output | T1 | NER, XLM-R base ONNX | 75 ms | 51 ms | built |
+| `output_leakage` | output | T1 | NER, reuses `pii` weights | 75 ms | 51 ms | built |
+| `gibberish` | input | T1 | classifier | 75 ms | – | trained, not wired |
+| `injection` | input | T2 | classifier | 75 ms | – | trained, not wired |
+| `regulated_advice` | output | T2 | classifier | 75 ms | – | trained, not wired |
+| `toxicity` | input, output | T2 | classifier | 75 ms | – | trained, not wired |
+| `nsfw` | input, output | T2 | classifier | 75 ms | – | trained, not wired |
+| `bias` | output | T2 | classifier | 75 ms | – | trained, not wired |
+| `politeness` | output | T2 | classifier | 75 ms | – | trained, not wired |
+| `topic_scope` | input | T3 | bi-encoder vs taxonomy | 300 ms | – | needs an export path |
+| `groundedness` | output | T3 | evidence scoring vs sources | 300 ms | – | trained, not wired |
+
+Three things this table now says that the old one did not.
+
+**Cost is per token, and linear.** 0.60 ms per token at one thread, measured. Every
+model-backed detector is the same XLM-RoBERTa base, so they all cost the same at the same
+input length, and the T1/T2 split is about *when* a detector runs and whether a policy may
+disable it, not about it being cheaper. A single 75 ms budget for every encoder detector
+is the honest consequence.
+
+**The tier ceilings are not per-scan totals.** A full output-side scan with everything
+wired would be one rule check plus seven encoder passes: roughly 360 ms at the reference
+length. The tier system is what keeps that off the common path, T2 being disableable and
+T3 running only on escalation, and that is a scheduling property rather than a cost one.
+
+**Threads buy the old numbers back, and the library will not take them.** Measured at 96
+tokens: 54.7 ms at one thread, 29.8 at two, 17.8 at four, 12.4 at eight. So a 15 ms T1
+budget is reachable, at the price of taking eight cores from the host application on every
+scan. The default stays at one thread, because a library that quietly commandeers the
+machine it is embedded in is worse than a library that is honestly slower, and a policy
+can raise it deliberately.
+
+`gibberish` is T1 because a gibberish input should short circuit the tiers above it rather
+than be scored by them, not because it is cheaper. It is not.
 
 Tier semantics:
 - **T0** always runs, cannot be disabled, negligible cost.
