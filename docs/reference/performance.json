@@ -2058,100 +2058,77 @@
   "latency": {
     "per_detector_ms": {
       "banned_terms": {
-        "p50": 0.002,
-        "p95": 0.03
+        "p95": 0.205
       },
       "bias": {
-        "p50": 151.958,
-        "p95": 359.504
+        "p95": 152.904
       },
       "disclosure": {
-        "p50": 0.037,
-        "p95": 0.069
+        "p95": 0.036
       },
       "gibberish": {
-        "p50": 151.215,
-        "p95": 353.2
+        "p95": 152.514
       },
       "groundedness": {
-        "p50": 59.956,
-        "p95": 276.575
+        "p95": 60.95
       },
       "injection": {
-        "p50": 152.095,
-        "p95": 338.547
+        "p95": 153.069
       },
       "internal_domains": {
-        "p50": 0.001,
-        "p95": 0.014
+        "p95": 0.204
       },
       "invisible_text": {
-        "p50": 0.034,
-        "p95": 0.056
+        "p95": 0.032
       },
       "json_schema": {
-        "p50": 0.001,
-        "p95": 0.004
+        "p95": 0.001
       },
       "markup_injection": {
-        "p50": 0.206,
-        "p95": 0.28
+        "p95": 0.208
       },
       "nsfw": {
-        "p50": 152.317,
-        "p95": 350.228
+        "p95": 153.091
       },
       "output_format": {
-        "p50": 0.001,
-        "p95": 0.025
+        "p95": 0.001
       },
       "output_leakage": {
-        "p50": 50.158,
-        "p95": 51.514
+        "p95": 51.142
       },
       "pii": {
-        "p50": 50.261,
-        "p95": 50.816
+        "p95": 49.906
       },
       "politeness": {
-        "p50": 153.836,
-        "p95": 354.597
+        "p95": 153.667
       },
       "postal_code": {
-        "p50": 0.002,
-        "p95": 0.033
+        "p95": 0.001
       },
       "regulated_advice": {
-        "p50": 153.02,
-        "p95": 371.225
+        "p95": 152.675
       },
       "repetition": {
-        "p50": 0.393,
-        "p95": 0.524
+        "p95": 0.383
       },
       "secrets": {
-        "p50": 0.039,
-        "p95": 0.05
+        "p95": 0.037
       },
       "sql_injection": {
-        "p50": 0.185,
-        "p95": 0.339
+        "p95": 0.202
       },
       "system_prompt_leakage": {
-        "p50": 0.245,
-        "p95": 2.025
+        "describes": "the path where the detector reported leakage_unverifiable rather than the path where it does its work, because the reference configuration does not give it what it needs",
+        "p95": 0.255
       },
       "topic_scope": {
-        "p50": 0.005,
-        "p95": 0.057
+        "p95": 213.477
       },
       "toxicity": {
-        "p50": 153.163,
-        "p95": 362.515
+        "p95": 152.704
       },
       "url_reachability": {
-        "p50": 0.007,
-        "p95": 0.016
+        "p95": 0.006
       }
     },
     "provider": "CPUExecutionProvider",

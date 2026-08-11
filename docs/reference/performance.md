@@ -56,29 +56,29 @@ means the score is unverified rather than good or bad.
 
 At a 396 character reference input, 1 thread, CPUExecutionProvider. Romanian prose with no entities in it, so this measures the cost of looking rather than the cost of finding.
 
-| Detector | p50 ms | p95 ms | Budget ms |
+| Detector | p95 ms | Budget ms | note |
 |---|---|---|---|
-| `banned_terms` | 0.002 | 0.030 | 5.0 |
-| `bias` | 151.958 | 359.504 | 75.0 |
-| `disclosure` | 0.037 | 0.069 | 5.0 |
-| `gibberish` | 151.215 | 353.200 | 75.0 |
-| `groundedness` | 59.956 | 276.575 | 300.0 |
-| `injection` | 152.095 | 338.547 | 75.0 |
-| `internal_domains` | 0.001 | 0.014 | 5.0 |
-| `invisible_text` | 0.034 | 0.056 | 5.0 |
-| `json_schema` | 0.001 | 0.004 | 5.0 |
-| `markup_injection` | 0.206 | 0.280 | 5.0 |
-| `nsfw` | 152.317 | 350.228 | 75.0 |
-| `output_format` | 0.001 | 0.025 | 5.0 |
-| `output_leakage` | 50.158 | 51.514 | 75.0 |
-| `pii` | 50.261 | 50.816 | 75.0 |
-| `politeness` | 153.836 | 354.597 | 75.0 |
-| `postal_code` | 0.002 | 0.033 | 5.0 |
-| `regulated_advice` | 153.020 | 371.225 | 75.0 |
-| `repetition` | 0.393 | 0.524 | 5.0 |
-| `secrets` | 0.039 | 0.050 | 1.0 |
-| `sql_injection` | 0.185 | 0.339 | 5.0 |
-| `system_prompt_leakage` | 0.245 | 2.025 | 5.0 |
-| `topic_scope` | 0.005 | 0.057 | 300.0 |
-| `toxicity` | 153.163 | 362.515 | 75.0 |
-| `url_reachability` | 0.007 | 0.016 | 3000.0 |
+| `banned_terms` | 0.205 | 5.0 | – |
+| `bias` | 152.904 | 75.0 | – |
+| `disclosure` | 0.036 | 5.0 | – |
+| `gibberish` | 152.514 | 75.0 | – |
+| `groundedness` | 60.950 | 300.0 | – |
+| `injection` | 153.069 | 75.0 | – |
+| `internal_domains` | 0.204 | 5.0 | – |
+| `invisible_text` | 0.032 | 5.0 | – |
+| `json_schema` | 0.001 | 5.0 | – |
+| `markup_injection` | 0.208 | 5.0 | – |
+| `nsfw` | 153.091 | 75.0 | – |
+| `output_format` | 0.001 | 5.0 | – |
+| `output_leakage` | 51.142 | 75.0 | – |
+| `pii` | 49.906 | 75.0 | – |
+| `politeness` | 153.667 | 75.0 | – |
+| `postal_code` | 0.001 | 5.0 | – |
+| `regulated_advice` | 152.675 | 75.0 | – |
+| `repetition` | 0.383 | 5.0 | – |
+| `secrets` | 0.037 | 1.0 | – |
+| `sql_injection` | 0.202 | 5.0 | – |
+| `system_prompt_leakage` | 0.255 | 5.0 | the unconfigured path |
+| `topic_scope` | 213.477 | 300.0 | – |
+| `toxicity` | 152.704 | 75.0 | – |
+| `url_reachability` | 0.006 | 3000.0 | – |

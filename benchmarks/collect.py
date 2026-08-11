@@ -43,7 +43,6 @@ from __future__ import annotations
 import argparse
 import json
 import statistics
-import time
 from pathlib import Path
 from typing import Any
 
@@ -288,8 +287,43 @@ def latency_for(detectors: dict[str, Any]) -> dict[str, Any]:
     from flowx_border.detectors.base import Context, DetectorConfig
     from test_budgets import REFERENCE_INPUT  # type: ignore[import-not-found]
 
-    cfg = DetectorConfig(on_fail="flag")
     ctx = Context(sources=("a source passage",))
+
+    # A detector that needs policy data returns early without it, and publishing that
+    # early return as its latency would be a figure for the path nobody runs.
+    # topic_scope measured 0.06 ms this way, against 30 ms configured. Representative
+    # options are supplied here for the detectors that need them, and anything still
+    # taking the unconfigured path is labelled below rather than reported as fast.
+    representative = {
+        "topic_scope": {
+            "taxonomy": {
+                "allowed": [
+                    {
+                        "path": "banking/accounts",
+                        "description": "accounts, balances, statements and transfers",
+                    }
+                ],
+                "disallowed": [
+                    {
+                        "path": "banking/crypto",
+                        "description": "cryptocurrency and token speculation",
+                    },
+                    {
+                        "path": "health/medical",
+                        "description": "symptoms, diagnosis and treatment",
+                    },
+                ],
+            }
+        },
+        "banned_terms": {"terms": ["parola", "kennwort", "sifre"]},
+        "internal_domains": {"domains": ["internal.example", "corp.example"]},
+    }
+
+    #: A finding label ending in one of these means the detector reported that it could
+    #: not do its job, so the timing describes the refusal rather than the work. Matched
+    #: by suffix rather than by detector id, so a new detector reporting the same way is
+    #: covered without the collector knowing about it.
+    did_not_run = ("_unconfigured", "_unverifiable", "_no_claims")
     out: dict[str, Any] = {
         "reference_input": {
             "characters": len(REFERENCE_INPUT),
@@ -300,25 +334,45 @@ def latency_for(detectors: dict[str, Any]) -> dict[str, Any]:
         "provider": "CPUExecutionProvider",
         "per_detector_ms": {},
     }
+    # One estimator, imported rather than restated, so the published figure and the
+    # asserted ceiling are computed the same way. It warms outside the timed region and
+    # takes the best of several rounds; measuring here with neither put the 437 ms
+    # tokenizer load inside the first sample and, with twelve samples, the p95 index
+    # landed exactly on it. That is how the classifiers came to be published at 362 ms
+    # when they cost 151.
+    from test_budgets import p95  # type: ignore[import-not-found]
+
     for name, detector in sorted(detectors.items()):
         try:
             detector.warm()
         except Exception as error:
             out["per_detector_ms"][name] = {"error": str(error)[:120]}
             continue
-        samples = []
-        for _ in range(12):
-            forget = getattr(detector, "forget", None)
-            if callable(forget):
-                forget()
-            started = time.perf_counter()
-            detector.run(REFERENCE_INPUT, cfg, ctx)
-            samples.append((time.perf_counter() - started) * 1000.0)
-        samples.sort()
-        out["per_detector_ms"][name] = {
-            "p50": round(statistics.median(samples), 3),
-            "p95": round(samples[min(len(samples) - 1, int(len(samples) * 0.95))], 3),
-        }
+
+        entry_cfg = DetectorConfig(on_fail="flag", options=representative.get(name, {}))
+        forget = getattr(detector, "forget", None)
+        before = forget if callable(forget) else None
+
+        produced = detector.run(REFERENCE_INPUT, entry_cfg, ctx)
+        refused = [
+            f.label
+            for f in produced
+            if any(f.label.endswith(suffix) for suffix in did_not_run)
+        ]
+
+        measured = p95(
+            lambda d=detector, c=entry_cfg: d.run(REFERENCE_INPUT, c, ctx),
+            12,
+            before,
+        )
+        record: dict[str, Any] = {"p95": round(measured, 3)}
+        if refused:
+            record["describes"] = (
+                f"the path where the detector reported {refused[0]} rather than "
+                "the path where it does its work, because the reference "
+                "configuration does not give it what it needs"
+            )
+        out["per_detector_ms"][name] = record
     return out
 
 
@@ -424,17 +478,16 @@ def to_markdown(data: dict[str, Any]) -> str:
         f"{latency['threads']} thread, {latency['provider']}. "
         f"{latency['reference_input']['description']}.",
         "",
-        "| Detector | p50 ms | p95 ms | Budget ms |",
+        "| Detector | p95 ms | Budget ms | note |",
         "|---|---|---|---|",
     ]
     for name, timing in sorted(latency["per_detector_ms"].items()):
         budget = data["detectors"].get(name, {}).get("budget_ms", "–")
         if "error" in timing:
-            lines.append(f"| `{name}` | – | – | {budget} |")
+            lines.append(f"| `{name}` | – | {budget} | weights unavailable |")
             continue
-        lines.append(
-            f"| `{name}` | {timing['p50']:.3f} | {timing['p95']:.3f} | {budget} |"
-        )
+        note = "the unconfigured path" if "describes" in timing else "–"
+        lines.append(f"| `{name}` | {timing['p95']:.3f} | {budget} | {note} |")
     return "\n".join(lines) + "\n"
 
 
