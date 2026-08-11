@@ -68,9 +68,11 @@ def test_the_offline_guard_is_actually_active() -> None:
     Without this, a broken guard would make every test in this file pass while proving
     nothing at all.
     """
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
-        with pytest.raises(RuntimeError, match="network access during a test"):
-            sock.connect(("huggingface.co", 443))
+    with (
+        socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock,
+        pytest.raises(RuntimeError, match="network access during a test"),
+    ):
+        sock.connect(("huggingface.co", 443))
     with pytest.raises(RuntimeError, match="network access during a test"):
         socket.getaddrinfo("huggingface.co", 443)
 
