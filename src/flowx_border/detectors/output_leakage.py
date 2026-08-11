@@ -74,12 +74,12 @@ class OutputLeakageDetector:
         # and run merging are all identical, and duplicating them would mean fixing the
         # email-fragmentation bug twice.
         #
-        # `shared` is how the registry passes in the very same PiiDetector that the `pii`
+        # `shared` is how the registry passes in the very same PiiDetector the `pii`
         # entry uses, which is what makes the inference cache do its job. Given its own
         # instance this detector still works and still shares the 279 MB session, but it
         # pays for a second encoder pass over text `pii` has already read: 51 ms of the
-        # 116 ms an output-side scan used to cost. Defaulting to a private instance keeps
-        # the class usable on its own.
+        # 116 ms an output-side scan used to cost. Defaulting to a private instance
+        # keeps the class usable on its own.
         self._pii = shared if shared is not None else PiiDetector(threads=threads)
 
     def warm(self) -> None:

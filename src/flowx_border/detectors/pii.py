@@ -263,14 +263,14 @@ class PiiDetector:
     ) -> dict[tuple[int, int], tuple[str, float]]:
         """Every entity the model finds, before any policy filtering. Memoised.
 
-        Split out from `run` so that `output_leakage` can reuse the inference rather than
+        Split out from `run` so `output_leakage` can reuse the inference rather than
         repeat it. The two detectors already shared the session, which saved 279 MB of
         weights, but each still ran its own encoder pass over the same text: measured
         2026-08-11, 51 ms each and 116 ms for a full output-side scan, so about half of
         that was duplicated work for an identical answer.
 
         The cache key is the text and the window geometry, and deliberately not the
-        threshold or the entity list, because those filter a result rather than change it.
+        threshold or the entity list: those filter a result rather than change it.
         Two entries, which covers the input and output side of one exchange; a scan of a
         third text evicts the oldest.
 
@@ -338,8 +338,8 @@ class PiiDetector:
     def forget(self) -> None:
         """Drop the inference cache.
 
-        For measurement, and only for measurement. tests/test_budgets.py calls it between
-        timed iterations, because repeating one text would otherwise turn every reading
+        For measurement, and only for measurement. tests/test_budgets.py calls it
+        between timed iterations, because repeating one text would otherwise turn every reading
         after the first into a cache hit and a budget suite that measures cache hits
         measures nothing while still passing green.
         """
