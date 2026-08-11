@@ -20,7 +20,11 @@ from __future__ import annotations
 from collections.abc import Mapping
 
 from flowx_border.detectors.base import Detector
-from flowx_border.detectors.catalogue import CATALOGUE
+from flowx_border.detectors.catalogue import (
+    CATALOGUE,
+    REQUIREMENTS,
+    requirements_for,
+)
 from flowx_border.policy import Policy, PolicyError
 
 
@@ -41,10 +45,18 @@ def _build() -> dict[str, Detector]:
     phrasings file is read on first use, not here. Nothing in this function touches the
     network, which is what lets `loaded_detectors` be called from a scan path.
     """
+    from flowx_border.detectors.banned_terms import BannedTermsDetector
     from flowx_border.detectors.disclosure import DisclosureDetector
+    from flowx_border.detectors.internal_domains import InternalDomainsDetector
+    from flowx_border.detectors.invisible_text import InvisibleTextDetector
+    from flowx_border.detectors.markup_injection import MarkupInjectionDetector
+    from flowx_border.detectors.output_format import OutputFormatDetector
     from flowx_border.detectors.output_leakage import OutputLeakageDetector
     from flowx_border.detectors.pii import PiiDetector
     from flowx_border.detectors.secrets import SecretsDetector
+    from flowx_border.detectors.system_prompt_leakage import (
+        SystemPromptLeakageDetector,
+    )
 
     pii = PiiDetector()
 
@@ -53,6 +65,17 @@ def _build() -> dict[str, Detector]:
         # something useful on a machine that has never fetched a model.
         "secrets": SecretsDetector(),
         "disclosure": DisclosureDetector(),
+        "invisible_text": InvisibleTextDetector(),
+        # T1 rules, ported from the Guardrails Hub. Also no weights and no download,
+        # so they are available on the same machine the T0 pair is. Two of them need a
+        # list from the policy and report that they have none rather than reporting a
+        # clean scan, which is why they are loaded here but disabled in the shipped
+        # policies.
+        "banned_terms": BannedTermsDetector(),
+        "system_prompt_leakage": SystemPromptLeakageDetector(),
+        "markup_injection": MarkupInjectionDetector(),
+        "internal_domains": InternalDomainsDetector(),
+        "output_format": OutputFormatDetector(),
         # T1. Both share one piiguard session: constructing them does not load weights,
         # `warm()` does, and the second `warm()` is a cache hit rather than another
         # 279 MB.
@@ -62,6 +85,25 @@ def _build() -> dict[str, Detector]:
         # encoder once instead of twice over the same text.
         "output_leakage": OutputLeakageDetector(shared=pii),
     }
+
+    # Outside CORE, and therefore conditional. Absent rather than broken when the
+    # `sql` extra is not installed: a policy that enables it then gets
+    # DetectorUnavailableError at load, which is earlier and clearer than an ImportError
+    # from inside a scan. `missing_for` reports it by name either way.
+    from flowx_border.detectors.sql_injection import (
+        SqlInjectionDetector,
+        is_available,
+    )
+
+    if is_available():
+        built["sql_injection"] = SqlInjectionDetector()
+
+    # Also outside CORE, but always importable: it needs a network rather than a
+    # package. Loaded here and disabled in the shipped policies, so nothing reaches the
+    # network unless a caller turns it on and reads the deployment note.
+    from flowx_border.detectors.url_reachability import UrlReachabilityDetector
+
+    built["url_reachability"] = UrlReachabilityDetector()
 
     # Phase 4 adds: injection, regulated_advice, toxicity, nsfw, bias, gibberish,
     # politeness. Phase 5 adds: topic_scope, groundedness.
@@ -121,3 +163,25 @@ def assert_satisfiable(policy: Policy, side: str | None = None) -> None:
             "and text would pass as if checked. Either install the detector, or change "
             "its on_fail to 'flag' or 'log' so the gap is recorded rather than hidden."
         )
+
+
+def deployment_notes(policy: Policy) -> tuple[str, ...]:
+    """What this policy needs from the machine, beyond a CPU and the base install.
+
+    Empty for a policy that stays inside CORE, which is the common case and should stay
+    silent. One line per requirement otherwise, naming the detectors that bring it in.
+
+    This returns lines rather than raising or warning, on purpose. Needing a GPU is not
+    an error, and a library that logged a warning would put the message somewhere the
+    caller may not be looking. Handing back the lines lets the caller print them at
+    startup, put them in a health check, or ignore them, which is their call to make.
+    A caller that wants the check to be loud can treat a non-empty result as fatal.
+    """
+    enabled = [
+        detector_id for detector_id in CATALOGUE if policy.enabled_for(detector_id)
+    ]
+    return tuple(
+        f"{requirement}: {REQUIREMENTS[requirement]}. Required by "
+        f"{', '.join(detectors)}."
+        for requirement, detectors in requirements_for(enabled).items()
+    )

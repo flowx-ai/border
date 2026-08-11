@@ -17,18 +17,24 @@ scanner llm-guard shipped is in one of the two tables below.
 | llm-guard scanner | detector | tier | side |
 |---|---|---|---|
 | `Anonymize` | `pii` | T1 | input, output |
+| `BanCompetitors` | `banned_terms` | T1 | input, output |
+| `BanSubstrings` | `banned_terms` | T1 | input, output |
 | `BanTopics` | `topic_scope` | T3 | input |
 | `Bias` | `bias` | T2 | output |
 | `Deanonymize` | `output_leakage` | T1 | output |
 | `FactualConsistency` | `groundedness` | T3 | output |
 | `Gibberish` | `gibberish` | T1 | input |
+| `JSON` | `output_format` | T1 | output |
 | `NSFW` | `nsfw` | T2 | input, output |
 | `NoRefusal` | `politeness` | T2 | output |
 | `PromptInjection` | `injection` | T2 | input |
+| `ReadingTime` | `output_format` | T1 | output |
+| `Regex` | `output_format` | T1 | output |
 | `Relevance` | `topic_scope` | T3 | input |
 | `Secrets` | `secrets` | T0 | input |
 | `Sensitive` | `output_leakage` | T1 | output |
 | `Toxicity` | `toxicity` | T2 | input, output |
+| `URLReachability` | `url_reachability` | T3 | output |
 
 Two of these are worth a note.
 
@@ -48,20 +54,14 @@ and you should say so in your policy rather than assume it carried over.
 
 | llm-guard scanner | why not |
 |---|---|
-| `BanCode` | no code detector. Out of scope for v1; the detector set is fixed. |
-| `BanCompetitors` | a competitor wordlist is customer-specific data, not a model. Express it as a policy over topic_scope, or keep it in your own code. |
-| `BanSubstrings` | a substring list belongs in your code, not behind a model download. |
+| `BanCode` | no code detector. sql_injection parses generated SQL and says nothing about code in any other language, or about whether prose contains a code block. |
 | `Code` | no code detector, as above. |
-| `InvisibleText` | no zero-width or bidi-control detector yet. This is a real gap rather than a rejected idea: it is cheap and rule-based, and it would be a T0 addition. |
-| `JSON` | output shape validation is not a security check and is better done by your schema. |
+| `InvisibleText` | no detector reports these characters yet. Half the work is done: detectors/multilingual.py drops zero-width and format characters before matching, so they cannot be used to evade a term. What is missing is a detector that reports their presence as a finding in its own right. |
 | `Language` | no language identification detector. The library supports 26 languages in every detector rather than gating on which one a text is in. |
 | `LanguageSame` | no language identification, as above. |
-| `MaliciousURLs` | no URL reputation detector. It would need a network call at scan time, which constraint 1 rules out. |
-| `ReadingTime` | not a security check. |
-| `Regex` | a regex list belongs in your code, not behind a model download. |
+| `MaliciousURLs` | no URL reputation detector. url_reachability asks whether a link answers, which is a different question from whether it is hostile, and answering the second needs a reputation feed this library does not ship. |
 | `Sentiment` | no sentiment detector. politeness is the nearest, and it is not the same. |
-| `TokenLimit` | token counting is the caller's concern, not a security check. |
-| `URLReachability` | reachability is a network call at scan time, which constraint 1 rules out. |
+| `TokenLimit` | output_format counts graphemes and words, and a token limit is neither. Tokens depend on the tokenizer of the model you are calling, which this library does not know, so mapping this onto max_length would report a different number than the one you asked about. |
 
 `InvisibleText` is the one on that list worth flagging as a genuine gap rather than a
 rejected idea. Zero-width and bidi-control characters are a real prompt-injection vector,
@@ -75,10 +75,12 @@ instruction, not because it is a bad idea.
 # before
 from llm_guard import scan_prompt
 from llm_guard.input_scanners import Anonymize, PromptInjection
+
 sanitised, valid, scores = scan_prompt(prompt, [Anonymize(vault), PromptInjection()])
 
 # after
 from flowx_border.adapters.llm_guard_compat import scan_prompt
+
 sanitised, valid, scores = scan_prompt(prompt, ["Anonymize", "PromptInjection"])
 ```
 
@@ -98,6 +100,63 @@ Behaviour differences that the tuple cannot express:
 
 - `disclosure` (T0, output)
 - `regulated_advice` (T2, output)
+- `banned_terms` (T1, input and output)
+- `system_prompt_leakage` (T1, output)
+- `markup_injection` (T1, input and output)
+- `internal_domains` (T1, output)
+- `output_format` (T1, output)
+- `sql_injection` (T1, output, needs the `sql` extra)
+- `url_reachability` (T3, output, makes an HTTP request)
+- `invisible_text` (T0, input and output)
+
+The last eight arrived on 2026-08-11 with the Guardrails Hub port, and six of them
+moved a scanner out of the unsupported table above.
+
+## Scanners that gained a detector on 2026-08-11
+
+`BanSubstrings`, `BanCompetitors`, `JSON`, `Regex`, `ReadingTime` and `URLReachability`
+were all declined before that date because the detector they need did not exist. It
+does now, and they are mapped.
+
+**Five of them raise unless you pass a policy.** llm-guard configured a scan by how you
+built the scanner, `BanSubstrings(substrings=[...])`. Here configuration is policy, and
+this shim cannot read a constructor argument even when you pass an instance, because
+those attribute names are private to llm-guard and guessing one wrong yields an empty
+list rather than an error. An empty list is the case that matters: `banned_terms` with
+no terms reports `terms_not_configured` and finds nothing, so accepting the call would
+hand you a clean-looking tuple for a check that never ran. `UnconfiguredScannerError`
+names the option to set.
+
+| scanner | set this in your policy |
+|---|---|
+| `BanSubstrings` | `banned_terms.options.terms`, with `whole_words: false` |
+| `BanCompetitors` | `banned_terms.options.terms` |
+| `Regex` | `output_format.options.regex` |
+| `ReadingTime` | `output_format.options.max_reading_seconds` |
+| `JSON` | `output_format.options.json: true` |
+
+`URLReachability` is not on that list because it has usable defaults. It is the one
+mapping that changes what your deployment needs: `url_reachability` declares
+`requires={"network"}`, so enabling it puts a third party in the latency path of every
+scan. `registry.deployment_notes` returns a line saying so. It also refuses to request
+private addresses, which llm-guard's version does not, so a URL resolving to your
+intranet is reported rather than fetched.
+
+## Three that are still refused, and why the near miss was refused too
+
+`TokenLimit` looks like it maps to `output_format` and does not. That detector counts
+graphemes and words; a token limit counts tokens, and tokens depend on the tokenizer of
+the model you are calling, which this library does not know. Mapping it would report a
+different number than the one you asked about.
+
+`MaliciousURLs` looks like it maps to `url_reachability` and does not. Whether a link
+answers and whether a link is hostile are different questions, and the second needs a
+reputation feed this library does not ship.
+
+`InvisibleText` is no longer one of them. `invisible_text` closes it: it reports
+bidirectional controls, tag characters and zero-width characters, at T0, on both sides.
+The shim still raises for the scanner name, for the same reason as the entries above,
+and the mapping is a one-line change to `SUPPORTED` whenever somebody wants it.
 
 `disclosure` is the one to look at if you are here for an AI Act evidence trail: it
 reports whether a required disclosure is present in the output, in any of 26 languages,

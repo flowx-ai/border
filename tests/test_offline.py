@@ -42,12 +42,24 @@ MARKER = "Ionescu Bogdan, marie.dubois@bank.fr, AKIAIOSFODNN7EXAMPLE, +40 721 23
 
 
 def every_loaded_detector() -> Policy:
-    """A policy enabling every detector this install can actually provide.
+    """A policy enabling every detector this install provides and that belongs to CORE.
 
     Enabling one that is not loaded would raise DetectorUnavailableError before any scan
     happened, which would make this file pass for the wrong reason.
+
+    Detectors outside CORE are excluded by definition rather than by oversight. The
+    claim this file exists to defend is that a scan works with the interface down, and
+    that is a claim about CORE: `url_reachability` declares `requires={"network"}`, so
+    including it would be asserting the opposite of what it says about itself.
+
+    Excluding them explicitly rather than relying on the test text containing no URL is
+    the point. Before this, `url_reachability` would have passed here by accident,
+    because MARKER happens to have no link in it, and the first person to add one to a
+    fixture would have got a confusing failure in a file about something else.
     """
-    available = set(loaded_detectors())
+    from flowx_border.detectors.catalogue import CORE
+
+    available = set(loaded_detectors()) & CORE
     return Policy(
         policy_id="offline",
         version=1,

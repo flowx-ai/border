@@ -35,6 +35,8 @@ detectors:
     on_fail: block          # a leaked credential is not something to flag and forward
   disclosure:
     on_fail: flag           # absence of a disclosure is a reporting matter, not a refusal
+  invisible_text:
+    on_fail: redact         # strip them; the visible text is unchanged by doing so
 
   # T1.
   pii:
@@ -49,10 +51,49 @@ detectors:
     on_fail: flag           # cheap, and mostly useful as a signal not a gate
     threshold: 0.37
 
+  # T1, rules, ported from the Guardrails Hub. See
+  # docs/porting-guardrails-validators.md.
+  #
+  # The two list-driven ones are off by default because their entire input is data only
+  # the deployer has. Enabled with an empty list they report `terms_not_configured` and
+  # `domains_not_configured` on every scan, which is honest and also noise, so the
+  # shipped default is off rather than on and complaining.
+  banned_terms:
+    enabled: false
+    on_fail: flag
+    options:
+      terms: []             # your competitors, your banned words, your product names
+      whole_words: true     # false matches substrings, which flags innocent words
+      fold_diacritics: false
+  internal_domains:
+    enabled: false
+    on_fail: redact         # a hostname in an answer is worth removing, not refusing
+    options:
+      domains: []           # corp.internal, wiki.example.corp, and so on
+  output_format:
+    enabled: false          # shape, not security, and its shape is yours to state
+    on_fail: flag
+    options: {}
+  sql_injection:
+    enabled: false          # needs the `sql` extra; only a text-to-SQL product wants it
+    on_fail: block          # a statement that does more than asked is not redactable
+    options:
+      allow: [select]
+  system_prompt_leakage:
+    on_fail: flag           # needs no list: the phrase signal works in all 26 languages
+    threshold: 0.5
+  markup_injection:
+    on_fail: redact         # remove the executable fragment, keep the answer
+    # Left on for a general assistant. Turn it off for a coding assistant, where
+    # emitting a <script> tag is the product working rather than failing.
+
   # T2. May be disabled per policy.
   injection:
     on_fail: block
-    threshold: 0.4          # lower than default: a missed injection costs more than a review
+    # Lower than the default: a missed injection costs more than a review. Calibrated
+    # on the validation split, 2026-08-11. This key was listed twice with two different
+    # values until 2026-08-11; YAML silently keeps the last, so the effective threshold
+    # was always this one and removing the dead line changes nothing but the confusion.
     threshold: 0.43
   regulated_advice:
     on_fail: flag           # default install only reports; BFSI blocks, see bfsi.yaml
@@ -72,6 +113,12 @@ detectors:
     threshold: 0.5
 
   # T3. Runs only on escalation unless 'always' is set.
+  url_reachability:
+    enabled: false          # leaves the machine; see registry.deployment_notes
+    on_fail: flag           # a dead link is worth reporting, not worth refusing over
+    options:
+      deadline_ms: 2000     # total for the whole detector, not per URL
+      max_urls: 5
   topic_scope:
     on_fail: flag
     threshold: 0.45

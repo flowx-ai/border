@@ -68,6 +68,15 @@ matter across sessions:
 - Check the definition of done yourself rather than trusting a summary.
 - Commit at the end of each phase, tagged `phase-N`, so a bad phase is one revert.
 
+**Queued, after the Guardrails Hub migration:** work out whether new detectors should be
+added to complete the set, as opposed to ported into it. Queued by the owner on
+2026-08-11, deliberately after the port rather than folded into it. The raw material is
+already assembled and is listed at the end of
+`docs/porting-guardrails-validators.md`: the `gap = yes` rows of the declined table, the
+`UNSUPPORTED` table in `adapters/llm_guard_compat.py`, and the three detectors that ship
+unavailable for want of published weights. The output is a proposal with a tier and a
+budget per candidate, not a set of new detectors.
+
 Two deliberate deviations from the specified core types were made in phase 0 and are
 open for reversal on instruction:
 
@@ -92,39 +101,114 @@ Two functions. If a task appears to require a third public entry point, stop and
 ask before adding it. Everything else in the package is an implementation detail
 or an adapter.
 
-## Non-negotiable constraints
+## What a detector may need, and how a caller finds out
 
-1. **No network calls at scan time.** Model weights are fetched once at install or
-   first load and cached. `scan_input` and `scan_output` must work with the network
-   interface down. There is a test that asserts this. Do not weaken it.
-2. **CPU is the reference target.** Every detector must be usable on CPU within its
-   stated latency budget. GPU is an optimisation, never a requirement.
-3. **The detector set grows on instruction, and only on instruction.** It was fixed at
-   eight for v1. On 2026-08-10 the owner explicitly lifted that, twice and in writing,
-   to add five more: toxicity, NSFW, bias, gibberish and politeness, derived from the
-   Guardrails Hub validator set. So v1 is thirteen detectors.
+The goal is to offer everything useful for guarding LLM input and output. Nothing on
+this list is forbidden. What matters is that a caller knows what they are taking on when
+they enable a detector, and finds out at the moment they enable it rather than from a
+latency graph in production.
 
-   The original reasoning is preserved here because it has not been refuted, only
-   overruled: breadth is how the predecessor projects died, and toxicity specifically
-   was the example this file used to name as commodity. Anyone reading this later should
-   know the tradeoff was made deliberately rather than drifted into. The tier budgets and
-   the per-language reporting rules are what stop breadth from becoming shallowness, so
-   they matter more now, not less: a thirteenth detector that misses its budget or ships
-   without a per-language table is worse than no thirteenth detector.
+So this is a property of each detector rather than a rule in a document.
+`Spec.requires` in `detectors/catalogue.py` declares it, and
+`registry.deployment_notes(policy)` reads it back as one line per requirement, naming
+the detectors that brought it in. It returns lines rather than raising: needing a GPU is
+not an error, and a caller who wants it to be fatal can treat a non-empty result that
+way.
 
-   A fourteenth still needs an explicit instruction.
-4. **No LLM calls inside detectors.** Detectors are rules, NER models, or small
-   classifiers running locally. A detector that calls a hosted model is out of scope.
-5. **Policy is data, not code.** Policy lives in YAML validated by a Pydantic schema.
-   There is no Python callback in the policy file. A compliance officer who does not
-   write Python must be able to read and review a policy.
-6. **Deterministic given the same inputs and model revisions.** No sampling, no
-   temperature, no time-dependent behaviour inside a scan.
-7. **Dependencies are expensive.** Do not add a runtime dependency without asking.
-   The current allowed runtime set is: `pydantic`, `pyyaml`, `onnxruntime`,
-   `tokenizers`, `huggingface-hub`, `cryptography`. Anything else needs approval.
+### The packages
 
-## Detector set (fixed for v1)
+**Core** is every detector that needs nothing beyond a CPU and the base install. It runs
+on a laptop with the network interface down, and it is what a caller gets unless they
+enable something else deliberately. As of 2026-08-11 it is nineteen of the twenty-one.
+
+Two are outside it, and between them they exercise the whole mechanism:
+
+- `sql_injection` needs the sqlglot parser, so it declares `requires={"dependency"}`,
+  ships in the `sql` extra, and is absent from the registry rather than degraded to a
+  pass when that extra is not installed.
+- `url_reachability` makes an HTTP request, so it declares `requires={"network"}`. It is
+  T3, it is disabled in both shipped policies, and `tests/test_offline.py` excludes it
+  by definition: the claim that a scan works with the interface down is a claim about
+  CORE, and this is not in CORE. Its budget is the one entry in the whole table that is
+  a deadline the detector enforces on itself rather than a figure somebody measured,
+  because it depends on a network the library does not control.
+
+A text-to-SQL product wants the first and takes the dependency; a product that cites
+links wants the second and accepts the latency. Everyone else neither pays for them nor
+hears about them, and a policy that enables either gets told at load rather than in
+production.
+
+Beyond core, a detector declares one or more of these, and enabling it produces a note:
+
+| requires | what the caller is taking on |
+|---|---|
+| `network` | a third party in the latency path of every scan, and their outage becomes yours |
+| `gpu` | an accelerator, or a much slower scan on CPU |
+| `llm` | a generative model, reproducible only with decoding pinned |
+| `dependency` | a runtime dependency outside the base install |
+
+`docs/porting-guardrails-validators.md` tags the not-yet-built validators with the
+requirement each would bring, so the migration backlog and the packaging use one
+vocabulary.
+
+### The numbered entries, kept because other files cite them by number
+
+`adapters/llm_guard_compat.py`, `detectors/guardrails_hub.py` and the docs refer to
+these by number, so the numbering is stable even though several are now defaults rather
+than prohibitions.
+
+1. **Network at scan time.** Weights are fetched once at install or first load and
+   cached. Everything in core works with the interface down, and `tests/conftest.py`
+   blocks outbound connections for the whole suite, so a detector that needs egress
+   declares `requires={"network"}` and marks its tests `@pytest.mark.network`.
+2. **CPU is the reference target.** A detector that needs an accelerator declares
+   `requires={"gpu"}`. This is about who can deploy the library rather than principle:
+   an embeddable library that always needs a GPU is one most callers cannot embed.
+3. **A new detector has to earn its place, and there is no cap on how many can.** The
+   count gate went on 2026-08-11. It was eight for v1, thirteen on 2026-08-10, and
+   uncapped on 2026-08-11 when the Guardrails Hub port landed. v1 is twenty-one and
+   nineteen landed the same day. What is left is three things a detector must do:
+
+   - Work in all 26 languages, with fixtures for each and, if it is model-backed, a
+     per-language evaluation table rather than one aggregate.
+   - Meet its tier's budget at the reference input, asserted in `tests/test_budgets.py`.
+   - Never silently do nothing. Unconfigured, unavailable or uncomparable are findings
+     it reports, not conditions it passes through.
+
+   A fourth, "it answers a security or governance question", was dropped on 2026-08-11
+   when `output_format` landed. That one answers no security question and says so in its
+   own docstring; it exists so sixteen hub shape validators have one destination instead
+   of sixteen. Recorded as dropped rather than deleted, because collapsing sixteen into
+   one is still the right move for the seventeenth.
+
+   The reason the cap existed is kept because it was overruled rather than refuted:
+   breadth is how the predecessor projects died. Uncapped, the three rules above are
+   what stop breadth becoming shallowness, so they matter more now than they did.
+4. **A generative model inside a detector** declares `requires={"llm"}`, and `{"gpu"}`
+   too if it needs one. Small local models are legitimate detectors; Llama Guard and
+   ShieldGemma are the proof the category is useful. Two things to get right rather than
+   to avoid: pin greedy decoding and a seed, or entry 6 breaks and the evidence record
+   with it; and give it a budget it can actually meet, since a 1.6B generative pass on
+   CPU is far past the 300 ms T3 ceiling when the 278M encoders cost 51 ms. A
+   classification head on a small base answers most of the same questions without
+   either problem, so prefer it and say why when you do not.
+5. **Policy is data, not code.** Not a default, a requirement. `policy_hash` pins
+   behaviour only because the document fully determines behaviour, so a Python callback
+   in a policy file makes every evidence record citing that hash a weaker claim than it
+   looks. It is also what lets a compliance officer who does not write Python review a
+   policy.
+6. **Deterministic given the same inputs and model revisions.** Not a default either.
+   No sampling, no temperature, no clock inside a scan. `EvidenceRecord` exists to be
+   checked later by someone who was not there, and a record that cannot be reproduced is
+   a log line with a signature on it. A `requires={"llm"}` detector satisfies this by
+   pinning decoding, not by being exempt from it.
+7. **A new runtime dependency** is a judgement call about install weight and
+   supply-chain surface in a library other people embed. The base set is `pydantic`,
+   `pyyaml`, `onnxruntime`, `tokenizers`, `huggingface-hub` and `cryptography`. Add to
+   it when it buys something, say what, and declare `requires={"dependency"}` if it is
+   optional rather than base.
+
+## Detector set
 
 **The reference input, without which no budget below means anything.** 87 tokens of
 prose, 396 characters, one thread, CPU execution provider, INT8 weights. Measured
@@ -140,9 +224,17 @@ length the model was trained on. Budgets are per detector, per scan, at that inp
 |---|---|---|---|---|---|---|
 | `secrets` | input | T0 | regex + entropy | 1 ms | 0.04 ms | built |
 | `disclosure` | output | T0 | rule + template match | 5 ms | 0.04 ms | built |
+| `invisible_text` | input, output | T0 | rule | 5 ms | 0.04 ms | built |
 | `pii` | input, output | T1 | NER, XLM-R base ONNX | 75 ms | 51 ms | built |
 | `output_leakage` | output | T1 | NER, reuses `pii` weights | 75 ms | 51 ms | built |
 | `gibberish` | input | T1 | classifier | 75 ms | – | trained, not wired |
+| `banned_terms` | input, output | T1 | policy term list | 5 ms | 0.23 ms | built |
+| `system_prompt_leakage` | output | T1 | containment + phrases | 5 ms | 0.36 ms | built |
+| `markup_injection` | input, output | T1 | rule | 5 ms | 0.23 ms | built |
+| `internal_domains` | output | T1 | policy domain list | 5 ms | 0.23 ms | built |
+| `output_format` | output | T1 | policy shape assertions | 5 ms | 0.02 ms | built |
+| `sql_injection` | output | T1 | SQL parse tree, `sql` extra | 5 ms | 0.31 ms | built |
+| `url_reachability` | output | T3 | HTTP request, needs network | 3000 ms | deadline | built |
 | `injection` | input | T2 | classifier | 75 ms | – | trained, not wired |
 | `regulated_advice` | output | T2 | classifier | 75 ms | – | trained, not wired |
 | `toxicity` | input, output | T2 | classifier | 75 ms | – | trained, not wired |
@@ -250,12 +342,23 @@ src/flowx_border/
     base.py            # Detector protocol
     secrets.py         # T0
     disclosure.py      # T0
+    invisible_text.py  # T0, bidi controls, tag characters, zero-width
     pii.py             # T1
     injection.py       # T2
     regulated_advice.py# T2
     topic_scope.py     # T3
     groundedness.py    # T3
     output_leakage.py  # T1, reuses the pii session, does not load a second copy
+    multilingual.py    # folding and matching that behave alike in all 26 languages
+    banned_terms.py    # T1, policy-supplied term list
+    system_prompt_leakage.py  # T1, containment plus a 26-language phrase file
+    markup_injection.py# T1
+    internal_domains.py# T1, policy-supplied domain list
+    output_format.py   # T1, policy-supplied shape assertions, the only non-security one
+    sql_injection.py   # T1, sqlglot parse tree, requires the sql extra
+    url_reachability.py# T3, the only detector that leaves the machine
+    guardrails_hub.py  # provenance: which hub validators went where, and which did not
+    catalogue.py       # id to tier, sides and budget
   models/
     registry.py        # model id to HF repo and pinned revision
     onnx.py            # ONNX Runtime session management, warm-up, pooling
@@ -268,7 +371,10 @@ tests/
   test_offline.py      # asserts no socket use during scan
   test_budgets.py      # latency assertions
   test_evidence.py     # no raw text in records, reproducible hashes
+  test_multilingual.py # the folding core, and the upstream bugs it fixes, as regressions
 docs/
+  porting-guardrails-validators.md  # all 65 hub validators, rendered from the code
+  migrating-from-llm-guard.md
 policies/
   default.yaml
   bfsi.yaml
@@ -284,8 +390,16 @@ repository for this library. `models/registry.py` pins every entry to a commit s
 |---|---|---|
 | `secrets` | – | rules, no weights |
 | `disclosure` | – | rules plus a phrasings data file |
+| `invisible_text` | – | rules, no weights |
 | `pii` | `flowxai/piiguard` default, `flowxai/cee-pii` policy-selectable | piiguard has ONNX and INT8 published |
 | `output_leakage` | whichever session `pii` loaded | never a second copy |
+| `banned_terms` | – | rules over a policy-supplied term list |
+| `system_prompt_leakage` | – | rules plus a phrasings data file |
+| `markup_injection` | – | rules, no weights |
+| `internal_domains` | – | rules over a policy-supplied domain list |
+| `output_format` | – | rules over policy-supplied shape assertions |
+| `sql_injection` | – | the sqlglot parse tree, no weights |
+| `url_reachability` | – | an HTTP request, no weights |
 | `topic_scope` | `flowxai/semantic-mapper` | 4B generative, GGUF only, see the caveat below |
 | `injection` | none published | ships unavailable in v1 |
 | `regulated_advice` | none published | ships unavailable in v1 |
@@ -309,10 +423,27 @@ fallback. A real UK NINo carries no checksum, so a fallback is defensible, but t
 model learned a German-shaped number as a UK identifier. Do not state that English
 national IDs are checksum validated.
 
+**The seven ported from the Guardrails Hub carry no weights at all**, which is why they
+work on a machine that has never downloaded a model, the same as the T0 pair. Their
+provenance, and the 57 hub validators that were declined with the reason for each, are in
+`docs/porting-guardrails-validators.md`, rendered from `detectors/guardrails_hub.py` so
+the two cannot drift.
+
+**Llama Guard and ShieldGemma are a retrain, not a port.** Decided 2026-08-11. Both are
+moderation models whose entire value is weights this project cannot ship: Llama Guard is
+7B under the Llama Community Licence and ShieldGemma is 2B under the Gemma Terms of Use,
+and neither is Apache-2.0 compatible. The intent is our own, trained on a smaller Qwen
+base. Two things are unresolved and should be settled before that becomes a detector,
+because they are the same two that stopped `semantic-mapper`: a generative model reading a
+policy and writing a verdict is an LLM call inside a detector, which constraint 4 rules
+out at any size, and 1.6B generative is nowhere near a 75 ms CPU budget when the 278M
+encoders here cost 51 ms. Both point at a classification head on that base rather than a
+generative model.
+
 **Three detectors ship unavailable, and they ship loudly.** The registry entry names
 the intended repo, the detector raises an error naming the missing model, and the
 tests are `xfail` with the repo id in the comment. There is no silent no-op, because
-a silent no-op in a security library is a vulnerability. v1 is 5 of 8 detectors real,
+a silent no-op in a security library is a vulnerability. v1 is 13 of 21 detectors real,
 stated plainly in the README. Nothing on the site or in the docs may imply otherwise.
 
 **`semantic-mapper` does not fit the detector contract as it stands.** It is a 4B
@@ -473,12 +604,21 @@ Say that, and nothing more.
 
 ## When to stop and ask
 
-- A new runtime dependency.
-- A ninth detector.
-- A change to `Decision` or `EvidenceRecord`.
-- A third public function.
-- Anything that requires network access during a scan.
-- A latency budget change.
+This list shortened on 2026-08-11. Most of what was here was permission-seeking about
+things that are now judgement calls, and the answer to those is to decide, do it, and
+write down what it cost. What is left is the set where being wrong is expensive and
+quiet:
 
-In all of these, write the proposal into the response and wait. Do not implement and
-then explain.
+- **A change to `Decision` or `EvidenceRecord`.** Breaking, and every archived record
+  ever produced is downstream of it.
+- **Anything that makes a scan non-reproducible.** Sampling, a clock, a hosted call. See
+  defaults 5 and 6: this is what an evidence record is for.
+- **A third public function.** Two is the API. A third is a product decision.
+- **A latency budget change.** In its own commit, with the measurement in the message,
+  never in the same commit as the code that missed it.
+
+Everything else, including a new detector, a new runtime dependency, a local model
+inside a detector, or network access during a scan, is yours to decide. Decide it, land
+it, and declare what it needs in `Spec.requires` so the caller is told. Keep the record
+of what was overruled rather than deleting it. That is how the detector cap and this
+list were handled, and it is why both are still readable.

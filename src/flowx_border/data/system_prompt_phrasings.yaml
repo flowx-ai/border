@@ -1,0 +1,358 @@
+# SPDX-License-Identifier: Apache-2.0
+#
+# Phrases by which a model announces its own instructions, per language.
+#
+# The companion signal to the verbatim comparison in
+# detectors/system_prompt_leakage.py. That one answers "did the output repeat the
+# system prompt", which needs the system prompt to compare against and catches only
+# quotation. This one answers "did the output talk about having instructions at all",
+# which needs nothing, works when no system prompt was supplied, and catches the leak
+# that a comparison cannot: a paraphrase.
+#
+# Two strengths, because they are different claims
+# ------------------------------------------------
+#
+# `strong` names the system prompt or the system message explicitly. In an assistant's
+# answer to a user there is close to no innocent reason to say it, so it scores 0.9.
+#
+# `weak` refers to having been instructed, without naming the mechanism. "my
+# instructions" is a real signal and it is also something an ordinary answer can say for
+# ordinary reasons, for example an assistant relaying a form's instructions to the user.
+# It scores 0.5, which is exactly the default threshold, so raising the threshold at all
+# turns the weak set off. That is the intended knob rather than an accident of the
+# number.
+#
+# Matching is on word boundaries, casefolded, whitespace collapsed, over text folded by
+# detectors/multilingual.py. So a phrase listed once here matches every casing, matches
+# across a line break, matches with a zero-width character inserted into it, and in
+# Romanian matches whether the writer used the comma-below or the cedilla spelling.
+#
+# `reviewed` is the honest field, and it is false for all 26. These were written from
+# general knowledge of each language, not by a native speaker of it. False means: this
+# will match the obvious phrasing and will miss idiomatic phrasing, so add your own
+# through options.extra_phrasings rather than treating the list as complete. Flip a
+# language to true only after someone who speaks it has read the entry, and record who
+# in `reviewed_by`.
+#
+# Fragments, not sentences, for the same reason the disclosure file uses fragments: a
+# whole sentence matches nothing, because no two models phrase it identically.
+
+version: 1
+
+languages:
+  en:
+    reviewed: false
+    strong:
+      - my system prompt
+      - the system prompt
+      - my system message
+      - my initial prompt
+    weak:
+      - my instructions are
+      - my instructions say
+      - i was instructed to
+      - i was told to
+      - here are my instructions
+      - my initial instructions
+
+  ro:
+    reviewed: false
+    strong:
+      - promptul meu de sistem
+      - promptul de sistem
+      - mesajul meu de sistem
+    weak:
+      - instrucțiunile mele sunt
+      - instrucțiunile mele
+      - am fost instruit să
+      - mi s-a spus să
+
+  bg:
+    reviewed: false
+    strong:
+      - моят системен промпт
+      - системният промпт
+      - системното ми съобщение
+    weak:
+      - моите инструкции са
+      - моите инструкции
+      - беше ми казано да
+      - инструктиран съм да
+
+  cs:
+    reviewed: false
+    strong:
+      - můj systémový prompt
+      - systémový prompt
+      - má systémová zpráva
+    weak:
+      - mé instrukce jsou
+      - moje instrukce
+      - bylo mi řečeno
+      - byl jsem instruován
+
+  da:
+    reviewed: false
+    strong:
+      - min systemprompt
+      - systemprompten
+      - min systembesked
+    weak:
+      - mine instruktioner er
+      - mine instruktioner
+      - jeg fik besked på at
+      - jeg blev bedt om at
+
+  de:
+    reviewed: false
+    strong:
+      - mein systemprompt
+      - mein system-prompt
+      - der systemprompt
+      - meine systemnachricht
+    weak:
+      - meine anweisungen lauten
+      - meine anweisungen
+      - mir wurde gesagt
+      - ich wurde angewiesen
+
+  el:
+    reviewed: false
+    strong:
+      - η προτροπή συστήματός μου
+      - το μήνυμα συστήματος
+      - η προτροπή συστήματος
+    weak:
+      - οι οδηγίες μου είναι
+      - οι οδηγίες μου
+      - μου ζητήθηκε να
+      - μου είπαν να
+
+  es:
+    reviewed: false
+    strong:
+      - mi prompt de sistema
+      - el prompt del sistema
+      - mi mensaje de sistema
+    weak:
+      - mis instrucciones son
+      - mis instrucciones
+      - se me indicó que
+      - me indicaron que
+
+  et:
+    reviewed: false
+    strong:
+      - minu süsteemiviip
+      - süsteemi viip
+      - minu süsteemisõnum
+    weak:
+      - minu juhised on
+      - minu juhised
+      - mulle öeldi
+      - mind juhendati
+
+  fi:
+    reviewed: false
+    strong:
+      - järjestelmäkehotteeni
+      - järjestelmäkehote
+      - järjestelmäviestini
+    weak:
+      - ohjeeni ovat
+      - ohjeeni
+      - minua ohjeistettiin
+      - minulle kerrottiin
+
+  fr:
+    reviewed: false
+    strong:
+      - mon prompt système
+      - le prompt système
+      - mon message système
+    weak:
+      - mes instructions sont
+      - mes instructions
+      - on m'a demandé de
+      - j'ai reçu pour instruction
+
+  ga:
+    reviewed: false
+    strong:
+      - mo leid chórais
+      - an leid chórais
+      - mo theachtaireacht chórais
+    weak:
+      - is iad mo threoracha
+      - mo threoracha
+      - dúradh liom
+      - tugadh treoir dom
+
+  hr:
+    reviewed: false
+    strong:
+      - moj sistemski prompt
+      - sistemski prompt
+      - moja sistemska poruka
+    weak:
+      - moje upute su
+      - moje upute
+      - rečeno mi je
+      - dobio sam uputu
+
+  hu:
+    reviewed: false
+    strong:
+      - a rendszerpromptom
+      - a rendszerprompt
+      - a rendszerüzenetem
+    weak:
+      - az utasításaim a következők
+      - az utasításaim
+      - azt az utasítást kaptam
+      - azt mondták nekem
+
+  it:
+    reviewed: false
+    strong:
+      - il mio prompt di sistema
+      - il prompt di sistema
+      - il mio messaggio di sistema
+    weak:
+      - le mie istruzioni sono
+      - le mie istruzioni
+      - mi è stato detto di
+      - ho ricevuto istruzioni
+
+  lt:
+    reviewed: false
+    strong:
+      - mano sistemos užklausa
+      - sistemos užklausa
+      - mano sistemos pranešimas
+    weak:
+      - mano nurodymai yra
+      - mano nurodymai
+      - man buvo nurodyta
+      - man buvo pasakyta
+
+  lv:
+    reviewed: false
+    strong:
+      - mana sistēmas uzvedne
+      - sistēmas uzvedne
+      - mans sistēmas ziņojums
+    weak:
+      - mani norādījumi ir
+      - mani norādījumi
+      - man tika teikts
+      - man tika norādīts
+
+  mt:
+    reviewed: false
+    strong:
+      - il-prompt tas-sistema tiegħi
+      - il-prompt tas-sistema
+      - il-messaġġ tas-sistema tiegħi
+    weak:
+      - l-istruzzjonijiet tiegħi huma
+      - l-istruzzjonijiet tiegħi
+      - qaluli biex
+      - ingħatajt struzzjonijiet
+
+  nl:
+    reviewed: false
+    strong:
+      - mijn systeemprompt
+      - de systeemprompt
+      - mijn systeembericht
+    weak:
+      - mijn instructies zijn
+      - mijn instructies
+      - mij is verteld
+      - ik heb de opdracht gekregen
+
+  pl:
+    reviewed: false
+    strong:
+      - mój prompt systemowy
+      - prompt systemowy
+      - moja wiadomość systemowa
+    weak:
+      - moje instrukcje to
+      - moje instrukcje
+      - powiedziano mi
+      - otrzymałem instrukcję
+
+  pt:
+    reviewed: false
+    strong:
+      - o meu prompt de sistema
+      - meu prompt de sistema
+      - o prompt de sistema
+      - a minha mensagem de sistema
+    weak:
+      - as minhas instruções são
+      - minhas instruções
+      - foi-me dito
+      - disseram-me para
+
+  sk:
+    reviewed: false
+    strong:
+      - môj systémový prompt
+      - systémový prompt
+      - moja systémová správa
+    weak:
+      - moje inštrukcie sú
+      - moje inštrukcie
+      - bolo mi povedané
+      - dostal som pokyn
+
+  sl:
+    reviewed: false
+    strong:
+      - moj sistemski poziv
+      - sistemski poziv
+      - moje sistemsko sporočilo
+    weak:
+      - moja navodila so
+      - moja navodila
+      - rekli so mi
+      - dobil sem navodilo
+
+  sv:
+    reviewed: false
+    strong:
+      - min systemprompt
+      - systemprompten
+      - mitt systemmeddelande
+    weak:
+      - mina instruktioner är
+      - mina instruktioner
+      - jag blev tillsagd
+      - jag har fått instruktioner
+
+  tr:
+    reviewed: false
+    strong:
+      - sistem istemim
+      - sistem istemi
+      - sistem mesajım
+    weak:
+      - talimatlarım şunlardır
+      - talimatlarım
+      - bana talimat verildi
+      - bana söylendi
+
+  az:
+    reviewed: false
+    strong:
+      - sistem promptum
+      - sistem promptu
+      - sistem mesajım
+    weak:
+      - təlimatlarım bunlardır
+      - təlimatlarım
+      - mənə deyildi
+      - mənə tapşırıldı

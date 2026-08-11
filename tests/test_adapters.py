@@ -29,7 +29,7 @@ from flowx_border.adapters.llm_guard_compat import (
     scan_output,
     scan_prompt,
 )
-from flowx_border.detectors.catalogue import CATALOGUE
+from flowx_border.detectors.catalogue import ALWAYS_ON, CATALOGUE
 from flowx_border.policy import DetectorPolicy, Policy
 
 # `secrets` and `disclosure` are the two detectors that need no weights, so an adapter
@@ -175,8 +175,12 @@ def a_policy() -> Policy:
         version=1,
         fail_mode=dict.fromkeys(("T0", "T1", "T2", "T3"), "open"),
         detectors={
+            # ALWAYS_ON rather than a literal pair: T0 cannot be disabled, and naming
+            # the T0 detectors here means this helper breaks every time one is added.
+            # It did, when `invisible_text` landed.
             name: DetectorPolicy(
-                enabled=name in ("secrets", "disclosure"), on_fail="redact"
+                enabled=name in ALWAYS_ON or name in ("secrets", "disclosure"),
+                on_fail="redact",
             )
             for name in CATALOGUE
         },
@@ -221,7 +225,8 @@ def test_the_langgraph_node_routes_on_block_rather_than_raising() -> None:
             # validator refuses to construct a policy that tries. It is output-side, so
             # it has no effect on the input scans below.
             name: DetectorPolicy(
-                enabled=name in ("secrets", "disclosure"), on_fail="block"
+                enabled=name in ALWAYS_ON or name in ("secrets", "disclosure"),
+                on_fail="block",
             )
             for name in CATALOGUE
         },
@@ -296,7 +301,8 @@ def test_the_fastapi_dependency_returns_422_on_a_block() -> None:
             # validator refuses to construct a policy that tries. It is output-side, so
             # it has no effect on the input scans below.
             name: DetectorPolicy(
-                enabled=name in ("secrets", "disclosure"), on_fail="block"
+                enabled=name in ALWAYS_ON or name in ("secrets", "disclosure"),
+                on_fail="block",
             )
             for name in CATALOGUE
         },
@@ -404,7 +410,8 @@ def test_the_fastapi_middleware_blocks_a_request_field() -> None:
         fail_mode=dict.fromkeys(("T0", "T1", "T2", "T3"), "open"),
         detectors={
             name: DetectorPolicy(
-                enabled=name in ("secrets", "disclosure"), on_fail="block"
+                enabled=name in ALWAYS_ON or name in ("secrets", "disclosure"),
+                on_fail="block",
             )
             for name in CATALOGUE
         },
@@ -442,7 +449,8 @@ def test_the_fastapi_middleware_redacts_a_response_field() -> None:
         fail_mode=dict.fromkeys(("T0", "T1", "T2", "T3"), "open"),
         detectors={
             name: DetectorPolicy(
-                enabled=name in ("secrets", "disclosure", "pii"), on_fail="redact"
+                enabled=name in ALWAYS_ON or name in ("secrets", "disclosure", "pii"),
+                on_fail="redact",
             )
             for name in CATALOGUE
         },
@@ -495,3 +503,126 @@ def test_the_middleware_only_touches_the_paths_it_was_given() -> None:
 
     # Outside the configured paths, so it is not scanned and not redacted.
     assert "AKIA" in TestClient(app).get("/healthz").json()["completion"]
+
+
+# ------------------------------------------- scanners that gained a home on 2026-08-11
+
+
+#: Every scanner llm-guard shipped. Pinned as a count so that a scanner disappearing
+#: from both tables fails here.
+#:
+#: This test exists because exactly that happened while the six below were being moved:
+#: a search-and-replace took `Regex` and `ReadingTime` out of SUPPORTED instead of
+#: UNSUPPORTED, and for a few minutes they were in neither. Nothing caught it. The doc
+#: test iterates the union of the two tables, so a scanner missing from both is missing
+#: from the assertion as well, and the shim would have raised "not a known llm-guard
+#: scanner" for a check it performs.
+LLM_GUARD_SCANNER_COUNT = 27
+
+NEWLY_SUPPORTED = {
+    "BanSubstrings": "banned_terms",
+    "BanCompetitors": "banned_terms",
+    "JSON": "output_format",
+    "Regex": "output_format",
+    "ReadingTime": "output_format",
+    "URLReachability": "url_reachability",
+}
+
+
+def test_every_llm_guard_scanner_is_in_exactly_one_table() -> None:
+    assert len(SUPPORTED) + len(UNSUPPORTED) == LLM_GUARD_SCANNER_COUNT
+    assert not set(SUPPORTED) & set(UNSUPPORTED)
+
+
+@pytest.mark.parametrize("scanner", sorted(NEWLY_SUPPORTED))
+def test_a_scanner_that_gained_a_detector_is_no_longer_refused(scanner: str) -> None:
+    assert scanner not in UNSUPPORTED
+    assert SUPPORTED[scanner] == NEWLY_SUPPORTED[scanner]
+
+
+def test_token_limit_is_still_refused_because_the_units_differ() -> None:
+    """The mapping that was almost made and would have been wrong.
+
+    `output_format` counts graphemes and words. A token limit counts tokens, which
+    depend on the tokenizer of the model being called, and this library does not know
+    which model that is. Mapping it onto `max_length` would report a different number
+    than the one the caller asked about, which is the "approximately right is worse than
+    absent" failure this module's own header warns about.
+    """
+    assert "TokenLimit" not in SUPPORTED
+    assert "graphemes and words" in UNSUPPORTED["TokenLimit"]
+
+
+def test_malicious_urls_is_still_refused_and_says_why_reachability_is_not_it() -> None:
+    # url_reachability asks whether a link answers. That is a different question from
+    # whether it is hostile.
+    assert "MaliciousURLs" not in SUPPORTED
+    assert "different question" in UNSUPPORTED["MaliciousURLs"]
+
+
+def test_a_scanner_needing_configuration_raises_without_a_policy() -> None:
+    """The alternative would be a clean-looking tuple for a check that never ran.
+
+    `banned_terms` with no terms reports `terms_not_configured` and finds nothing, so
+    accepting the call would hand back `valid=True` for a competitor list nobody
+    supplied.
+    """
+    from flowx_border.adapters.llm_guard_compat import (
+        NEEDS_POLICY,
+        UnconfiguredScannerError,
+    )
+
+    for scanner in NEEDS_POLICY:
+        with pytest.raises(UnconfiguredScannerError, match="only a policy can carry"):
+            scan_prompt("some text", [scanner])
+
+
+def test_the_error_names_the_option_to_set() -> None:
+    from flowx_border.adapters.llm_guard_compat import UnconfiguredScannerError
+
+    with pytest.raises(UnconfiguredScannerError, match=r"banned_terms\.options\.terms"):
+        scan_prompt("some text", ["BanSubstrings"])
+
+
+def test_every_scanner_needing_a_policy_is_one_this_shim_supports() -> None:
+    from flowx_border.adapters.llm_guard_compat import NEEDS_POLICY
+
+    assert set(NEEDS_POLICY) <= set(SUPPORTED)
+
+
+def test_a_configured_scanner_runs_and_finds_what_it_was_given() -> None:
+    """End to end through the shim, with the policy carrying what the constructor used
+    to."""
+    from flowx_border.policy import DetectorPolicy, Policy
+
+    policy = Policy(
+        policy_id="compat",
+        version=1,
+        fail_mode=dict.fromkeys(("T0", "T1", "T2", "T3"), "open"),
+        detectors={
+            "banned_terms": DetectorPolicy(
+                enabled=True,
+                on_fail="flag",
+                options={"terms": ["Acme"], "whole_words": True},
+            ),
+            "disclosure": DetectorPolicy(enabled=True, on_fail="log"),
+        },
+    )
+    _text, valid, scores = scan_output(
+        "who is the competition?",
+        "Acme is the competition.",
+        ["BanCompetitors"],
+        policy,
+    )
+    assert valid["banned_terms"] is False
+    assert scores["banned_terms"] == 1.0
+
+
+def test_a_scanner_needing_no_configuration_still_works_without_a_policy() -> None:
+    # URLReachability has usable defaults, so it is not in NEEDS_POLICY and a bare call
+    # is accepted. No link in the text, so nothing is requested and the guard in
+    # conftest stays satisfied.
+    _text, valid, _scores = scan_output(
+        "q", "An answer with no links in it.", ["URLReachability"]
+    )
+    assert valid["url_reachability"] is True

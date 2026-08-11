@@ -30,6 +30,8 @@ detectors:
     on_fail: block
   disclosure:
     on_fail: block          # a missing AI disclosure is itself a compliance finding here
+  invisible_text:
+    on_fail: block          # smuggled instructions are not something to redact and forward
 
   pii:
     on_fail: redact
@@ -42,6 +44,39 @@ detectors:
   gibberish:
     on_fail: flag
     threshold: 0.7
+
+  # Enabled with empty lists on purpose, which is the opposite of default.yaml's choice
+  # and follows from this file's philosophy rather than contradicting it. Until you fill
+  # these in, every evidence record carries `terms_not_configured` and
+  # `domains_not_configured` at action `log`. In a regulated context that line is the
+  # useful artifact: it is an enabled control with no configuration, visible to whoever
+  # reads the record, rather than a control that is quietly absent. Fill them in and the
+  # lines go away.
+  banned_terms:
+    enabled: true
+    on_fail: block          # a term list here is usually a prohibited-recommendation list
+    options:
+      terms: []             # fill in: sanctioned entities, prohibited product names
+      whole_words: true
+  internal_domains:
+    enabled: true
+    on_fail: block          # topology in an outbound answer is a reportable event
+    options:
+      domains: []           # fill in: your internal hostnames
+  output_format:
+    enabled: false          # nothing here is a compliance control
+    on_fail: flag
+    options: {}
+  sql_injection:
+    enabled: false          # enable with allow: [select] if you generate SQL
+    on_fail: block          # a statement that does more than asked is not redactable
+    options:
+      allow: [select]
+  system_prompt_leakage:
+    on_fail: block          # the instructions behind a regulated assistant are not public
+    threshold: 0.4          # lower than default: prefer a false positive to a leak
+  markup_injection:
+    on_fail: block
 
   injection:
     on_fail: block
@@ -60,6 +95,13 @@ detectors:
     threshold: 0.5
   politeness:
     enabled: true
+    on_fail: flag
+
+  # Disabled even here, and especially here. Every scan would put a third party in
+  # the request path of a regulated assistant, and this file fails T1 closed, so an
+  # outage at that third party would become an outage here.
+  url_reachability:
+    enabled: false
     on_fail: flag
 
   topic_scope:
