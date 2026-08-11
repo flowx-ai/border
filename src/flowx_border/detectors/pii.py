@@ -339,9 +339,9 @@ class PiiDetector:
         """Drop the inference cache.
 
         For measurement, and only for measurement. tests/test_budgets.py calls it
-        between timed iterations, because repeating one text would otherwise turn every reading
-        after the first into a cache hit and a budget suite that measures cache hits
-        measures nothing while still passing green.
+        between timed iterations. Repeating one text would otherwise turn every
+        reading after the first into a cache hit, and a budget suite that measures
+        cache hits measures nothing while still passing green.
         """
         with self._cache_lock:
             self._cache.clear()

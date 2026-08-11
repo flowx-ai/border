@@ -88,9 +88,9 @@ def p95(
     """Milliseconds at the 95th percentile, after an unmeasured warm-up.
 
     `before` runs outside the timed region on every iteration, and it exists because
-    of a trap this file walked into. `pii` memoises its inference, so repeating the same text
-    makes every iteration after the first a cache hit, and a budget suite that measures
-    cache hits measures nothing while still passing. Model measurements pass a hook that
+    of a trap this file walked into. `pii` memoises its inference, so repeating one
+    text makes every iteration after the first a cache hit, and a budget suite that
+    measures cache hits measures nothing while still passing. Model measurements pass a hook that
     drops the cache, so each iteration is a real encoder pass.
     """
     for _ in range(3):
