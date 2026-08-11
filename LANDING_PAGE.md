@@ -48,39 +48,90 @@ The better structural references for tone and layout are open-source project sit
 Microsoft Presidio, Pydantic, LiteLLM, Ollama, Mistral. Docs-forward, install command
 high on the page, GitHub link prominent, no "Book a demo" as the primary action.
 
+### Counter-checklist
+
+Their dedicated open-source product page was reviewed in August 2026. Each item below
+is a specific failure observed there and a requirement for our site. Treat this as a
+pre-launch checklist.
+
+| Observed there | Required here |
+|---|---|
+| No install command anywhere on the page | `pip install flowx-border` in the hero, copy-able, and repeated at the foot of every page |
+| No repository link, no star count | GitHub link in the nav with live star count |
+| No code sample at all | A real, runnable sample above the fold |
+| Latency asserted, never measured | Every latency figure links to `/benchmarks` |
+| No detector list, only a count | Full table of all eight, with tier and budget |
+| Primary button routes to a hosted product | Primary action is the install command; there is no hosted product |
+| Closing call to action promotes a different product | One consistent action per page, checked at review |
+| Unsourced ranking claim in the headline | No ranking or superlative claims, ever |
+| Breadth headlined as the strength ("65+" contributions) | Depth headlined instead: eight detectors, measured, maintained |
+| Same generic logo strip as the corporate site | No logo strip, no testimonials, no borrowed social proof |
+
+The strategic lesson underneath the list: their open-source page functions as a funnel
+into a commercial product rather than as a home for the library, and the library's
+audience noticed. Our page has nothing to upsell. If a section on our site would only
+make sense as a funnel step, delete it.
+
 ---
 
 ## 3. Domain and stack
 
+- **Domain:** `border.flowx.ai`. This is decided, not a recommendation.
+- **Redirect:** `flowx.ai/border` and `www.flowx.ai/border` both 301 to
+  `https://border.flowx.ai/`. Claim the path so nobody later builds a second page
+  there.
 - **Stack:** Next.js App Router on Vercel, matching the existing FlowX website
   rebuild. Reuse its component conventions and Tailwind config where they fit.
-- **Domain:** ship at `flowx.ai/border` unless instructed otherwise. A path on the
-  main domain inherits its authority, which matters for a project whose whole
-  strategy is discoverability. Reserve `border.flowx.ai` as a redirect.
+- **Separate repo, separate Vercel project.** Do not build this inside the main
+  website repo. The OSS site ships on the library's release cadence, not the marketing
+  site's, and coupling the two deploys will slow both.
 - **No CMS for v1.** MDX files in the repo for blog and use-case content.
-- Docs live at `flowx.ai/border/docs`, generated from the repo's `docs/` directory so
-  there is exactly one source of truth. Do not hand-write docs content in the website
-  repo.
+- Docs live at `border.flowx.ai/docs`, generated from the library repo's `docs/`
+  directory so there is exactly one source of truth. Do not hand-write docs content in
+  the website repo. Note that `docs.flowx.ai` is the platform documentation and is a
+  different property; do not put library docs there and do not link to it as if it
+  covers this project.
+
+### Consequences of the subdomain choice
+
+A subdomain does not inherit the main domain's authority the way a path does, so
+discovery has to be earned rather than borrowed. Three things compensate and all three
+are required at launch:
+
+1. **Inbound links from `flowx.ai`.** At minimum: the Research menu under Open models,
+   the Developers menu under Models, and the main site footer under Resources. These
+   are the strongest signals available and they cost nothing.
+2. **Links from where the audience already is.** The PyPI project page, the GitHub
+   repository description and README, and every Hugging Face model card must link to
+   `border.flowx.ai`. For this project those are likely to out-perform the website's
+   own SEO.
+3. **Its own sitemap and Search Console property.** Register the subdomain separately.
+   It will not appear in the main property's reports.
+
+The upside of the subdomain is real and worth stating: independent deploys, a clean
+open-source identity that does not read as a marketing sub-page, and the freedom to
+ship a light theme that diverges from the main site without an argument about brand
+consistency.
 
 ---
 
 ## 4. Sitemap
 
 ```
-/border                          home
-/border/use-cases                index
-  /pii-redaction
-  /regulated-advice
-  /agent-boundaries
-  /multilingual
-  /audit-evidence
-/border/models                   the open-weight models, links to Hugging Face
-/border/benchmarks               reproducible numbers
-/border/docs                     generated from repo docs/
-/border/blog                     MDX index and posts
-/border/resources                papers, talks, migration guide, changelog
-/border/legal/terms-of-use
-/border/legal/privacy-policy
+/                                home
+/use-cases                       index
+  /use-cases/pii-redaction
+  /use-cases/regulated-advice
+  /use-cases/agent-boundaries
+  /use-cases/multilingual
+  /use-cases/audit-evidence
+/models                          the open-weight models, links to Hugging Face
+/benchmarks                      reproducible numbers
+/docs                            generated from the library repo docs/
+/blog                            MDX index and posts
+/resources                       papers, talks, migration guide, changelog
+/legal/terms-of-use
+/legal/privacy-policy
 ```
 
 **Nav (desktop):** Use cases, Models, Benchmarks, Docs, Blog. Right side: GitHub link
@@ -95,9 +146,15 @@ Privacy policy, License) / FlowX (About FlowX.AI, Agent Builder, Observatory,
 Careers).
 
 **FlowX attribution:** every page footer carries "An open-source project by FlowX.AI"
-linking to flowx.ai. On the home page it also appears once above the fold, small. Do
+linking to `flowx.ai`. On the home page it also appears once above the fold, small. Do
 not put a FlowX logo lockup in the header nav, because that reads as a vendor
 brochure and suppresses the community signal the project depends on.
+
+Because this is a standalone subdomain rather than a page inside the main site, the
+site must establish its own identity in the header: the project name, the version, and
+the GitHub link. The relationship to FlowX is stated, not assumed. A visitor arriving
+from PyPI or Hugging Face has no context and should be able to tell within one screen
+what the project is and who publishes it.
 
 ---
 
@@ -318,6 +375,10 @@ WCAG AA contrast, semantic landmarks, real `<h1>` per page.
 - One `<h1>` per page matching the primary query intent.
 - Structured data: `SoftwareSourceCode` on home, `TechArticle` on docs and blog,
   `BreadcrumbList` on nested pages, `Organization` pointing at FlowX.AI.
+- Canonical URLs use `https://border.flowx.ai` throughout. No canonical should ever
+  point at `flowx.ai`, since these are different properties with different content.
+- `sitemap.xml` and `robots.txt` at the subdomain root. Register
+  `border.flowx.ai` as its own Search Console property.
 - The queries to target are problem-shaped, not brand-shaped: alternatives to an
   archived scanning library, checking LLM output for personal data, detecting
   financial advice in model output, running detection without sending data to a
@@ -325,8 +386,10 @@ WCAG AA contrast, semantic landmarks, real `<h1>` per page.
 - Answer-engine formatting: each page opens with a two-to-three sentence direct
   answer to its own title question before any marketing framing. Use plain tables
   rather than styled divs for comparison data so they extract cleanly.
-- `llms.txt` at the site root summarising the project and linking to key pages.
+- `llms.txt` at the subdomain root summarising the project and linking to key pages.
 - Real OpenGraph images per page, generated at build time, not one shared default.
+  These must be distinct from the main FlowX OG image, since the two properties will
+  otherwise be indistinguishable when shared.
 
 ---
 

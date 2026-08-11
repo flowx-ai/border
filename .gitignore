@@ -21,3 +21,7 @@ models_cache/
 
 # OS
 .DS_Store
+
+# Worktrees created by the agent harness. Each is a full checkout of this
+# repository; committing one would nest the repo inside itself.
+.claude/worktrees/

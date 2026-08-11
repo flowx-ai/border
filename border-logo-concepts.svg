@@ -1,0 +1,96 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 545" width="920" height="545" font-family="'Geist Mono', ui-monospace, SFMono-Regular, Menlo, monospace">
+  <defs>
+    <!-- A. Crossing: flow passes two checks, interior is the marked segment -->
+    <g id="mA">
+      <line x1="2" y1="32" x2="17" y2="32" stroke="#0A0B0D" stroke-width="3"/>
+      <line x1="19" y1="32" x2="45" y2="32" stroke="#FCB813" stroke-width="3"/>
+      <line x1="47" y1="32" x2="62" y2="32" stroke="#0A0B0D" stroke-width="3"/>
+      <line x1="19" y1="11" x2="19" y2="53" stroke="#0A0B0D" stroke-width="5" stroke-linecap="round"/>
+      <line x1="45" y1="11" x2="45" y2="53" stroke="#0A0B0D" stroke-width="5" stroke-linecap="round"/>
+    </g>
+    <!-- A inverted for dark surfaces -->
+    <g id="mAi">
+      <line x1="2" y1="32" x2="17" y2="32" stroke="#F4F5F3" stroke-width="3"/>
+      <line x1="19" y1="32" x2="45" y2="32" stroke="#FCB813" stroke-width="3"/>
+      <line x1="47" y1="32" x2="62" y2="32" stroke="#F4F5F3" stroke-width="3"/>
+      <line x1="19" y1="11" x2="19" y2="53" stroke="#F4F5F3" stroke-width="5" stroke-linecap="round"/>
+      <line x1="45" y1="11" x2="45" y2="53" stroke="#F4F5F3" stroke-width="5" stroke-linecap="round"/>
+    </g>
+    <!-- B. Interrupted frame: edges heavy, interior edges hairline -->
+    <g id="mB">
+      <line x1="14" y1="12" x2="50" y2="12" stroke="#0A0B0D" stroke-width="1.5"/>
+      <line x1="14" y1="52" x2="50" y2="52" stroke="#0A0B0D" stroke-width="1.5"/>
+      <line x1="14" y1="9" x2="14" y2="55" stroke="#FCB813" stroke-width="6" stroke-linecap="round"/>
+      <line x1="50" y1="9" x2="50" y2="55" stroke="#FCB813" stroke-width="6" stroke-linecap="round"/>
+    </g>
+    <!-- C. Gate and payload -->
+    <g id="mC">
+      <line x1="16" y1="10" x2="16" y2="54" stroke="#0A0B0D" stroke-width="5" stroke-linecap="round"/>
+      <line x1="48" y1="10" x2="48" y2="54" stroke="#0A0B0D" stroke-width="5" stroke-linecap="round"/>
+      <circle cx="32" cy="32" r="6.5" fill="#FCB813"/>
+    </g>
+    <!-- D. Free movement inside -->
+    <g id="mD">
+      <line x1="14" y1="10" x2="14" y2="54" stroke="#FCB813" stroke-width="5.5" stroke-linecap="round"/>
+      <line x1="50" y1="10" x2="50" y2="54" stroke="#FCB813" stroke-width="5.5" stroke-linecap="round"/>
+      <line x1="23" y1="32" x2="41" y2="32" stroke="#0A0B0D" stroke-width="3" stroke-dasharray="3.5 4.5" stroke-linecap="round"/>
+    </g>
+  </defs>
+
+  <rect width="920" height="545" fill="#F4F5F3"/>
+
+  <text x="40" y="42" font-size="19" fill="#0A0B0D" letter-spacing="-0.3">border · mark concepts</text>
+  <text x="40" y="64" font-size="11.5" fill="#6B6B63" letter-spacing="0.06em">FOUR DIRECTIONS · SHOWN AT 96PX, 28PX AND 16PX</text>
+  <line x1="40" y1="84" x2="880" y2="84" stroke="#FCB813" stroke-width="2"/>
+
+  <!-- A -->
+  <g transform="translate(97,116) scale(1.5)"><use href="#mA"/></g>
+  <g transform="translate(117,236) scale(0.4375)"><use href="#mA"/></g>
+  <g transform="translate(157,242) scale(0.25)"><use href="#mA"/></g>
+  <text x="40" y="292" font-size="12" fill="#0A0B0D" letter-spacing="0.06em">A · CROSSING</text>
+  <text x="40" y="312" font-size="11.5" fill="#6B6B63">Flow passes two checks.</text>
+  <text x="40" y="328" font-size="11.5" fill="#6B6B63">The segment between them</text>
+  <text x="40" y="344" font-size="11.5" fill="#6B6B63">is the verified interior.</text>
+
+  <!-- B -->
+  <g transform="translate(307,116) scale(1.5)"><use href="#mB"/></g>
+  <g transform="translate(327,236) scale(0.4375)"><use href="#mB"/></g>
+  <g transform="translate(367,242) scale(0.25)"><use href="#mB"/></g>
+  <text x="250" y="292" font-size="12" fill="#0A0B0D" letter-spacing="0.06em">B · INTERRUPTED FRAME</text>
+  <text x="250" y="312" font-size="11.5" fill="#6B6B63">Boundaries heavy, interior</text>
+  <text x="250" y="328" font-size="11.5" fill="#6B6B63">edges hairline. The layout</text>
+  <text x="250" y="344" font-size="11.5" fill="#6B6B63">rule, drawn as a mark.</text>
+
+  <!-- C -->
+  <g transform="translate(517,116) scale(1.5)"><use href="#mC"/></g>
+  <g transform="translate(537,236) scale(0.4375)"><use href="#mC"/></g>
+  <g transform="translate(577,242) scale(0.25)"><use href="#mC"/></g>
+  <text x="460" y="292" font-size="12" fill="#0A0B0D" letter-spacing="0.06em">C · GATE AND PAYLOAD</text>
+  <text x="460" y="312" font-size="11.5" fill="#6B6B63">Two checks, one thing held</text>
+  <text x="460" y="328" font-size="11.5" fill="#6B6B63">between them. Simplest and</text>
+  <text x="460" y="344" font-size="11.5" fill="#6B6B63">strongest at small sizes.</text>
+
+  <!-- D -->
+  <g transform="translate(727,116) scale(1.5)"><use href="#mD"/></g>
+  <g transform="translate(747,236) scale(0.4375)"><use href="#mD"/></g>
+  <g transform="translate(787,242) scale(0.25)"><use href="#mD"/></g>
+  <text x="670" y="292" font-size="12" fill="#0A0B0D" letter-spacing="0.06em">D · FREE MOVEMENT</text>
+  <text x="670" y="312" font-size="11.5" fill="#6B6B63">Amber edges, dashed interior.</text>
+  <text x="670" y="328" font-size="11.5" fill="#6B6B63">States the principle most</text>
+  <text x="670" y="344" font-size="11.5" fill="#6B6B63">literally. Weakest at 16px.</text>
+
+  <line x1="40" y1="378" x2="880" y2="378" stroke="#FCB813" stroke-width="2"/>
+  <text x="40" y="400" font-size="11.5" fill="#6B6B63" letter-spacing="0.06em">LOCKUP · CONCEPT A</text>
+
+  <!-- light lockup -->
+  <g transform="translate(40,424) scale(0.5)"><use href="#mA"/></g>
+  <text x="84" y="452" font-size="30" fill="#0A0B0D" letter-spacing="-0.5">border</text>
+  <text x="84" y="474" font-size="10.5" fill="#6B6B63" letter-spacing="0.07em">AN OPEN-SOURCE PROJECT BY FLOWX.AI</text>
+  <text x="40" y="512" font-size="10.5" fill="#6B6B63">border.flowx.ai</text>
+
+  <!-- dark lockup -->
+  <rect x="470" y="412" width="410" height="76" rx="10" fill="#0A0B0D"/>
+  <g transform="translate(498,428) scale(0.5)"><use href="#mAi"/></g>
+  <text x="542" y="456" font-size="30" fill="#F4F5F3" letter-spacing="-0.5">border</text>
+  <text x="542" y="474" font-size="10.5" fill="#8F8F88" letter-spacing="0.07em">DARK SURFACE VARIANT</text>
+</svg>
