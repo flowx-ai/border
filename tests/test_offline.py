@@ -2,15 +2,15 @@
 """Constraint 1: a scan works with the network interface down.
 
 The autouse guard in conftest.py blocks egress for the whole suite, so in a sense every
-test is an offline test. This file exists because that is exactly the sort of protection
-that quietly stops working. The guard is one fixture; if it were disabled, mis-scoped, or
-made too narrow, nothing else in the suite would notice, and the claim "works offline"
-would keep being made.
+test is an offline test. This file exists because that is exactly the sort of
+protection that quietly stops working. The guard is one fixture; if it were disabled,
+mis-scoped, or made too narrow, nothing else in the suite would notice, and the claim
+"works offline" would keep being made.
 
-So these tests are deliberately paranoid in a way the others are not. They assert on the
-guard being active, they scan through the whole public API with every loaded detector, and
-they check the one path that would plausibly reach out: a detector's `run` calling something
-that resolves a model.
+So these tests are deliberately paranoid in a way the others are not. They assert on
+the guard being active, they scan through the whole public API with every loaded
+detector, and they check the one path that would plausibly reach out: a detector's
+`run` calling something that resolves a model.
 
 The division of labour, worth keeping straight:
 
@@ -19,8 +19,8 @@ The division of labour, worth keeping straight:
     test_offline.py         proves a real scan completes under it, which is the claim
 
 `HF_HUB_OFFLINE=1` is set as well, because huggingface-hub will otherwise make a
-revalidation request for a file it already has, and a cached file plus a HEAD request is not
-the same thing as offline.
+revalidation request for a file it already has, and a cached file plus a HEAD request
+is not the same thing as offline.
 """
 
 from __future__ import annotations
