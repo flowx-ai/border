@@ -79,6 +79,7 @@ def test_the_ported_detectors_are_all_represented() -> None:
         "markup_injection",
         "internal_domains",
         "output_format",
+        "sql_injection",
     }
 
 
@@ -89,9 +90,11 @@ def test_the_gaps_are_the_declines_worth_revisiting() -> None:
     these were declined because a rule forbade them rather than because the check was
     not worth having, so lifting the rules turned them from refusals into a backlog.
     """
-    assert len(gaps()) == 15
+    assert len(gaps()) == 13
     assert "llamaguard_7b" in gaps()
-    assert "exclude_sql_predicates" in gaps()
+    # exclude_sql_predicates and valid_sql left this list on 2026-08-11 by being
+    # built: they are `sql_injection`, the first detector outside CORE.
+    assert "exclude_sql_predicates" not in gaps()
     # Nothing already answered by a detector is a gap: that would be a request to build
     # a second one.
     assert not [name for name in gaps() if DECLINED[name].reason == "covered"]
@@ -160,17 +163,18 @@ def test_the_document_frames_the_backlog_as_requirements_rather_than_refusals() 
 # ------------------------------------------------------------------------- packages
 
 
-def test_every_detector_built_today_is_in_core() -> None:
+def test_only_the_detectors_that_declare_a_requirement_are_outside_core() -> None:
     """Core is the package that runs on a laptop with the interface down.
 
-    Everything shipped so far is rules or a local ONNX encoder, so core is the whole
-    catalogue. When that stops being true this fails, which is the point: a detector
-    leaving core is a change to what a caller has to provide, and it should be a
-    deliberate edit rather than a drift.
+    One detector is outside it, `sql_injection`, which needs the sqlglot parser. Pinned
+    by name so that a second one leaving core is a deliberate edit with a test behind
+    it: leaving core changes what a caller has to provide before the detector will run
+    at all, and that should never be something a change drifts into.
     """
     from flowx_border.detectors.catalogue import CORE
 
-    assert set(CATALOGUE) == CORE
+    assert set(CATALOGUE) - CORE == {"sql_injection"}
+    assert CATALOGUE["sql_injection"].requires == {"dependency"}
 
 
 def test_a_detector_declaring_a_requirement_is_reported_against_it() -> None:
@@ -188,22 +192,44 @@ def test_a_detector_declaring_a_requirement_is_reported_against_it() -> None:
     assert requirements_for(["not_a_detector"]) == {}
 
 
+def _policy(**detectors: object) -> object:
+    from flowx_border.policy import DetectorPolicy, Policy
+
+    return Policy(
+        policy_id="notes-test",
+        version=1,
+        fail_mode=dict.fromkeys(("T0", "T1", "T2", "T3"), "open"),
+        detectors={
+            name: DetectorPolicy(enabled=bool(value))
+            for name, value in detectors.items()
+        },
+    )
+
+
 def test_a_core_only_policy_produces_no_deployment_notes() -> None:
     """Silence is the common case and has to stay silent.
 
     A library that printed a note for every scan would train the caller to ignore the
     one that matters.
     """
-    from flowx_border.policy import Policy
     from flowx_border.registry import deployment_notes
 
-    policy = Policy(
-        policy_id="core-only",
-        version=1,
-        fail_mode=dict.fromkeys(("T0", "T1", "T2", "T3"), "open"),
-        detectors={},
-    )
-    assert deployment_notes(policy) == ()
+    assert deployment_notes(_policy(sql_injection=False)) == ()  # type: ignore[arg-type]
+
+
+def test_a_policy_that_states_nothing_is_told_about_the_non_core_detector() -> None:
+    """Defaults enable everything, so the default is that the caller is told.
+
+    This is the direction the silence has to fail in. A policy that says nothing about
+    `sql_injection` gets it enabled, and the note is how the caller learns they have
+    taken on a parser dependency. The opposite default, silence unless asked, would put
+    the discovery in production.
+    """
+    from flowx_border.registry import deployment_notes
+
+    notes = deployment_notes(_policy())  # type: ignore[arg-type]
+    assert len(notes) == 1
+    assert "sql_injection" in notes[0]
 
 
 def test_the_shipped_policies_stay_inside_core() -> None:

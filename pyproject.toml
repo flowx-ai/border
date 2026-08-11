@@ -40,15 +40,25 @@ dependencies = [
 # because the library never holds a key: `sign_record` takes one the caller owns.
 [project.optional-dependencies]
 signing = ["cryptography>=42.0"]
+# sql_injection needs a real SQL parser. An extra rather than a base dependency because
+# only a text-to-SQL product wants it, and the detector declares
+# requires={"dependency"} so a policy enabling it tells the caller. The detector is
+# absent from the registry when this is not installed, rather than degraded to a pass.
+sql = ["sqlglot>=25"]
 
 [project.urls]
 Source = "https://github.com/flowx-ai/flowx-border"
 
 [dependency-groups]
 dev = [
-  # Present so that mypy --strict can see the signing path and the tests can exercise
-  # it. It stays an optional extra at runtime.
+  # Both are optional extras at runtime and dev dependencies here, for the same
+  # reason: mypy --strict has to see the code paths that use them, and the tests have
+  # to exercise those paths rather than skipping. CI runs `uv sync --locked`, which
+  # installs this group and not the extras, so a test that needed an extra and was not
+  # listed here would skip in CI while passing locally, which is the quietest way for a
+  # check to stop running.
   "cryptography>=42.0",
+  "sqlglot>=25",
   "fastapi>=0.141.1",
   "httpx>=0.28.1",
   "mypy>=1.11",

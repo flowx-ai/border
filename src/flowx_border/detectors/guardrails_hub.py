@@ -71,10 +71,6 @@ REASONS: Final[MappingProxyType[str, str]] = MappingProxyType(
             "latency path of every scan and breaks the offline guarantee "
             "tests/conftest.py enforces"
         ),
-        "dependency": (
-            "needs a runtime dependency the project does not have yet. Permitted since "
-            "2026-08-11, so this is a decision about weight rather than a refusal"
-        ),
         "retrain": (
             "kept as a capability, dropped as a port: the upstream weights are "
             "unusable "
@@ -178,6 +174,18 @@ PORTED: Final[MappingProxyType[str, Port]] = MappingProxyType(
         "quotes_price": Port(
             "output_format", "`regex`. A price assertion is a pattern, not a feature."
         ),
+        "exclude_sql_predicates": Port(
+            "sql_injection",
+            "inverted into an allowlist of statement kinds. A denylist of SQL "
+            "statement types is a list somebody has to keep complete, and the "
+            "consequence of missing one is a statement that runs.",
+        ),
+        "valid_sql": Port(
+            "sql_injection",
+            "the parse half. Reported as `sql_unparseable` rather than as its own "
+            "detector, because whether generated SQL parses and whether it does more "
+            "than was asked are the same question with one parser behind it.",
+        ),
         "web_sanitization": Port(
             "markup_injection",
             "rewritten from `bleach.clean(x) != x`, which reports an attack in any "
@@ -206,12 +214,6 @@ DECLINED: Final[MappingProxyType[str, Decline]] = MappingProxyType(
         ),
         "endpoint_is_reachable": Decline(
             "network", "makes an HTTP request to check.", gap=True
-        ),
-        "exclude_sql_predicates": Decline(
-            "dependency",
-            "needs a SQL parser, `sqlglot`. A regex over SQL predicates would be worse "
-            "than nothing in a check whose whole value is precision.",
-            gap=True,
         ),
         "extracted_summary_sentences_match": Decline("llm", "calls OpenAI.", gap=True),
         "gibberish_text": Decline("covered", "`gibberish`."),
@@ -312,11 +314,6 @@ DECLINED: Final[MappingProxyType[str, Decline]] = MappingProxyType(
         ),
         "valid_open_api_spec": Decline(
             "scope", "validates an OpenAPI document.", gap=True
-        ),
-        "valid_sql": Decline(
-            "dependency",
-            "needs `sqlvalidator`, and it is a syntax check rather than a safety one.",
-            gap=True,
         ),
         "wiki_provenance": Decline(
             "llm",

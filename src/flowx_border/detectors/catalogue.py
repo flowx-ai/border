@@ -87,6 +87,12 @@ CATALOGUE: Final[MappingProxyType[str, Spec]] = MappingProxyType(
         # Shape rather than security, and the only entry here that is. It exists so
         # that sixteen hub shape validators have one destination instead of sixteen.
         "output_format": Spec("T1", frozenset({OUTPUT}), 5.0),
+        # The first entry to leave CORE. It needs the sqlglot parser, which is the
+        # `sql` extra rather than a base dependency, because only a text-to-SQL
+        # product wants it and nobody else should pay the install weight.
+        "sql_injection": Spec(
+            "T1", frozenset({OUTPUT}), 5.0, frozenset({"dependency"})
+        ),
         "injection": Spec("T2", frozenset({INPUT}), 75.0),
         "regulated_advice": Spec("T2", frozenset({OUTPUT}), 75.0),
         "toxicity": Spec("T2", frozenset({INPUT, OUTPUT}), 75.0),

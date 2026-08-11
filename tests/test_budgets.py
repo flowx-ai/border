@@ -84,6 +84,10 @@ MEASURED_MS = {
     # fails at the first character and so never exercises. A pathological `regex` in
     # a policy can cost more than this, and that cost belongs to whoever wrote it.
     "output_format": 0.02,
+    # Measured on the reference input, which is prose and so fails to parse at the
+    # first token. A realistic statement is measured separately below, because a
+    # budget taken only on the cheap path is not a budget.
+    "sql_injection": 0.22,
 }
 
 #: Multiplier for a runner known to be slower than the reference machine. A documented
@@ -210,6 +214,12 @@ RULE_DETECTORS: list[tuple[str, object, DetectorConfig, Context]] = [
         CTX,
     ),
     (
+        "sql_injection",
+        None,
+        DetectorConfig(on_fail="flag", options={"allow": ["select"]}),
+        CTX,
+    ),
+    (
         "output_format",
         None,
         DetectorConfig(
@@ -238,6 +248,7 @@ def _rule_detector(detector_id: str) -> object:
     from flowx_border.detectors.internal_domains import InternalDomainsDetector
     from flowx_border.detectors.markup_injection import MarkupInjectionDetector
     from flowx_border.detectors.output_format import OutputFormatDetector
+    from flowx_border.detectors.sql_injection import SqlInjectionDetector
     from flowx_border.detectors.system_prompt_leakage import (
         SystemPromptLeakageDetector,
     )
@@ -248,6 +259,7 @@ def _rule_detector(detector_id: str) -> object:
         "markup_injection": MarkupInjectionDetector,
         "internal_domains": InternalDomainsDetector,
         "output_format": OutputFormatDetector,
+        "sql_injection": SqlInjectionDetector,
     }[detector_id]()
 
 
@@ -271,7 +283,13 @@ def test_a_ported_rule_detector_is_within_budget(
 
 @pytest.mark.parametrize(
     ("detector_id", "cfg", "ctx"),
-    [(name, cfg, ctx) for name, _, cfg, ctx in RULE_DETECTORS],
+    [
+        (name, cfg, ctx)
+        for name, _, cfg, ctx in RULE_DETECTORS
+        # sql_injection is excluded on purpose and has its own test below: the reference
+        # input is prose, and prose is not SQL, so reporting nothing would be the bug.
+        if name != "sql_injection"
+    ],
 )
 def test_a_ported_rule_detector_finds_nothing_in_the_reference_input(
     detector_id: str, cfg: DetectorConfig, ctx: Context
@@ -279,11 +297,31 @@ def test_a_ported_rule_detector_finds_nothing_in_the_reference_input(
     """A budget should measure the cost of looking rather than the cost of finding.
 
     Also a correctness assertion in disguise: the reference input is ordinary Romanian
-    prose, and any of these four firing on it would be a false positive in the language
-    the reference input happens to be written in.
+    prose, and any of these firing on it would be a false positive in the language the
+    reference input happens to be written in.
     """
     detector = _rule_detector(detector_id)
     assert detector.run(REFERENCE_INPUT, cfg, ctx) == []  # type: ignore[attr-defined]
+
+
+def test_sql_injection_reports_prose_as_unparseable_rather_than_clean() -> None:
+    """Enabled on output that is not SQL, this fires on every answer, by design.
+
+    That is the correct reading of "this output is not a valid statement", and it is
+    also why the shipped policies leave the detector disabled: it belongs to a
+    text-to-SQL product and is noise anywhere else. Pinned so that a future change
+    which quietly made non-SQL pass would fail here, because passing would mean a
+    malformed statement also passed.
+    """
+    from flowx_border.detectors.sql_injection import is_available
+
+    if not is_available():
+        pytest.skip("sqlglot not installed; sql_injection is outside CORE")
+
+    detector = _rule_detector("sql_injection")
+    cfg = DetectorConfig(on_fail="flag", options={"allow": ["select"]})
+    found = detector.run(REFERENCE_INPUT, cfg, CTX)  # type: ignore[attr-defined]
+    assert [f.label for f in found] == ["sql_unparseable"]
 
 
 def test_the_ported_rule_detectors_cost_what_a_rule_costs(pii: PiiDetector) -> None:
@@ -495,3 +533,37 @@ def test_the_full_output_side_scan_is_recorded(
     # One encoder pass plus two rule checks, because output_leakage reuses pii's result.
     # Two would mean the shared instance stopped being shared.
     assert total <= 2 * CATALOGUE["pii"].budget_ms * SCALE
+
+
+#: A statement of the shape a text-to-SQL product actually generates: a join, a filter
+#: on a non-ASCII literal, a group by and an order by. 203 characters.
+REFERENCE_SQL = (
+    "SELECT c.id, c.nume, SUM(t.suma) AS total FROM clienti c "
+    "JOIN tranzactii t ON t.client_id = c.id "
+    "WHERE c.oras = 'Târgu Mureș' AND t.data >= '2026-01-01' "
+    "GROUP BY c.id, c.nume ORDER BY total DESC LIMIT 50"
+)
+
+
+def test_sql_injection_is_within_budget_on_a_statement_it_can_parse() -> None:
+    """The reference input is prose, so it fails to parse at the first token.
+
+    That is the cheap path, and a budget measured only there would say nothing about
+    what this detector costs in the product that uses it. Parsing a real statement is
+    the work, so it gets its own measurement.
+    """
+    from flowx_border.detectors.sql_injection import is_available
+
+    if not is_available():
+        pytest.skip("sqlglot not installed; sql_injection is outside CORE")
+
+    detector = _rule_detector("sql_injection")
+    detector.warm()  # type: ignore[attr-defined]
+    cfg = DetectorConfig(on_fail="flag", options={"allow": ["select"]})
+    budget = CATALOGUE["sql_injection"].budget_ms * SCALE
+    measured = p95(lambda: detector.run(REFERENCE_SQL, cfg, CTX), 200)  # type: ignore[attr-defined]
+    assert measured <= budget, (
+        f"sql_injection {measured:.3f} ms exceeds {budget:.1f} ms on a "
+        f"{len(REFERENCE_SQL)} character statement. Measured 0.31 ms on 2026-08-11."
+    )
+    assert detector.run(REFERENCE_SQL, cfg, CTX) == []  # type: ignore[attr-defined]

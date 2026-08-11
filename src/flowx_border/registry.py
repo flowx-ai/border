@@ -84,6 +84,18 @@ def _build() -> dict[str, Detector]:
         "output_leakage": OutputLeakageDetector(shared=pii),
     }
 
+    # Outside CORE, and therefore conditional. Absent rather than broken when the
+    # `sql` extra is not installed: a policy that enables it then gets
+    # DetectorUnavailableError at load, which is earlier and clearer than an ImportError
+    # from inside a scan. `missing_for` reports it by name either way.
+    from flowx_border.detectors.sql_injection import (
+        SqlInjectionDetector,
+        is_available,
+    )
+
+    if is_available():
+        built["sql_injection"] = SqlInjectionDetector()
+
     # Phase 4 adds: injection, regulated_advice, toxicity, nsfw, bias, gibberish,
     # politeness. Phase 5 adds: topic_scope, groundedness.
 

@@ -105,8 +105,9 @@ Behaviour differences that the tuple cannot express:
 - `markup_injection` (T1, input and output)
 - `internal_domains` (T1, output)
 - `output_format` (T1, output)
+- `sql_injection` (T1, output, needs the `sql` extra)
 
-The last five arrived on 2026-08-11 with the Guardrails Hub port, and two of them change
+The last six arrived on 2026-08-11 with the Guardrails Hub port, and two of them change
 what the unsupported table above is really saying.
 
 **`BanSubstrings` and `BanCompetitors` now have a detector-level answer.** `banned_terms`
@@ -118,6 +119,8 @@ mapping existed while the code raised would be worse than one that says this pla
 See `docs/porting-guardrails-validators.md`.
 
 **`JSON`, `Regex`, `TokenLimit` and `ReadingTime` now have a destination too.** `output_format` carries JSON parseability, a full-match regex, a length limit in graphemes and a reading-time ceiling as policy options. Same caveat as the two above: the shim still raises for them, because mapping them across is an edit to `adapters/llm_guard_compat.py` that this port did not make.
+
+**`BanCode` and `Code` are still absent, and `sql_injection` is not them.** That detector parses generated SQL and reports statements the policy does not allow. It says nothing about code in any other language, and nothing about whether prose contains a code block.
 
 **`InvisibleText` is closer than it was.** The zero-width and format-character stripping
 that the note above asks for is implemented, in `detectors/multilingual.py`, and every

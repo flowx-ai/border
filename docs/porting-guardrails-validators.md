@@ -6,8 +6,8 @@ ships 65 validators. This is what happened to each of them. The tables are rende
 the document cannot drift away from the decision. `tests/test_guardrails_hub.py` fails
 if it does.
 
-**Twenty-four validators became five detectors. Twenty-five are already answered by a
-detector that exists. Sixteen are not built yet, and each says what it would need.**
+**Twenty-six validators became six detectors. Twenty-five are already answered by a
+detector that exists. Fourteen are not built yet, and each says what it would need.**
 
 That last group used to say "declined". It changed on 2026-08-11, when the constraints
 that blocked most of them stopped being prohibitions. A validator that needs a network
@@ -51,18 +51,23 @@ English and merges real unrelated words in Romanian, Polish and Finnish.
 
 ## What each detector costs
 
-All five are rules. They sit at T1 with a 5 ms budget rather than the 75 ms an
-encoder-backed detector carries, they need no weights, and they are all in `CORE`, so
-they work on a machine that has never downloaded a model and has no network. Measured
-p95 at the reference input: 0.23, 0.36, 0.23, 0.23 and 0.02 ms. `tests/test_budgets.py`
-asserts them.
+All six are rules rather than models, so they sit at T1 with a 5 ms budget rather than
+the 75 ms an encoder-backed detector carries, and none of them has weights. Measured p95
+at the reference input: `banned_terms` 0.23, `system_prompt_leakage` 0.36,
+`markup_injection` 0.23, `internal_domains` 0.23, `output_format` 0.02 and
+`sql_injection` 0.02 ms. `tests/test_budgets.py` asserts them.
+
+Five of the six are in `CORE` and work on a machine that has never downloaded a model
+and has no network. `sql_injection` is the exception: it needs the sqlglot parser, so it
+declares `requires={"dependency"}`, ships in the `sql` extra, and is absent from the
+registry rather than degraded to a pass when that extra is not installed. A policy
+enabling it gets a line from `registry.deployment_notes` saying so.
 
 ## Reason codes
 
 | reason | meaning |
 | --- | --- |
 | `covered` | an existing detector already answers this question |
-| `dependency` | needs a runtime dependency the project does not have yet. Permitted since 2026-08-11, so this is a decision about weight rather than a refusal |
 | `llm` | needs a generative model to make the judgement, and no detector here answers the same question. Permitted since 2026-08-11, when the constraints were lifted, and not yet built: there is no published model for it. Filed by what this library can answer rather than by how upstream implements it, so nine validators that call an LLM upstream are listed as covered instead |
 | `network` | needs a network call while scanning. Permitted since 2026-08-11 and not yet built, and the cost is worth stating: it puts a third party in the latency path of every scan and breaks the offline guarantee tests/conftest.py enforces |
 | `retrain` | kept as a capability, dropped as a port: the upstream weights are unusable here and the intent is to train our own |
@@ -70,7 +75,7 @@ asserts them.
 
 ## Ported
 
-Twenty-four validators, five detectors. Two collapses do most of the work.
+Twenty-six validators, six detectors. Two collapses do most of the work.
 
 `ban_list`, `contains_string`, `competitor_check`, `mentions_drugs` and `sky_validator`
 are one mechanism with a different list baked in, and the list in every case is the
@@ -113,18 +118,21 @@ instead of sixteen.
 | `valid_length` | `output_format` | `max_length` and `min_length`, counted in graphemes rather than code points so one visible string is one length in every language. |
 | `valid_range` | `output_format` | `numeric_range`, accepting a comma decimal separator, which is correct in most of the 26. |
 | `valid_url` | `output_format` | `url: required`. |
+| `exclude_sql_predicates` | `sql_injection` | inverted into an allowlist of statement kinds. A denylist of SQL statement types is a list somebody has to keep complete, and the consequence of missing one is a statement that runs. |
+| `valid_sql` | `sql_injection` | the parse half. Reported as `sql_unparseable` rather than as its own detector, because whether generated SQL parses and whether it does more than was asked are the same question with one parser behind it. |
 | `detect_system_prompt_leakage` | `system_prompt_leakage` | rewritten from whole-string similarity to containment. The original passes a long answer that quotes the prompt verbatim. |
 
 ## Not ported
 
-`gap` marks the ones worth building. Fifteen of the sixteen are marked, which is the
+`gap` marks the ones worth building. Thirteen of the fourteen are marked, which is the
 honest state after 2026-08-11: most were blocked by a rule rather than by the check not
 being worth having, and the rules are gone.
 
 The `reason` column doubles as the requirement each would declare in `Spec.requires` if
-it were built: `network` and `llm` map straight across, and `dependency` means it would
-move outside the base install. So this table is also the backlog, sorted by what each
-item would cost a caller to enable.
+it were built, so this table is also the backlog, sorted by what each item would cost a
+caller to enable. `exclude_sql_predicates` and `valid_sql` left it the same day by being
+built: they are `sql_injection`, the first detector outside `CORE`, and the shape of
+what the rest of this list looks like once it is done.
 
 | hub validator | reason | detail | gap |
 | --- | --- | --- | --- |
@@ -153,8 +161,6 @@ item would cost a caller to enable.
 | `toxic_language` | covered | `toxicity`. | no |
 | `toxic_language_llm` | covered | `toxicity`. Upstream asks a model for the same seven categories the classifier here scores. | no |
 | `unusual_prompt` | covered | `injection`. Upstream asks a model whether the prompt is tricky. | no |
-| `exclude_sql_predicates` | dependency | needs a SQL parser, `sqlglot`. A regex over SQL predicates would be worse than nothing in a check whose whole value is precision. | yes |
-| `valid_sql` | dependency | needs `sqlvalidator`, and it is a syntax check rather than a safety one. | yes |
 | `extracted_summary_sentences_match` | llm | calls OpenAI. | yes |
 | `llm_critic` | llm | grades the output with a second model. | yes |
 | `logic_check` | llm | asks a model to find logical fallacies. | yes |

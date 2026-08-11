@@ -65,6 +65,11 @@ detectors:
     enabled: false          # nothing here is a compliance control
     on_fail: flag
     options: {}
+  sql_injection:
+    enabled: false          # enable with allow: [select] if you generate SQL
+    on_fail: block          # a statement that does more than asked is not redactable
+    options:
+      allow: [select]
   system_prompt_leakage:
     on_fail: block          # the instructions behind a regulated assistant are not public
     threshold: 0.4          # lower than default: prefer a false positive to a leak

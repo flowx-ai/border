@@ -72,6 +72,11 @@ detectors:
     enabled: false          # shape, not security, and its shape is yours to state
     on_fail: flag
     options: {}
+  sql_injection:
+    enabled: false          # needs the `sql` extra; only a text-to-SQL product wants it
+    on_fail: block          # a statement that does more than asked is not redactable
+    options:
+      allow: [select]
   system_prompt_leakage:
     on_fail: flag           # needs no list: the phrase signal works in all 26 languages
     threshold: 0.5
