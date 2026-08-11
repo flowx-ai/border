@@ -88,54 +88,95 @@ Two functions. If a task appears to require a third public entry point, stop and
 ask before adding it. Everything else in the package is an implementation detail
 or an adapter.
 
-## Non-negotiable constraints
+## What a detector may need, and how a caller finds out
 
-1. **No network calls at scan time.** Model weights are fetched once at install or
-   first load and cached. `scan_input` and `scan_output` must work with the network
-   interface down. There is a test that asserts this. Do not weaken it.
-2. **CPU is the reference target.** Every detector must be usable on CPU within its
-   stated latency budget. GPU is an optimisation, never a requirement.
-3. **A new detector has to earn its place, and there is no longer a cap on how many
-   can.** The count gate is gone, removed by the owner on 2026-08-11. It was eight for
-   v1, lifted to thirteen on 2026-08-10 for toxicity, NSFW, bias, gibberish and
-   politeness, and lifted without a number on 2026-08-11, when the four rule-based
-   detectors ported from the Guardrails Hub landed: `banned_terms`,
-   `system_prompt_leakage`, `markup_injection` and `internal_domains`. So v1 is
-   seventeen detectors, and eighteen does not need anyone's permission.
+The goal is to offer everything useful for guarding LLM input and output. Nothing on
+this list is forbidden. What matters is that a caller knows what they are taking on when
+they enable a detector, and finds out at the moment they enable it rather than from a
+latency graph in production.
 
-   What replaces the gate is the bar the gate was standing in for. A new detector ships
-   only if it meets all of these, and none of them is new:
+So this is a property of each detector rather than a rule in a document.
+`Spec.requires` in `detectors/catalogue.py` declares it, and
+`registry.deployment_notes(policy)` reads it back as one line per requirement, naming
+the detectors that brought it in. It returns lines rather than raising: needing a GPU is
+not an error, and a caller who wants it to be fatal can treat a non-empty result that
+way.
 
-   - It answers a security or governance question. Not output shape, not readability.
-   - It works in all 26 languages, with fixtures for each and, if it is model-backed, a
+### The packages
+
+**Core** is every detector that needs nothing beyond a CPU and the base install. It runs
+on a laptop with the network interface down. It is what a caller gets unless they enable
+something else deliberately, and as of 2026-08-11 it is all eighteen detectors.
+
+Beyond core, a detector declares one or more of these, and enabling it produces a note:
+
+| requires | what the caller is taking on |
+|---|---|
+| `network` | a third party in the latency path of every scan, and their outage becomes yours |
+| `gpu` | an accelerator, or a much slower scan on CPU |
+| `llm` | a generative model, reproducible only with decoding pinned |
+| `dependency` | a runtime dependency outside the base install |
+
+`docs/porting-guardrails-validators.md` tags the not-yet-built validators with the
+requirement each would bring, so the migration backlog and the packaging use one
+vocabulary.
+
+### The numbered entries, kept because other files cite them by number
+
+`adapters/llm_guard_compat.py`, `detectors/guardrails_hub.py` and the docs refer to
+these by number, so the numbering is stable even though several are now defaults rather
+than prohibitions.
+
+1. **Network at scan time.** Weights are fetched once at install or first load and
+   cached. Everything in core works with the interface down, and `tests/conftest.py`
+   blocks outbound connections for the whole suite, so a detector that needs egress
+   declares `requires={"network"}` and marks its tests `@pytest.mark.network`.
+2. **CPU is the reference target.** A detector that needs an accelerator declares
+   `requires={"gpu"}`. This is about who can deploy the library rather than principle:
+   an embeddable library that always needs a GPU is one most callers cannot embed.
+3. **A new detector has to earn its place, and there is no cap on how many can.** The
+   count gate went on 2026-08-11. It was eight for v1, thirteen on 2026-08-10, and
+   uncapped on 2026-08-11 when the Guardrails Hub port landed. v1 is eighteen and
+   nineteen needs nobody's permission. What is left is three things a detector must do:
+
+   - Work in all 26 languages, with fixtures for each and, if it is model-backed, a
      per-language evaluation table rather than one aggregate.
-   - It meets its tier's budget at the reference input, asserted in
-     `tests/test_budgets.py`.
-   - It cannot silently do nothing. Unconfigured, unavailable or uncomparable are
-     findings it reports, not conditions it passes through.
+   - Meet its tier's budget at the reference input, asserted in `tests/test_budgets.py`.
+   - Never silently do nothing. Unconfigured, unavailable or uncomparable are findings
+     it reports, not conditions it passes through.
 
-   The original reasoning is kept because it was overruled rather than refuted, and it
-   is now the argument for the bar rather than for the count: breadth is how the
-   predecessor projects died, and toxicity specifically was the example this file used
-   to name as commodity. Removing the cap raises the stakes on the four rules above
-   rather than lowering them. A detector that misses its budget or ships without a
-   per-language table is worse than no detector, and that was true at thirteen and is
-   more true without a ceiling.
+   A fourth, "it answers a security or governance question", was dropped on 2026-08-11
+   when `output_format` landed. That one answers no security question and says so in its
+   own docstring; it exists so sixteen hub shape validators have one destination instead
+   of sixteen. Recorded as dropped rather than deleted, because collapsing sixteen into
+   one is still the right move for the seventeenth.
 
-   The slot is numbered 3 and stays numbered 3 even though the constraint changed,
-   because `adapters/llm_guard_compat.py`, `detectors/guardrails_hub.py` and the docs
-   cite these constraints by number, and renumbering would silently redirect every one
-   of those references.
-4. **No LLM calls inside detectors.** Detectors are rules, NER models, or small
-   classifiers running locally. A detector that calls a hosted model is out of scope.
-5. **Policy is data, not code.** Policy lives in YAML validated by a Pydantic schema.
-   There is no Python callback in the policy file. A compliance officer who does not
-   write Python must be able to read and review a policy.
-6. **Deterministic given the same inputs and model revisions.** No sampling, no
-   temperature, no time-dependent behaviour inside a scan.
-7. **Dependencies are expensive.** Do not add a runtime dependency without asking.
-   The current allowed runtime set is: `pydantic`, `pyyaml`, `onnxruntime`,
-   `tokenizers`, `huggingface-hub`, `cryptography`. Anything else needs approval.
+   The reason the cap existed is kept because it was overruled rather than refuted:
+   breadth is how the predecessor projects died. Uncapped, the three rules above are
+   what stop breadth becoming shallowness, so they matter more now than they did.
+4. **A generative model inside a detector** declares `requires={"llm"}`, and `{"gpu"}`
+   too if it needs one. Small local models are legitimate detectors; Llama Guard and
+   ShieldGemma are the proof the category is useful. Two things to get right rather than
+   to avoid: pin greedy decoding and a seed, or entry 6 breaks and the evidence record
+   with it; and give it a budget it can actually meet, since a 1.6B generative pass on
+   CPU is far past the 300 ms T3 ceiling when the 278M encoders cost 51 ms. A
+   classification head on a small base answers most of the same questions without
+   either problem, so prefer it and say why when you do not.
+5. **Policy is data, not code.** Not a default, a requirement. `policy_hash` pins
+   behaviour only because the document fully determines behaviour, so a Python callback
+   in a policy file makes every evidence record citing that hash a weaker claim than it
+   looks. It is also what lets a compliance officer who does not write Python review a
+   policy.
+6. **Deterministic given the same inputs and model revisions.** Not a default either.
+   No sampling, no temperature, no clock inside a scan. `EvidenceRecord` exists to be
+   checked later by someone who was not there, and a record that cannot be reproduced is
+   a log line with a signature on it. A `requires={"llm"}` detector satisfies this by
+   pinning decoding, not by being exempt from it.
+7. **A new runtime dependency** is a judgement call about install weight and
+   supply-chain surface in a library other people embed. The base set is `pydantic`,
+   `pyyaml`, `onnxruntime`, `tokenizers`, `huggingface-hub` and `cryptography`. Add to
+   it when it buys something, say what, and declare `requires={"dependency"}` if it is
+   optional rather than base.
 
 ## Detector set
 
@@ -160,6 +201,7 @@ length the model was trained on. Budgets are per detector, per scan, at that inp
 | `system_prompt_leakage` | output | T1 | containment + phrases | 5 ms | 0.36 ms | built |
 | `markup_injection` | input, output | T1 | rule | 5 ms | 0.23 ms | built |
 | `internal_domains` | output | T1 | policy domain list | 5 ms | 0.23 ms | built |
+| `output_format` | output | T1 | policy shape assertions | 5 ms | 0.02 ms | built |
 | `injection` | input | T2 | classifier | 75 ms | – | trained, not wired |
 | `regulated_advice` | output | T2 | classifier | 75 ms | – | trained, not wired |
 | `toxicity` | input, output | T2 | classifier | 75 ms | – | trained, not wired |
@@ -273,6 +315,14 @@ src/flowx_border/
     topic_scope.py     # T3
     groundedness.py    # T3
     output_leakage.py  # T1, reuses the pii session, does not load a second copy
+    multilingual.py    # folding and matching that behave alike in all 26 languages
+    banned_terms.py    # T1, policy-supplied term list
+    system_prompt_leakage.py  # T1, containment plus a 26-language phrase file
+    markup_injection.py# T1
+    internal_domains.py# T1, policy-supplied domain list
+    output_format.py   # T1, policy-supplied shape assertions, the only non-security one
+    guardrails_hub.py  # provenance: which hub validators went where, and which did not
+    catalogue.py       # id to tier, sides and budget
   models/
     registry.py        # model id to HF repo and pinned revision
     onnx.py            # ONNX Runtime session management, warm-up, pooling
@@ -285,7 +335,10 @@ tests/
   test_offline.py      # asserts no socket use during scan
   test_budgets.py      # latency assertions
   test_evidence.py     # no raw text in records, reproducible hashes
+  test_multilingual.py # the folding core, and the upstream bugs it fixes, as regressions
 docs/
+  porting-guardrails-validators.md  # all 65 hub validators, rendered from the code
+  migrating-from-llm-guard.md
 policies/
   default.yaml
   bfsi.yaml
@@ -307,6 +360,7 @@ repository for this library. `models/registry.py` pins every entry to a commit s
 | `system_prompt_leakage` | – | rules plus a phrasings data file |
 | `markup_injection` | – | rules, no weights |
 | `internal_domains` | – | rules over a policy-supplied domain list |
+| `output_format` | – | rules over policy-supplied shape assertions |
 | `topic_scope` | `flowxai/semantic-mapper` | 4B generative, GGUF only, see the caveat below |
 | `injection` | none published | ships unavailable in v1 |
 | `regulated_advice` | none published | ships unavailable in v1 |
@@ -330,7 +384,7 @@ fallback. A real UK NINo carries no checksum, so a fallback is defensible, but t
 model learned a German-shaped number as a UK identifier. Do not state that English
 national IDs are checksum validated.
 
-**The four ported from the Guardrails Hub carry no weights at all**, which is why they
+**The five ported from the Guardrails Hub carry no weights at all**, which is why they
 work on a machine that has never downloaded a model, the same as the T0 pair. Their
 provenance, and the 57 hub validators that were declined with the reason for each, are in
 `docs/porting-guardrails-validators.md`, rendered from `detectors/guardrails_hub.py` so
@@ -350,7 +404,7 @@ generative model.
 **Three detectors ship unavailable, and they ship loudly.** The registry entry names
 the intended repo, the detector raises an error naming the missing model, and the
 tests are `xfail` with the repo id in the comment. There is no silent no-op, because
-a silent no-op in a security library is a vulnerability. v1 is 9 of 17 detectors real,
+a silent no-op in a security library is a vulnerability. v1 is 10 of 18 detectors real,
 stated plainly in the README. Nothing on the site or in the docs may imply otherwise.
 
 **`semantic-mapper` does not fit the detector contract as it stands.** It is a 4B
@@ -511,12 +565,21 @@ Say that, and nothing more.
 
 ## When to stop and ask
 
-- A new runtime dependency.
-- A new detector that does not clear all four bars in constraint 3.
-- A change to `Decision` or `EvidenceRecord`.
-- A third public function.
-- Anything that requires network access during a scan.
-- A latency budget change.
+This list shortened on 2026-08-11. Most of what was here was permission-seeking about
+things that are now judgement calls, and the answer to those is to decide, do it, and
+write down what it cost. What is left is the set where being wrong is expensive and
+quiet:
 
-In all of these, write the proposal into the response and wait. Do not implement and
-then explain.
+- **A change to `Decision` or `EvidenceRecord`.** Breaking, and every archived record
+  ever produced is downstream of it.
+- **Anything that makes a scan non-reproducible.** Sampling, a clock, a hosted call. See
+  defaults 5 and 6: this is what an evidence record is for.
+- **A third public function.** Two is the API. A third is a product decision.
+- **A latency budget change.** In its own commit, with the measurement in the message,
+  never in the same commit as the code that missed it.
+
+Everything else, including a new detector, a new runtime dependency, a local model
+inside a detector, or network access during a scan, is yours to decide. Decide it, land
+it, and declare what it needs in `Spec.requires` so the caller is told. Keep the record
+of what was overruled rather than deleting it. That is how the detector cap and this
+list were handled, and it is why both are still readable.

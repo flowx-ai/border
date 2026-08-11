@@ -80,6 +80,10 @@ MEASURED_MS = {
     "system_prompt_leakage": 0.36,
     "markup_injection": 0.23,
     "internal_domains": 0.23,
+    # Measured with every check switched on except json, which the reference input
+    # fails at the first character and so never exercises. A pathological `regex` in
+    # a policy can cost more than this, and that cost belongs to whoever wrote it.
+    "output_format": 0.02,
 }
 
 #: Multiplier for a runner known to be slower than the reference machine. A documented
@@ -205,6 +209,22 @@ RULE_DETECTORS: list[tuple[str, object, DetectorConfig, Context]] = [
         DetectorConfig(on_fail="flag", options={"domains": ["corp.internal"]}),
         CTX,
     ),
+    (
+        "output_format",
+        None,
+        DetectorConfig(
+            on_fail="flag",
+            options={
+                "max_length": 5000,
+                "min_length": 1,
+                "one_line": False,
+                "url": "absent",
+                "max_words": 500,
+                "max_reading_seconds": 600,
+            },
+        ),
+        CTX,
+    ),
 ]
 
 
@@ -217,6 +237,7 @@ def _rule_detector(detector_id: str) -> object:
     from flowx_border.detectors.banned_terms import BannedTermsDetector
     from flowx_border.detectors.internal_domains import InternalDomainsDetector
     from flowx_border.detectors.markup_injection import MarkupInjectionDetector
+    from flowx_border.detectors.output_format import OutputFormatDetector
     from flowx_border.detectors.system_prompt_leakage import (
         SystemPromptLeakageDetector,
     )
@@ -226,6 +247,7 @@ def _rule_detector(detector_id: str) -> object:
         "system_prompt_leakage": SystemPromptLeakageDetector,
         "markup_injection": MarkupInjectionDetector,
         "internal_domains": InternalDomainsDetector,
+        "output_format": OutputFormatDetector,
     }[detector_id]()
 
 

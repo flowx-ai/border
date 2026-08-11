@@ -72,19 +72,40 @@ def test_every_entry_carries_a_note() -> None:
         assert entry.note.strip(), f"{name} has no explanation"
 
 
-def test_the_four_ported_detectors_are_all_represented() -> None:
+def test_the_ported_detectors_are_all_represented() -> None:
     assert {entry.detector for entry in PORTED.values()} == {
         "banned_terms",
         "system_prompt_leakage",
         "markup_injection",
         "internal_domains",
+        "output_format",
     }
 
 
 def test_the_gaps_are_the_declines_worth_revisiting() -> None:
-    # Pinned so that flipping a gap flag is a deliberate edit with a test behind it,
-    # rather than something that drifts while the follow-up review is queued.
-    assert gaps() == ("exclude_sql_predicates", "llamaguard_7b", "shieldgemma_2b")
+    """Pinned, so flipping a gap flag is a deliberate edit with a test behind it.
+
+    Fifteen since 2026-08-11, when the constraints stopped being prohibitions. Most of
+    these were declined because a rule forbade them rather than because the check was
+    not worth having, so lifting the rules turned them from refusals into a backlog.
+    """
+    assert len(gaps()) == 15
+    assert "llamaguard_7b" in gaps()
+    assert "exclude_sql_predicates" in gaps()
+    # Nothing already answered by a detector is a gap: that would be a request to build
+    # a second one.
+    assert not [name for name in gaps() if DECLINED[name].reason == "covered"]
+
+
+def test_every_covered_decline_names_a_detector_that_exists() -> None:
+    # A `covered` note pointing at a detector id the catalogue does not have would be a
+    # claim that a check runs somewhere when it runs nowhere.
+    for name, entry in DECLINED.items():
+        if entry.reason != "covered":
+            continue
+        assert any(f"`{known}`" in entry.note for known in CATALOGUE), (
+            f"{name} is declined as covered but names no detector"
+        )
 
 
 # ------------------------------------------------------------------------ the document
@@ -117,8 +138,80 @@ def test_the_document_names_every_validator() -> None:
 
 
 def test_the_document_states_the_two_things_the_retrain_still_has_to_settle() -> None:
-    # The honest part of that section. Retraining fixes the licence, and leaves both
-    # the constraint 4 problem and the CPU budget problem exactly where they were.
+    """Retraining fixes the licence. It does not fix either of the other two.
+
+    Neither is a reason not to do it, and both are things that go wrong silently if
+    nobody writes them down: an unpinned generative detector produces a different
+    verdict for the same input, and a 1.6B pass on CPU misses every budget in the table.
+    """
     text = DOC.read_text(encoding="utf-8")
-    assert "Constraint 4 forbids an LLM call inside a detector" in text
-    assert "does not meet a CPU budget" in text
+    assert "Pin decoding" in text
+    assert "Give it a budget it can meet" in text
+
+
+def test_the_document_frames_the_backlog_as_requirements_rather_than_refusals() -> None:
+    # The reason codes double as the `Spec.requires` tags a built version would carry,
+    # so the not-ported table is also the backlog. If that link is dropped the table
+    # goes back to reading like a list of refusals.
+    text = DOC.read_text(encoding="utf-8")
+    assert "Spec.requires" in text
+
+
+# ------------------------------------------------------------------------- packages
+
+
+def test_every_detector_built_today_is_in_core() -> None:
+    """Core is the package that runs on a laptop with the interface down.
+
+    Everything shipped so far is rules or a local ONNX encoder, so core is the whole
+    catalogue. When that stops being true this fails, which is the point: a detector
+    leaving core is a change to what a caller has to provide, and it should be a
+    deliberate edit rather than a drift.
+    """
+    from flowx_border.detectors.catalogue import CORE
+
+    assert set(CATALOGUE) == CORE
+
+
+def test_a_detector_declaring_a_requirement_is_reported_against_it() -> None:
+    from flowx_border.detectors.catalogue import REQUIREMENTS, Spec, requirements_for
+
+    # Built here rather than by mislabelling a real detector, because nothing shipped
+    # today needs anything and asserting otherwise would be a false claim in a table.
+    hosted = Spec("T2", frozenset({"output"}), 75.0, frozenset({"network", "gpu"}))
+    assert hosted.requires == {"network", "gpu"}
+    for requirement in hosted.requires:
+        assert requirement in REQUIREMENTS
+
+    # An id the catalogue does not carry contributes nothing rather than raising: this
+    # reads a policy, and a policy naming an unknown id is the policy loader's error.
+    assert requirements_for(["not_a_detector"]) == {}
+
+
+def test_a_core_only_policy_produces_no_deployment_notes() -> None:
+    """Silence is the common case and has to stay silent.
+
+    A library that printed a note for every scan would train the caller to ignore the
+    one that matters.
+    """
+    from flowx_border.policy import Policy
+    from flowx_border.registry import deployment_notes
+
+    policy = Policy(
+        policy_id="core-only",
+        version=1,
+        fail_mode=dict.fromkeys(("T0", "T1", "T2", "T3"), "open"),
+        detectors={},
+    )
+    assert deployment_notes(policy) == ()
+
+
+def test_the_shipped_policies_stay_inside_core() -> None:
+    from pathlib import Path
+
+    from flowx_border import load_policy
+    from flowx_border.registry import deployment_notes
+
+    policies = Path(__file__).resolve().parent.parent / "policies"
+    for path in sorted(policies.glob("*.yaml")):
+        assert deployment_notes(load_policy(path)) == (), path.name

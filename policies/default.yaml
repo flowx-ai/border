@@ -68,6 +68,10 @@ detectors:
     on_fail: redact         # a hostname in an answer is worth removing, not refusing
     options:
       domains: []           # corp.internal, wiki.example.corp, and so on
+  output_format:
+    enabled: false          # shape, not security, and its shape is yours to state
+    on_fail: flag
+    options: {}
   system_prompt_leakage:
     on_fail: flag           # needs no list: the phrase signal works in all 26 languages
     threshold: 0.5

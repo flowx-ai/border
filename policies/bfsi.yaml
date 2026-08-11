@@ -61,6 +61,10 @@ detectors:
     on_fail: block          # topology in an outbound answer is a reportable event
     options:
       domains: []           # fill in: your internal hostnames
+  output_format:
+    enabled: false          # nothing here is a compliance control
+    on_fail: flag
+    options: {}
   system_prompt_leakage:
     on_fail: block          # the instructions behind a regulated assistant are not public
     threshold: 0.4          # lower than default: prefer a false positive to a leak

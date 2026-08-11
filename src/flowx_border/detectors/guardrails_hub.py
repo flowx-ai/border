@@ -58,22 +58,32 @@ REASONS: Final[MappingProxyType[str, str]] = MappingProxyType(
     {
         "covered": "an existing detector already answers this question",
         "llm": (
-            "needs a generative model to make the judgement, which constraint 4 rules "
-            "out inside a detector"
+            "needs a generative model to make the judgement, and no detector here "
+            "answers the same question. Permitted since 2026-08-11, when the "
+            "constraints were lifted, and not yet built: there is no published model "
+            "for it. Filed by what this library can answer rather than by how upstream "
+            "implements it, so nine validators that call an LLM upstream are listed as "
+            "covered instead"
         ),
         "network": (
-            "needs a network call while scanning, which constraint 1 rules out"
+            "needs a network call while scanning. Permitted since 2026-08-11 and not "
+            "yet built, and the cost is worth stating: it puts a third party in the "
+            "latency path of every scan and breaks the offline guarantee "
+            "tests/conftest.py enforces"
+        ),
+        "dependency": (
+            "needs a runtime dependency the project does not have yet. Permitted since "
+            "2026-08-11, so this is a decision about weight rather than a refusal"
         ),
         "retrain": (
             "kept as a capability, dropped as a port: the upstream weights are "
-            "unusable here and the intent is to train our own"
+            "unusable "
+            "here and the intent is to train our own"
         ),
         "scope": (
-            "an output-shape or readability check rather than a security or "
-            "governance one"
-        ),
-        "dependency": (
-            "would need a runtime dependency outside the set constraint 7 allows"
+            "the check itself does not survive the port. Each of the four is a "
+            "specific "
+            "reason rather than a category judgement, and the note says which"
         ),
     }
 )
@@ -115,6 +125,59 @@ PORTED: Final[MappingProxyType[str, Port]] = MappingProxyType(
             "rewritten from whole-string similarity to containment. The original "
             "passes a long answer that quotes the prompt verbatim.",
         ),
+        # The sixteen shape validators, collapsed the same way the term-list ones were.
+        # Each hard-codes one assertion upstream; here the assertion is a policy option
+        # and the sixteen packages are one detector. See its module docstring for the
+        # four places a shape check stops being language-neutral.
+        "valid_json": Port("output_format", "`json: true`."),
+        "valid_html": Port(
+            "output_format",
+            "`html: true`, which counts unclosed tags. `html.parser` never fails on "
+            "its own, so parsing alone would be a no-op.",
+        ),
+        "valid_url": Port("output_format", "`url: required`."),
+        "has_url": Port("output_format", "`url: required`, the same option."),
+        "valid_length": Port(
+            "output_format",
+            "`max_length` and `min_length`, counted in graphemes rather than code "
+            "points so one visible string is one length in every language.",
+        ),
+        "one_line": Port("output_format", "`one_line: true`."),
+        "lowercase": Port(
+            "output_format",
+            "`case: lower`, asked as `text == text.lower()`. The obvious formulation, "
+            "no character is uppercase, passes the Croatian titlecase digraphs.",
+        ),
+        "uppercase": Port("output_format", "`case: upper`, as above."),
+        "valid_choices": Port(
+            "output_format",
+            "`choices`, matched on folded text so a Romanian choice accepts either "
+            "spelling of its diacritic.",
+        ),
+        "valid_range": Port(
+            "output_format",
+            "`numeric_range`, accepting a comma decimal separator, which is correct in "
+            "most of the 26.",
+        ),
+        "ends_with": Port("output_format", "`ends_with`, and `starts_with` with it."),
+        "regex_match": Port(
+            "output_format", "`regex`, as a full match rather than a search."
+        ),
+        "cucumber_expression_match": Port(
+            "output_format",
+            "`regex`. The cucumber expression grammar is not carried over: it is a "
+            "test-fixture DSL, and the shape it expresses is a regex here.",
+        ),
+        "two_words": Port("output_format", "`max_words: 2` with `min_words: 2`."),
+        "reading_time": Port(
+            "output_format",
+            "`max_reading_seconds`, with `words_per_minute` as an option rather than a "
+            "constant. Upstream bakes in an English silent-reading rate and applies it "
+            "to every language.",
+        ),
+        "quotes_price": Port(
+            "output_format", "`regex`. A price assertion is a pattern, not a feature."
+        ),
         "web_sanitization": Port(
             "markup_injection",
             "rewritten from `bleach.clean(x) != x`, which reports an attack in any "
@@ -134,27 +197,25 @@ DECLINED: Final[MappingProxyType[str, Decline]] = MappingProxyType(
     {
         "bert_toxic": Decline("covered", "`toxicity`."),
         "bias_check": Decline("covered", "`bias`."),
-        "cucumber_expression_match": Decline(
-            "scope", "matches an output against an expression grammar."
-        ),
         "detect_jailbreak": Decline("covered", "`injection`."),
         "detect_pii": Decline("covered", "`pii`. Presidio is not the engine here."),
         "detect_prompt_injection": Decline(
-            "llm",
-            "calls OpenAI through the Rebuff library. Also covered by `injection`.",
+            "covered",
+            "`injection`. Upstream calls OpenAI through the Rebuff library to "
+            "answer it; the encoder here answers the same question locally.",
         ),
-        "endpoint_is_reachable": Decline("network", "makes an HTTP request to check."),
-        "ends_with": Decline("scope", "a suffix assertion about output shape."),
+        "endpoint_is_reachable": Decline(
+            "network", "makes an HTTP request to check.", gap=True
+        ),
         "exclude_sql_predicates": Decline(
             "dependency",
             "needs a SQL parser, `sqlglot`. A regex over SQL predicates would be worse "
             "than nothing in a check whose whole value is precision.",
             gap=True,
         ),
-        "extracted_summary_sentences_match": Decline("llm", "calls OpenAI."),
+        "extracted_summary_sentences_match": Decline("llm", "calls OpenAI.", gap=True),
         "gibberish_text": Decline("covered", "`gibberish`."),
         "guardrails_pii": Decline("covered", "`pii`."),
-        "has_url": Decline("scope", "asserts a URL is present."),
         "llamaguard_7b": Decline(
             "retrain",
             "Llama Guard is a 7B generative model under the Llama Community Licence, "
@@ -163,13 +224,15 @@ DECLINED: Final[MappingProxyType[str, Decline]] = MappingProxyType(
             "port. See the note in the document about what still has to be decided.",
             gap=True,
         ),
-        "llm_critic": Decline("llm", "grades the output with a second model."),
-        "logic_check": Decline("llm", "asks a model to find logical fallacies."),
-        "lowercase": Decline("scope", "asserts the output is lowercase."),
+        "llm_critic": Decline(
+            "llm", "grades the output with a second model.", gap=True
+        ),
+        "logic_check": Decline(
+            "llm", "asks a model to find logical fallacies.", gap=True
+        ),
         "nsfw_text": Decline("covered", "`nsfw`."),
-        "one_line": Decline("scope", "asserts the output is a single line."),
         "politeness_check": Decline(
-            "llm", "calls a model through litellm. Covered by `politeness`."
+            "covered", "`politeness`. Upstream calls a model through litellm."
         ),
         "presidio_gliner_pii": Decline("covered", "`pii`."),
         "profanity_free": Decline(
@@ -179,33 +242,40 @@ DECLINED: Final[MappingProxyType[str, Decline]] = MappingProxyType(
             "porting it would add a 26-language claim it cannot support.",
         ),
         "prompt_injection_detector": Decline(
-            "llm", "scores prompts with a second model. Covered by `injection`."
+            "covered", "`injection`. Upstream scores the prompt with a second model."
         ),
         "provenance_embeddings": Decline("covered", "`groundedness`."),
-        "provenance_llm": Decline("llm", "calls a model through litellm."),
+        "provenance_llm": Decline(
+            "covered",
+            "`groundedness`. Upstream calls a model through litellm to compare an "
+            "answer with its sources.",
+        ),
         "provenance_nli": Decline("covered", "`groundedness`."),
-        "qa_relevance_llm_eval": Decline("llm", "asks the model about its own answer."),
-        "quotes_price": Decline("scope", "asserts a price appears."),
+        "qa_relevance_llm_eval": Decline(
+            "covered",
+            "`topic_scope`. Upstream asks the model whether its own answer was "
+            "relevant, which is a model grading itself.",
+        ),
         "reading_level": Decline(
             "scope",
             "a US grade-level readability metric. Not a security check, and the "
             "formula is defined for English only, so a 26-language version of it does "
             "not exist to port.",
         ),
-        "reading_time": Decline(
-            "scope", "estimates how long the output takes to read."
+        "redundant_sentences": Decline("scope", "a writing-quality check.", gap=True),
+        "relevancy_evaluator": Decline(
+            "covered", "`topic_scope`. Upstream calls a model."
         ),
-        "redundant_sentences": Decline("scope", "a writing-quality check."),
-        "regex_match": Decline(
-            "scope",
-            "a regex list belongs in your own code rather than behind a policy schema. "
-            "This matches what llm_guard_compat says about the `Regex` scanner.",
+        "response_evaluator": Decline(
+            "llm", "calls a model through litellm.", gap=True
         ),
-        "relevancy_evaluator": Decline("llm", "calls a model."),
-        "response_evaluator": Decline("llm", "calls a model through litellm."),
-        "responsiveness_check": Decline("llm", "calls a model through litellm."),
+        "responsiveness_check": Decline(
+            "covered",
+            "`politeness`. Its description is the same as politeness_check's, and "
+            "so is its implementation.",
+        ),
         "restricttotopic": Decline("covered", "`topic_scope`."),
-        "saliency_check": Decline("llm", "calls a model through litellm."),
+        "saliency_check": Decline("llm", "calls a model through litellm.", gap=True),
         "secrets_present": Decline(
             "covered",
             "`secrets`, which additionally carries credential keywords in all 26 "
@@ -221,33 +291,37 @@ DECLINED: Final[MappingProxyType[str, Decline]] = MappingProxyType(
         ),
         "similar_to_document": Decline("covered", "`groundedness`."),
         "similar_to_previous_values": Decline(
-            "scope", "consistency against previous answers, not a security property."
+            "scope",
+            "consistency against previous answers, not a security property.",
+            gap=True,
         ),
         "toxic_language": Decline("covered", "`toxicity`."),
-        "toxic_language_llm": Decline("llm", "calls a model through litellm."),
-        "two_words": Decline("scope", "asserts the output is exactly two words."),
+        "toxic_language_llm": Decline(
+            "covered",
+            "`toxicity`. Upstream asks a model for the same seven categories the "
+            "classifier here scores.",
+        ),
         "unusual_prompt": Decline(
-            "llm", "calls a model through litellm. Covered by `injection`."
+            "covered",
+            "`injection`. Upstream asks a model whether the prompt is tricky.",
         ),
-        "uppercase": Decline("scope", "asserts the output is uppercase."),
         "valid_address": Decline(
-            "network", "calls the Google Maps Address Validation API."
+            "network",
+            "calls the Google Maps Address Validation API.",
+            gap=True,
         ),
-        "valid_choices": Decline("scope", "asserts membership of an enumeration."),
-        "valid_html": Decline(
-            "scope", "parseability, not safety. See `markup_injection`."
+        "valid_open_api_spec": Decline(
+            "scope", "validates an OpenAPI document.", gap=True
         ),
-        "valid_json": Decline("scope", "your own schema does this better."),
-        "valid_length": Decline("scope", "a length assertion."),
-        "valid_open_api_spec": Decline("scope", "validates an OpenAPI document."),
-        "valid_range": Decline("scope", "a numeric range assertion."),
         "valid_sql": Decline(
             "dependency",
             "needs `sqlvalidator`, and it is a syntax check rather than a safety one.",
+            gap=True,
         ),
-        "valid_url": Decline("scope", "syntactic URL validation."),
         "wiki_provenance": Decline(
-            "llm", "calls a model and fetches Wikipedia while scanning."
+            "llm",
+            "calls a model and fetches Wikipedia while scanning.",
+            gap=True,
         ),
     }
 )

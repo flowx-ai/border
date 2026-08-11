@@ -20,7 +20,11 @@ from __future__ import annotations
 from collections.abc import Mapping
 
 from flowx_border.detectors.base import Detector
-from flowx_border.detectors.catalogue import CATALOGUE
+from flowx_border.detectors.catalogue import (
+    CATALOGUE,
+    REQUIREMENTS,
+    requirements_for,
+)
 from flowx_border.policy import Policy, PolicyError
 
 
@@ -45,6 +49,7 @@ def _build() -> dict[str, Detector]:
     from flowx_border.detectors.disclosure import DisclosureDetector
     from flowx_border.detectors.internal_domains import InternalDomainsDetector
     from flowx_border.detectors.markup_injection import MarkupInjectionDetector
+    from flowx_border.detectors.output_format import OutputFormatDetector
     from flowx_border.detectors.output_leakage import OutputLeakageDetector
     from flowx_border.detectors.pii import PiiDetector
     from flowx_border.detectors.secrets import SecretsDetector
@@ -68,6 +73,7 @@ def _build() -> dict[str, Detector]:
         "system_prompt_leakage": SystemPromptLeakageDetector(),
         "markup_injection": MarkupInjectionDetector(),
         "internal_domains": InternalDomainsDetector(),
+        "output_format": OutputFormatDetector(),
         # T1. Both share one piiguard session: constructing them does not load weights,
         # `warm()` does, and the second `warm()` is a cache hit rather than another
         # 279 MB.
@@ -136,3 +142,25 @@ def assert_satisfiable(policy: Policy, side: str | None = None) -> None:
             "and text would pass as if checked. Either install the detector, or change "
             "its on_fail to 'flag' or 'log' so the gap is recorded rather than hidden."
         )
+
+
+def deployment_notes(policy: Policy) -> tuple[str, ...]:
+    """What this policy needs from the machine, beyond a CPU and the base install.
+
+    Empty for a policy that stays inside CORE, which is the common case and should stay
+    silent. One line per requirement otherwise, naming the detectors that bring it in.
+
+    This returns lines rather than raising or warning, on purpose. Needing a GPU is not
+    an error, and a library that logged a warning would put the message somewhere the
+    caller may not be looking. Handing back the lines lets the caller print them at
+    startup, put them in a health check, or ignore them, which is their call to make.
+    A caller that wants the check to be loud can treat a non-empty result as fatal.
+    """
+    enabled = [
+        detector_id for detector_id in CATALOGUE if policy.enabled_for(detector_id)
+    ]
+    return tuple(
+        f"{requirement}: {REQUIREMENTS[requirement]}. Required by "
+        f"{', '.join(detectors)}."
+        for requirement, detectors in requirements_for(enabled).items()
+    )
