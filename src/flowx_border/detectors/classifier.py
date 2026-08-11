@@ -43,7 +43,6 @@ from __future__ import annotations
 
 import json
 import threading
-from pathlib import Path
 from typing import TYPE_CHECKING, Final
 
 from flowx_border.detectors.base import Context, DetectorConfig
@@ -70,8 +69,11 @@ class ClassifierDetector:
     ) -> None:
         spec = CATALOGUE[detector_id]
         self.id = detector_id
-        self.tier = spec.tier
-        self.sides = spec.sides
+        # Annotated as str rather than left to inference. A protocol attribute is
+        # invariant, so the narrower Tier that `spec.tier` carries does not satisfy
+        # `Detector.tier: str`, and the other detectors declare a plain string literal.
+        self.tier: str = spec.tier
+        self.sides: frozenset[str] = spec.sides
         self._model_id = model_id
         self._threads = threads
         self._labels: dict[int, str] | None = None
@@ -115,20 +117,15 @@ class ClassifierDetector:
         Hardcoding either would break silently the day a revision changes: every finding
         would carry a confidently wrong label, or the head would be read the wrong way.
         """
-        from huggingface_hub import hf_hub_download
+        from flowx_border.models.registry import companion
 
-        from flowx_border.models.registry import spec_for
-
-        spec = spec_for(self._model_id)
-        path = hf_hub_download(
-            repo_id=spec.repo, filename="config.json", revision=spec.revision
-        )
-        config = json.loads(Path(path).read_text(encoding="utf-8"))
+        path = companion(self._model_id, "config.json")
+        config = json.loads(path.read_text(encoding="utf-8"))
         id2label = config.get("id2label") or {}
         if not id2label:
             raise RuntimeError(
-                f"{spec.repo} config.json has no id2label, so findings could not be "
-                "labelled. Republish the model with its label map."
+                f"{path} has no id2label, so a finding could not be labelled. "
+                "Re-export the model with its label map."
             )
         self._labels = {
             int(index): str(label).lower() for index, label in id2label.items()
@@ -138,16 +135,13 @@ class ClassifierDetector:
     # ------------------------------------------------------------------ inference
 
     def _tokenizer(self) -> object:
-        from huggingface_hub import hf_hub_download
         from tokenizers import Tokenizer
 
-        from flowx_border.models.registry import spec_for
+        from flowx_border.models.registry import companion
 
-        spec = spec_for(self._model_id)
-        path = hf_hub_download(
-            repo_id=spec.repo, filename="tokenizer.json", revision=spec.revision
+        tokenizer = Tokenizer.from_file(
+            str(companion(self._model_id, "tokenizer.json"))
         )
-        tokenizer = Tokenizer.from_file(path)
         # Truncation off for the same reason as in pii: these tokenizers ship with
         # truncation at the training length, and leaving it on means a long document is
         # scored on its first paragraph while the rest is reported clean.

@@ -269,6 +269,76 @@ def local_spec_for(model_id: str) -> ModelSpec | None:
     return None
 
 
+def local_folder(model_id: str) -> Path | None:
+    """The directory holding these weights under the local override, without hashing.
+
+    Split out from `local_spec_for` because that function hashes 535 MB to build a spec,
+    and the callers that only need a path should not pay for it.
+    """
+    root = local_root()
+    if root is None:
+        return None
+    for folder in (f"{model_id}-full", model_id, model_id.replace("_", "") + "-full"):
+        if (root / folder / "onnx" / "model.int8.onnx").exists():
+            return root / folder
+    return None
+
+
+def companion(model_id: str, filename: str) -> Path:
+    """A file that ships beside the weights: the tokenizer, the config, the taxonomy.
+
+    One function because there are two places a model can live and every detector needs
+    the same two files. Before this, each detector called `hf_hub_download` directly,
+    which is correct for a published repo and fails outright for a local one: the "repo
+    id" is a filesystem path and the hub client rejects it. The failure was in `warm`,
+    which is the right place for it, but it meant no unreleased model could be loaded at
+    all despite `resolve` handling its weights perfectly well.
+    """
+    folder = local_folder(model_id)
+    if folder is not None:
+        path = folder / filename
+        if not path.exists():
+            raise ModelUnavailableError(
+                f"{folder} has no {filename}. A local artifact directory needs the "
+                "tokenizer and config saved with the weights: a span computed "
+                "against a different tokenizer is wrong, not approximate."
+            )
+        return path
+
+    from huggingface_hub import hf_hub_download
+
+    spec = spec_for(model_id)
+    return Path(
+        hf_hub_download(repo_id=spec.repo, filename=filename, revision=spec.revision)
+    )
+
+
+def available(model_id: str) -> bool:
+    """Whether these weights can be obtained without asking the network.
+
+    Deliberately cheap. `spec_for` hashes the file to build a local spec, and `_build`
+    needs this answer for seven models on the first call to `loaded_detectors`: hashing
+    3.7 GB to decide what goes in a dictionary would put four seconds on the first
+    scan of every process.
+
+    True means published and pinned, or present on disk under the local override. It
+    does not mean the file is intact, which `resolve` checks when it loads.
+    """
+    if model_id in MODELS:
+        return True
+    root = local_root()
+    if root is None:
+        return False
+    return any(
+        (root / folder / "onnx" / "model.int8.onnx").exists()
+        for folder in (
+            f"{model_id}-full",
+            model_id,
+            model_id.replace("_", "") + "-full",
+        )
+    )
+
+
 def spec_for(model_id: str) -> ModelSpec:
     """The spec for a short model id, or a useful error naming what is missing.
 

@@ -49,7 +49,6 @@ tests/test_budgets.py for the stated budget.
 from __future__ import annotations
 
 import threading
-from pathlib import Path
 from typing import TYPE_CHECKING, Final
 
 from flowx_border.detectors.base import INPUT, OUTPUT, Context, DetectorConfig
@@ -132,16 +131,11 @@ def _tokenizer(model_id: str = MODEL_ID) -> Tokenizer:
         if cached is not None:
             return cached
 
-        from huggingface_hub import hf_hub_download
         from tokenizers import Tokenizer
 
-        from flowx_border.models.registry import spec_for
+        from flowx_border.models.registry import companion
 
-        spec = spec_for(model_id)
-        path = hf_hub_download(
-            repo_id=spec.repo, filename="tokenizer.json", revision=spec.revision
-        )
-        tokenizer = Tokenizer.from_file(path)
+        tokenizer = Tokenizer.from_file(str(companion(model_id, "tokenizer.json")))
 
         # Truncation off, and this is not optional.
         #
@@ -171,21 +165,14 @@ def _label_map(model_id: str = MODEL_ID) -> dict[int, str]:
     """
     import json
 
-    from huggingface_hub import hf_hub_download
+    from flowx_border.models.registry import companion
 
-    from flowx_border.models.registry import spec_for
-
-    spec = spec_for(model_id)
-    path = hf_hub_download(
-        repo_id=spec.repo, filename="config.json", revision=spec.revision
-    )
-    with Path(path).open(encoding="utf-8") as handle:
+    config_path = companion(model_id, "config.json")
+    with config_path.open(encoding="utf-8") as handle:
         config = json.load(handle)
     id2label = config.get("id2label") or {}
     if not id2label:
-        raise RuntimeError(
-            f"{spec.repo} config.json has no id2label, cannot decode tags"
-        )
+        raise RuntimeError(f"{config_path} has no id2label, so tags cannot be decoded")
     return {int(index): str(label) for index, label in id2label.items()}
 
 
