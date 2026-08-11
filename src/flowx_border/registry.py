@@ -115,8 +115,42 @@ def _build() -> dict[str, Detector]:
 
     built["url_reachability"] = UrlReachabilityDetector()
 
-    # Phase 4 adds: injection, regulated_advice, toxicity, nsfw, bias, gibberish,
-    # politeness. Phase 5 adds: topic_scope, groundedness.
+    # The seven sequence-classification detectors, one class between them because
+    # everything that differs is data: model id, labels, threshold, and whether the head
+    # is read with sigmoid or argmax. The last three come from the model's own config.
+    #
+    # Conditional on the weights being findable, and that is the load-bearing part.
+    # Including a detector whose `warm` will fail would make `missing_for` report it as
+    # present, so `assert_satisfiable` would let a policy enforce with it and the
+    # failure
+    # would surface inside a scan instead of at policy load. Absent is the honest
+    # answer,
+    # and it is the same shape as the `sql_injection` case above.
+    #
+    # Nothing here is published yet, so in practice these appear when
+    # FLOWX_BORDER_MODEL_DIR points at a directory of artifacts, and are absent
+    # otherwise
+    # with UNPUBLISHED explaining why by name.
+    from flowx_border.detectors.classifier import ClassifierDetector
+    from flowx_border.models.registry import available
+
+    for detector_id in (
+        "injection",
+        "regulated_advice",
+        "toxicity",
+        "nsfw",
+        "bias",
+        "gibberish",
+        "politeness",
+    ):
+        # The model id matches the detector id for all seven. They are separate concepts
+        # and the loop keeps them separate, because a detector backed by a shared model
+        # is
+        # already a case this library has: pii and output_leakage.
+        if available(detector_id):
+            built[detector_id] = ClassifierDetector(detector_id, detector_id)
+
+    # Phase 5 adds: topic_scope, groundedness.
 
     return built
 

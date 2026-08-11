@@ -29,6 +29,21 @@ _UUID7 = r"^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
 _RFC3339_UTC = r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{1,9})?Z$"
 _SHA256 = r"^[0-9a-f]{64}$"
 _COMMIT_SHA = r"^[0-9a-f]{40}$"
+
+# A revision is either a published commit or an explicitly marked local file, and
+# nothing
+# else. The `local:` form exists because nothing is published until the end of the
+# project,
+# so development and tests load weights from disk, and a record made that way has to be
+# able to say so.
+#
+# Constrained rather than left free for the same reason every other string field here is
+# constrained: the alternative is a field that will accept a sentence. It may hold a
+# commit,
+# or `local:` plus the leading hex of the file's own hash, and there is no third
+# option. So a record can say "these were weights on a machine, and this is what they
+# hashed to", and cannot say "trust me".
+_REVISION = r"^([0-9a-f]{40}|local:[0-9a-f]{6,40})$"
 _IDENTIFIER = r"^[a-z][a-z0-9_]{0,63}$"
 _POLICY_ID = r"^[a-z0-9][a-z0-9._-]{0,63}$"
 _MODEL_ID = r"^[a-z0-9][a-z0-9._/-]{0,127}$"
@@ -40,6 +55,7 @@ RecordId = Annotated[str, Field(pattern=_UUID7)]
 Timestamp = Annotated[str, Field(pattern=_RFC3339_UTC)]
 Sha256 = Annotated[str, Field(pattern=_SHA256)]
 CommitSha = Annotated[str, Field(pattern=_COMMIT_SHA)]
+Revision = Annotated[str, Field(pattern=_REVISION)]
 DetectorId = Annotated[str, Field(pattern=_IDENTIFIER)]
 Label = Annotated[str, Field(pattern=_IDENTIFIER)]
 PolicyId = Annotated[str, Field(pattern=_POLICY_ID)]
@@ -82,7 +98,7 @@ class Finding(_Strict):
     span: tuple[int, int] | None = None
     action: Action
     model_id: ModelId | None = None
-    model_revision: CommitSha | None = None
+    model_revision: Revision | None = None
 
     @field_validator("span")
     @classmethod
@@ -128,7 +144,7 @@ class DetectorAttestation(_Strict):
 
     id: DetectorId
     model_id: ModelId | None = None
-    revision: CommitSha | None = None
+    revision: Revision | None = None
     weights_sha256: Sha256 | None = None
 
 
