@@ -30,9 +30,10 @@ reason, rather than last week's figures, because a page claiming a check runs wh
 does not is the failure this project refuses everywhere.
 
 **Caveats travel with the data, not in a footnote.** `caveats` is a list of sentences on
-the detector itself. Maltese scoring zero because it is absent from XLM-RoBERTa's
-pretraining is not a detail to discover later, and a language with fewer than ten test
-examples says so.
+the detector itself. A language with fewer than ten test examples says so, and a score
+of zero says what is known about why, without inventing a cause: the one zero this file
+was written around turned out to be a sample size of two rather than the base model
+everyone assumed.
 
 Latency is measured here, live, at the reference input from `tests/test_budgets.py`, so
 the figure and the assertion cannot drift apart.
@@ -56,8 +57,14 @@ OUT_MD = REPO / "docs" / "reference" / "performance.md"
 #: a reader.
 THIN_SUPPORT = 10
 
-#: Absent from XLM-RoBERTa's pretraining corpus. No amount of training data changes
-#: this, so a poor score here is a property of the base model rather than of the corpus.
+#: Absent from XLM-RoBERTa's pretraining corpus, which is a fact about the base model
+#: and worth attaching to a score from it.
+#: What it is NOT is an explanation for a low score, and this file said it was until
+#: 2026-08-11. nsfw scored 0.000 in Maltese and the caveat read "which no data fixes".
+#: Then the corpus went from 2 positives per language to 10 and Maltese scored 1.000,
+#: precision and recall both perfect. The 0.000 was the sample size the whole time. So
+#: the note now states the fact and stops there: a reader can weigh it, and nobody is
+#: told a number is unfixable when it was only unmeasured.
 NOT_IN_BASE_MODEL = {"mt"}
 
 LANGUAGE_NAMES = {
@@ -187,7 +194,9 @@ def quality_for(root: Path, detector: str) -> dict[str, Any] | None:
             entry["n_evaluated"] = int(row["n"])
         if code in NOT_IN_BASE_MODEL:
             notes.append(
-                "absent from the base model's pretraining, which no data fixes"
+                "absent from the base model's pretraining corpus, which is worth "
+                "knowing but has not been shown to bound the score: nsfw went from "
+                "0.000 to 1.000 here on more examples"
             )
         if notes:
             entry["notes"] = notes
@@ -258,8 +267,10 @@ def caveats_for(quality: dict[str, Any] | None) -> list[str]:
         rest = sorted(set(zeroes) - NOT_IN_BASE_MODEL)
         if base:
             notes.append(
-                f"scores zero in {', '.join(base)}, which is absent from XLM-RoBERTa's "
-                "pretraining. A different base model would be required, not more data."
+                f"scores zero in {', '.join(base)}, which is absent from "
+                "XLM-RoBERTa's pretraining. Check the sample size before blaming "
+                "the base model: the one time this was investigated, it was not "
+                "the cause."
             )
         if rest:
             notes.append(

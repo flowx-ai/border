@@ -221,8 +221,10 @@ and the JSON says so per language rather than in a footnote. Only `regulated_adv
 real per-language support, at about 24 positives each. `topic_scope`'s evaluation recorded
 no sample sizes at all, so its rows publish a null and say why.
 
-`nsfw` scores 0.000 in Maltese, which is absent from XLM-RoBERTa's pretraining entirely. No
-amount of training data changes that; it is a base model decision.
+Maltese is absent from XLM-RoBERTa's pretraining entirely, which is worth knowing about any
+score in that language. It is not, on the evidence here, what bounds one: `nsfw` scored 0.000
+in Maltese while its test split held two examples, and 1.000 with perfect precision and recall
+once it held ten. This README said the base model was the cause. It was the sample size.
 
 A note on what these metrics measure. A single-label head reports exact-match accuracy
 rather than F1, because precision and recall over "did the detector fire" are 1.000 by

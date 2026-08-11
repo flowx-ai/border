@@ -525,9 +525,16 @@ henkilötunnus, Estonian isikukood, Greek AMKA, Irish PPSN, Turkish TC Kimlik.
 
 Two genuine hard cases, and they are different problems:
 
-- **Maltese is not in XLM-RoBERTa's pretraining set.** No amount of synthetic data
-  fixes that, it is a base-model decision. Irish, contrary to an earlier note in this
-  file, is in XLM-R and should be fine.
+- **Maltese is not in XLM-RoBERTa's pretraining set.** That is a fact about the base
+  model. What was written here, that no amount of synthetic data fixes it, was an
+  assumption and it was wrong. On 2026-08-11 `nsfw` scored 0.000 in Maltese, was blamed
+  on the base model in this file, in the README and in the benchmark collector, and then
+  went to 1.000 with perfect precision and recall when the corpus went from 2 positives
+  per language to 10. The 0.000 was the sample size the whole time.
+
+  So the pretraining gap stays on this list as something to know, not as an explanation.
+  Before attributing any weak language to it, check how many examples the score rests
+  on. Irish, contrary to an earlier note here, is in XLM-R and should be fine.
 - **Maltese and Azerbaijani national IDs have no public checksum scheme**, so those
   two can only be generated format-valid, which makes their labels weaker than the
   rest by construction. Say so on the model card.
