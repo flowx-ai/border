@@ -12,8 +12,10 @@ from here. Regenerate with:
 | figure | value |
 |---|---|
 | detectors in the catalogue | 25 |
-| implemented and running today | 15 |
-| catalogued but not yet implemented | 10 |
+| implemented in the library | 22 |
+| that run on a fresh install, with no model download | 15 |
+| implemented but waiting on weights that are not published | 7 |
+| catalogued but not yet implemented | 3 |
 | that need nothing beyond a CPU and the base install | 22 |
 | that need something more, and declare it | 3 |
 | supported languages | 26 |
@@ -35,7 +37,7 @@ one on, so a caller finds out when they enable it rather than in production.
 | `invisible_text` | T0 | input, output | built | nothing beyond a CPU | 5 ms | Characters that are in the text but not on the screen: bidirectional controls, tag characters used to smuggle instructions, zero-width characters used to evade filters. |
 | `secrets` | T0 | input | built | nothing beyond a CPU | 1 ms | Credentials in text on its way to the model: named key formats, plus a deliberately conservative entropy rule. |
 | `banned_terms` | T1 | input, output | built | nothing beyond a CPU | 5 ms | Terms the deploying organisation has decided must not appear, matched correctly in 26 languages. The list is policy; none ships. |
-| `gibberish` | T1 | input | model trained, not yet wired in | nothing beyond a CPU | 75 ms | Input that is not meaningful text. |
+| `gibberish` | T1 | input | built | nothing beyond a CPU | 75 ms | Input that is not meaningful text. |
 | `internal_domains` | T1 | output | built | nothing beyond a CPU | 5 ms | Internal hostnames appearing in an answer meant for someone outside, in both their Unicode and punycode spellings. |
 | `json_schema` | T1 | output | built | dependency | 5 ms | Output that does not satisfy a JSON Schema the policy carries. Point it at the OpenAPI meta-schema and it validates an OpenAPI document. |
 | `markup_injection` | T1 | input, output | built | nothing beyond a CPU | 5 ms | Markup in the text that a browser would execute rather than display, found through case folding, entity decoding and compatibility folding. |
@@ -46,13 +48,13 @@ one on, so a caller finds out when they enable it rather than in production.
 | `repetition` | T1 | output | built | nothing beyond a CPU | 5 ms | Sentences the answer says twice, compared over folded text so a change of case or diacritic spelling does not hide a repeat. |
 | `sql_injection` | T1 | output | built | dependency | 5 ms | Generated SQL that does more than the product asked for: a second statement, a forbidden statement kind, a tautology, an unexpected UNION. |
 | `system_prompt_leakage` | T1 | output | built | nothing beyond a CPU | 5 ms | Whether the answer gave away the instructions the model was operating under, by containment against the system prompt and by phrase match in 26 languages. |
-| `bias` | T2 | output | model trained, not yet wired in | nothing beyond a CPU | 75 ms | Output carrying bias related to a protected characteristic. |
-| `injection` | T2 | input | no model published yet | nothing beyond a CPU | 75 ms | Attempts to talk the model out of its instructions. |
+| `bias` | T2 | output | built | nothing beyond a CPU | 75 ms | Output carrying bias related to a protected characteristic. |
+| `injection` | T2 | input | built | nothing beyond a CPU | 75 ms | Attempts to talk the model out of its instructions. |
 | `moderation` | T2 | input, output | trained, but on a seed corpus rather than a training set | nothing beyond a CPU | 150 ms | Thirteen hazard categories in one pass, from violent crime to election misinformation. Replaces the capability Llama Guard and ShieldGemma provide, with weights this project can ship. |
-| `nsfw` | T2 | input, output | model trained, not yet wired in | nothing beyond a CPU | 75 ms | Sexual or otherwise not-safe-for-work content. |
-| `politeness` | T2 | output | model trained, not yet wired in | nothing beyond a CPU | 75 ms | Whether the tone of an answer is acceptable. |
-| `regulated_advice` | T2 | output | no model published yet | nothing beyond a CPU | 75 ms | Output that reads as regulated financial, legal or medical advice. |
-| `toxicity` | T2 | input, output | model trained, not yet wired in | nothing beyond a CPU | 75 ms | Abusive or hateful language, in input or output. |
+| `nsfw` | T2 | input, output | built | nothing beyond a CPU | 75 ms | Sexual or otherwise not-safe-for-work content. |
+| `politeness` | T2 | output | built | nothing beyond a CPU | 75 ms | Whether the tone of an answer is acceptable. |
+| `regulated_advice` | T2 | output | built | nothing beyond a CPU | 75 ms | Output that reads as regulated financial, legal or medical advice. |
+| `toxicity` | T2 | input, output | built | nothing beyond a CPU | 75 ms | Abusive or hateful language, in input or output. |
 | `groundedness` | T3 | output | no model published yet | nothing beyond a CPU | 300 ms | Whether the claims in an answer are supported by the sources it was given. |
 | `topic_scope` | T3 | input | needs an encoder export before it can meet its budget | nothing beyond a CPU | 300 ms | Whether a request is inside the subject matter the product covers. |
 | `url_reachability` | T3 | output | built | network | 3000 ms | Whether links in the answer resolve to something that answers, with a deadline and a refusal to request private addresses. |

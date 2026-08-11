@@ -1,15 +1,15 @@
 # SPDX-License-Identifier: Apache-2.0
 """Tests for the model runtime and the two T1 detectors.
 
-Real weights, no mocked sessions, per CLAUDE.md. Marked `slow` because they need the
-279 MB INT8 artifact present, and skipped with a readable reason when it is not, so a
-fresh clone does not fail a suite it was never able to run.
+Real weights, no mocked sessions, per CLAUDE.md. Marked `slow` because they need the 279
+MB INT8 artifact present, and skipped with a readable reason when it is not, so a fresh
+clone does not fail a suite it was never able to run.
 
 `HF_HUB_OFFLINE=1` is set for the whole module, which is doing double duty. It stops
 huggingface-hub from making a revalidation request for a file it already has, and it
-means these tests only pass if the library genuinely works with no network, which
-is constraint 1. The socket guard in conftest.py would catch a violation anyway; this
-makes the intent explicit rather than incidental.
+means these tests only pass if the library genuinely works with no network, which is
+constraint 1. The socket guard in conftest.py would catch a violation anyway; this makes
+the intent explicit rather than incidental.
 
 The property worth the most here is offset correctness. A wrong span silently redacts
 the wrong characters, and the caller cannot notice: the text still looks redacted.
@@ -181,12 +181,19 @@ def test_the_two_t1_detectors_share_one_session(
     pii: PiiDetector, leakage: OutputLeakageDetector
 ) -> None:
     # The Phase 3 definition of done, and the reason output_leakage exists as a separate
-    # detector at all: 279 MB twice for one model would be waste.
+    # detector at all: 279 MB twice for one model would be waste.  The claim is that
+    # piiguard is loaded once, not that it is the only model in the process. The
+    # stricter form of this held only while no other model could load, and broke the
+    # moment a classifier warmed in the same session, which made it an assertion about
+    # what else the suite had run rather than about session sharing.
     from flowx_border.models.onnx import loaded_model_ids, session_count
 
     assert leakage.shares_model_with == "piiguard"
-    assert loaded_model_ids() == ("piiguard",)
-    assert session_count() == 1
+    loaded = loaded_model_ids()
+    assert loaded.count("piiguard") == 1, f"piiguard loaded more than once: {loaded}"
+    assert session_count() == len(loaded), (
+        f"{session_count()} sessions for {len(loaded)} models, so one loaded twice"
+    )
 
 
 def test_both_detectors_attest_the_same_weights(
@@ -430,11 +437,29 @@ def test_the_registry_refuses_a_branch_as_a_revision() -> None:
 
 
 def test_an_unpublished_model_names_the_repo_it_is_waiting_on() -> None:
-    from flowx_border.models.registry import ModelUnavailableError, spec_for
+    """An unpublished model must fail by name, rather than by returning nothing usable.
 
+    Skipped per model when a local override supplies it, because then it is not
+    unpublished from this process's point of view and there is nothing to assert. The
+    override is how the models are used at all before release, so a test that assumed
+    their absence was asserting on the state of a developer's disk.
+    """
+    from flowx_border.models.registry import (
+        ModelUnavailableError,
+        available,
+        spec_for,
+    )
+
+    checked = 0
     for model_id in ("injection", "groundedness", "semantic-mapper"):
+        if available(model_id):
+            continue
+        checked += 1
         with pytest.raises(ModelUnavailableError, match="ships unavailable"):
             spec_for(model_id)
+
+    if checked == 0:
+        pytest.skip("every named model is supplied by a local override")
 
 
 def test_an_unknown_model_id_is_distinguishable_from_an_unbuilt_one() -> None:
@@ -462,10 +487,9 @@ def test_a_corrupted_weight_file_is_refused(
 def test_the_session_declares_the_inputs_the_detector_feeds(pii: PiiDetector) -> None:
     # Takes the fixture purely for its skip: every other test in this file gets a
     # readable reason when the weights are absent, and this one resolved the session
-    # directly and failed in CI instead.
-    # piiguard takes input_ids and attention_mask and no token_type_ids. Feeding an
-    # input the graph does not declare is an error, so the feed is filtered against
-    # this.
+    # directly and failed in CI instead. piiguard takes input_ids and attention_mask and
+    # no token_type_ids. Feeding an input the graph does not declare is an error, so the
+    # feed is filtered against this.
     from flowx_border.models.onnx import session_for
 
     loaded = session_for("piiguard", verify=False)

@@ -150,8 +150,12 @@ UNPUBLISHED: Final[dict[str, str]] = {
     ),
     "groundedness": (
         "no ONNX artifact is published for groundedness yet. The trained model scores "
-        "1.000, which is saturated rather than good, so the corpus needs hard cases "
-        "before the number means anything."
+        "0.840 exact-match accuracy across 26 languages, 0.882 after 14 epochs. An "
+        "earlier note here said 1.000 and called it saturated: that number came from a "
+        "per-language F1 computed over 'did the detector fire', which is 1.000 by "
+        "construction for an argmax head because argmax always fires. It measured "
+        "nothing. Weakest registers are lexical_overlap at 0.708 and "
+        "negation_contradiction at 0.754, which is where a harder corpus would pay."
     ),
     "toxicity": _HELD_BACK.format(
         detector="toxicity", note="macro-F1 0.882 at threshold 0.32"

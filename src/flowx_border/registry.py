@@ -36,8 +36,20 @@ class DetectorUnavailableError(PolicyError):
     """
 
 
-def _build() -> dict[str, Detector]:
+def _build() -> tuple[dict[str, Detector], frozenset[str]]:
     """Instantiate every detector this install can provide.
+
+    Returns what was instantiated, and separately every id there is an implementation
+    for. Those are two different facts and keeping them apart matters:
+
+        instantiated   this process can run it, weights and extras included implemented
+        the library has code for it, on any machine
+
+    `docs/detectors.md` is checked in and read by outsiders, so it describes the second.
+    Rendering the first into it made the document depend on whether the machine that ran
+    the generator happened to have 527 MB of weights in a cache, which meant the doc
+    drifted between machines and the drift test only passed where the models were
+    absent.
 
     Each phase of BUILD_PLAN.md adds entries.
 
@@ -63,16 +75,15 @@ def _build() -> dict[str, Detector]:
     pii = PiiDetector()
 
     built: dict[str, Detector] = {
-        # T0: rules, no weights, no download. This is what lets the library do
-        # something useful on a machine that has never fetched a model.
+        # T0: rules, no weights, no download. This is what lets the library do something
+        # useful on a machine that has never fetched a model.
         "secrets": SecretsDetector(),
         "disclosure": DisclosureDetector(),
         "invisible_text": InvisibleTextDetector(),
-        # T1 rules, ported from the Guardrails Hub. Also no weights and no download,
-        # so they are available on the same machine the T0 pair is. Two of them need a
-        # list from the policy and report that they have none rather than reporting a
-        # clean scan, which is why they are loaded here but disabled in the shipped
-        # policies.
+        # T1 rules, ported from the Guardrails Hub. Also no weights and no download, so
+        # they are available on the same machine the T0 pair is. Two of them need a list
+        # from the policy and report that they have none rather than reporting a clean
+        # scan, which is why they are loaded here but disabled in the shipped policies.
         "banned_terms": BannedTermsDetector(),
         "system_prompt_leakage": SystemPromptLeakageDetector(),
         "markup_injection": MarkupInjectionDetector(),
@@ -81,8 +92,8 @@ def _build() -> dict[str, Detector]:
         "postal_code": PostalCodeDetector(),
         "repetition": RepetitionDetector(),
         # T1. Both share one piiguard session: constructing them does not load weights,
-        # `warm()` does, and the second `warm()` is a cache hit rather than another
-        # 279 MB.
+        # `warm()` does, and the second `warm()` is a cache hit rather than another 279
+        # MB.
         "pii": pii,
         # The same instance, not another one. They share the session either way; sharing
         # the object also shares the inference cache, so an output-side scan runs the
@@ -90,14 +101,19 @@ def _build() -> dict[str, Detector]:
         "output_leakage": OutputLeakageDetector(shared=pii),
     }
 
-    # Outside CORE, and therefore conditional. Absent rather than broken when the
-    # `sql` extra is not installed: a policy that enables it then gets
+    # Outside CORE, and therefore conditional. Absent rather than broken when the `sql`
+    # extra is not installed: a policy that enables it then gets
     # DetectorUnavailableError at load, which is earlier and clearer than an ImportError
     # from inside a scan. `missing_for` reports it by name either way.
     from flowx_border.detectors.sql_injection import (
         SqlInjectionDetector,
         is_available,
     )
+
+    # Implemented whether or not the extra is installed, which is the distinction the
+    # return type carries: absent from `built` here means "not on this machine", not
+    # "not written".
+    implemented = set(built) | {"sql_injection", "json_schema"}
 
     if is_available():
         built["sql_injection"] = SqlInjectionDetector()
@@ -114,23 +130,19 @@ def _build() -> dict[str, Detector]:
     from flowx_border.detectors.url_reachability import UrlReachabilityDetector
 
     built["url_reachability"] = UrlReachabilityDetector()
+    implemented.add("url_reachability")
 
     # The seven sequence-classification detectors, one class between them because
     # everything that differs is data: model id, labels, threshold, and whether the head
     # is read with sigmoid or argmax. The last three come from the model's own config.
-    #
     # Conditional on the weights being findable, and that is the load-bearing part.
     # Including a detector whose `warm` will fail would make `missing_for` report it as
     # present, so `assert_satisfiable` would let a policy enforce with it and the
-    # failure
-    # would surface inside a scan instead of at policy load. Absent is the honest
-    # answer,
-    # and it is the same shape as the `sql_injection` case above.
-    #
+    # failure would surface inside a scan instead of at policy load. Absent is the
+    # honest answer, and it is the same shape as the `sql_injection` case above.
     # Nothing here is published yet, so in practice these appear when
     # FLOWX_BORDER_MODEL_DIR points at a directory of artifacts, and are absent
-    # otherwise
-    # with UNPUBLISHED explaining why by name.
+    # otherwise with UNPUBLISHED explaining why by name.
     from flowx_border.detectors.classifier import ClassifierDetector
     from flowx_border.models.registry import available
 
@@ -145,17 +157,31 @@ def _build() -> dict[str, Detector]:
     ):
         # The model id matches the detector id for all seven. They are separate concepts
         # and the loop keeps them separate, because a detector backed by a shared model
-        # is
-        # already a case this library has: pii and output_leakage.
+        # is already a case this library has: pii and output_leakage.
+        implemented.add(detector_id)
         if available(detector_id):
             built[detector_id] = ClassifierDetector(detector_id, detector_id)
 
     # Phase 5 adds: topic_scope, groundedness.
 
-    return built
+    return built, frozenset(implemented)
 
 
 _LOADED: dict[str, Detector] | None = None
+_IMPLEMENTED: frozenset[str] | None = None
+
+
+def _cached() -> tuple[dict[str, Detector], frozenset[str]]:
+    """Both halves of the build, computed once.
+
+    Returns them rather than reading the globals back, so neither caller needs an
+    `assert` to convince a type checker the cache is populated. An `assert` here would
+    also be stripped under `-O`, which is not a property to rely on in library code.
+    """
+    global _LOADED, _IMPLEMENTED
+    if _LOADED is None or _IMPLEMENTED is None:
+        _LOADED, _IMPLEMENTED = _build()
+    return _LOADED, _IMPLEMENTED
 
 
 def loaded_detectors() -> Mapping[str, Detector]:
@@ -165,10 +191,17 @@ def loaded_detectors() -> Mapping[str, Detector]:
     hot path. The cache is process-wide and there is no invalidation, which is correct:
     the set of importable detectors cannot change while the process runs.
     """
-    global _LOADED
-    if _LOADED is None:
-        _LOADED = _build()
-    return _LOADED
+    return _cached()[0]
+
+
+def implemented_detectors() -> frozenset[str]:
+    """Every detector this library has code for, whether or not this machine can run it.
+
+    The set a public document should describe. `loaded_detectors` answers the narrower
+    question of what this process can run, which depends on installed extras and on
+    which weights are in the cache, and is therefore not a property of the library.
+    """
+    return _cached()[1]
 
 
 def missing_for(policy: Policy, side: str | None = None) -> tuple[str, ...]:
@@ -218,8 +251,8 @@ def deployment_notes(policy: Policy) -> tuple[str, ...]:
     This returns lines rather than raising or warning, on purpose. Needing a GPU is not
     an error, and a library that logged a warning would put the message somewhere the
     caller may not be looking. Handing back the lines lets the caller print them at
-    startup, put them in a health check, or ignore them, which is their call to make.
-    A caller that wants the check to be loud can treat a non-empty result as fatal.
+    startup, put them in a health check, or ignore them, which is their call to make. A
+    caller that wants the check to be loud can treat a non-empty result as fatal.
     """
     enabled = [
         detector_id for detector_id in CATALOGUE if policy.enabled_for(detector_id)

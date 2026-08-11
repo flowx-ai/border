@@ -25,7 +25,6 @@ from typing import Final, NamedTuple
 from flowx_border.detectors.catalogue import CATALOGUE, CORE, REQUIREMENTS
 
 #: Why a catalogued detector is not loaded. Absent means it is.
-#:
 #: These are the states CLAUDE.md's table records, kept here in the vocabulary an
 #: outside reader needs rather than the one the build plan uses.
 NOT_BUILT: Final[MappingProxyType[str, str]] = MappingProxyType(
@@ -44,8 +43,8 @@ NOT_BUILT: Final[MappingProxyType[str, str]] = MappingProxyType(
 )
 
 #: One line per detector, for a reader who is not going to open the source. Written by
-#: hand because a sentence is not derivable from code, and checked for completeness by
-#: a test because a blank row in a public table is worse than no table.
+#: hand because a sentence is not derivable from code, and checked for completeness by a
+#: test because a blank row in a public table is worse than no table.
 SUMMARIES: Final[MappingProxyType[str, str]] = MappingProxyType(
     {
         "secrets": (
@@ -146,20 +145,30 @@ class Row(NamedTuple):
     summary: str
 
 
-def _loaded() -> frozenset[str]:
-    """Which detectors this install provides.
+def _implemented() -> frozenset[str]:
+    """Which detectors this library has code for.
 
-    Imported inside the function because `registry` imports `policy`, which imports
-    this package, and a module-level import would be a cycle.
+    Deliberately not `loaded_detectors()`. This document is checked in and read by
+    people outside the project, so it has to say the same thing on every machine.
+    Whether the 527 MB of classifier weights happen to be in a local cache is a property
+    of a machine, not of the library, and rendering it here made the document drift
+    between developers and made the drift test pass only where the models were absent.
+
+    What a given install can actually run is a separate question, answered by
+    `missing_for` at policy load and by `docs/reference/performance.json` for the
+    models.
+
+    Imported inside the function because `registry` imports `policy`, which imports this
+    package, and a module-level import would be a cycle.
     """
-    from flowx_border.registry import loaded_detectors
+    from flowx_border.registry import implemented_detectors
 
-    return frozenset(loaded_detectors())
+    return implemented_detectors()
 
 
 def rows() -> tuple[Row, ...]:
     """Every catalogued detector, in tier then name order."""
-    loaded = _loaded()
+    loaded = _implemented()
     order = {"T0": 0, "T1": 1, "T2": 2, "T3": 3}
     out = []
     for detector_id in sorted(CATALOGUE, key=lambda d: (order[CATALOGUE[d].tier], d)):
@@ -188,12 +197,26 @@ def rows() -> tuple[Row, ...]:
 
 
 def counts() -> dict[str, int]:
-    """The numbers a page is most likely to get wrong, computed rather than recalled."""
+    """The numbers a page is most likely to get wrong, computed rather than recalled.
+
+    `built` counts detectors the library implements. That is not the same as the number
+    a caller gets on a fresh install, because seven of them need weights that are not
+    published yet, so `awaiting_weights` is reported beside it rather than left for a
+    reader to discover. A summary that gave only the first number would be the "says a
+    check runs when it does not" failure in table form.
+    """
+    from flowx_border.models.registry import UNPUBLISHED
+
     all_rows = rows()
+    built = [row for row in all_rows if row.status == "built"]
     return {
         "catalogued": len(all_rows),
-        "built": sum(1 for row in all_rows if row.status == "built"),
+        "built": len(built),
         "not_built": sum(1 for row in all_rows if row.status != "built"),
+        "awaiting_weights": sum(1 for row in built if row.detector_id in UNPUBLISHED),
+        "runs_on_a_fresh_install": sum(
+            1 for row in built if row.detector_id not in UNPUBLISHED
+        ),
         "core": len(CORE),
         "outside_core": len(CATALOGUE) - len(CORE),
         "languages": 26,
@@ -221,7 +244,15 @@ def render_counts() -> str:
     lines = ["| figure | value |", "|---|---|"]
     for key, label in (
         ("catalogued", "detectors in the catalogue"),
-        ("built", "implemented and running today"),
+        ("built", "implemented in the library"),
+        (
+            "runs_on_a_fresh_install",
+            "that run on a fresh install, with no model download",
+        ),
+        (
+            "awaiting_weights",
+            "implemented but waiting on weights that are not published",
+        ),
         ("not_built", "catalogued but not yet implemented"),
         ("core", "that need nothing beyond a CPU and the base install"),
         ("outside_core", "that need something more, and declare it"),

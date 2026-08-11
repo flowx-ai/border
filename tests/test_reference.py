@@ -57,13 +57,20 @@ def test_every_row_has_a_status_and_it_is_derived() -> None:
     The failure being prevented is a page that says a check runs when it does not, and
     the way that happens is a hand-kept list nobody updates when a detector stops
     loading.
-    """
-    from flowx_border.registry import loaded_detectors
 
-    loaded = set(loaded_detectors())
+    Derived from `implemented_detectors` rather than `loaded_detectors`, because this
+    document is checked in and has to read the same on every machine. Against the loaded
+    set, the assertion held only where the classifier weights were absent and broke as
+    soon as they were present, which made it a test about the developer's disk.
+    """
+    from flowx_border.registry import implemented_detectors
+
+    implemented = set(implemented_detectors())
     for row in rows():
         assert row.status
-        assert (row.status == "built") == (row.detector_id in loaded), row.detector_id
+        assert (row.status == "built") == (row.detector_id in implemented), (
+            row.detector_id
+        )
 
 
 def test_a_detector_that_is_not_built_says_why() -> None:
@@ -95,7 +102,12 @@ def test_claude_md_states_the_computed_number_of_real_detectors() -> None:
     numbers = counts()
     match = re.search(r"v1 is (\d+) of (\d+) detectors real", CLAUDE_MD.read_text())
     assert match, "CLAUDE.md no longer states the count in the expected form"
-    assert int(match.group(1)) == numbers["built"]
+    # "Real" is the number that runs for somebody who installs the library, which is not
+    # the number implemented: seven classifiers are written and wired but wait on
+    # weights that are not published, so they check nothing on a fresh install.
+    # Asserting against `built` would let CLAUDE.md claim 22 working detectors while 7
+    # of them are inert, which is the claim this project refuses to make anywhere else.
+    assert int(match.group(1)) == numbers["runs_on_a_fresh_install"]
     assert int(match.group(2)) == numbers["catalogued"]
 
 
@@ -137,8 +149,8 @@ def test_the_document_carries_the_language_caveat() -> None:
 
 
 def test_the_document_carries_the_compliance_language_rules() -> None:
-    # The obligations sit with the provider or deployer of a system, not with a
-    # library, so this is materially misleading rather than merely overenthusiastic.
+    # The obligations sit with the provider or deployer of a system, not with a library,
+    # so this is materially misleading rather than merely overenthusiastic.
     text = DOC.read_text(encoding="utf-8")
     for forbidden in ("AI Act compliant", "guarantees", "certified"):
         assert forbidden in text, f"{forbidden} is not listed as a thing not to say"
