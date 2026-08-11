@@ -82,12 +82,25 @@ CTX = Context()
 SOURCED = Context(sources=("Vă mulțumim pentru mesajul dumneavoastră.",))
 
 
-def p95(work: Callable[[], object], runs: int) -> float:
-    """Milliseconds at the 95th percentile, after a warm-up that is not measured."""
+def p95(
+    work: Callable[[], object], runs: int, before: Callable[[], object] | None = None
+) -> float:
+    """Milliseconds at the 95th percentile, after an unmeasured warm-up.
+
+    `before` runs outside the timed region on every iteration, and it exists because of a
+    trap this file walked into. `pii` memoises its inference, so repeating the same text
+    makes every iteration after the first a cache hit, and a budget suite that measures
+    cache hits measures nothing while still passing. Model measurements pass a hook that
+    drops the cache, so each iteration is a real encoder pass.
+    """
     for _ in range(3):
+        if before is not None:
+            before()
         work()
     samples = []
     for _ in range(runs):
+        if before is not None:
+            before()
         started = time.perf_counter()
         work()
         samples.append((time.perf_counter() - started) * 1000.0)
@@ -151,7 +164,7 @@ def test_disclosure_is_within_budget() -> None:
 
 def test_pii_is_within_budget(pii: PiiDetector) -> None:
     budget = CATALOGUE["pii"].budget_ms * SCALE
-    measured = p95(lambda: pii.run(REFERENCE_INPUT, CFG, CTX), 25)
+    measured = p95(lambda: pii.run(REFERENCE_INPUT, CFG, CTX), 25, before=pii.forget)
     assert measured <= budget, (
         f"pii {measured:.1f} ms exceeds {budget:.1f} ms at {len(REFERENCE_INPUT)} "
         f"characters. Reference was {MEASURED_MS['pii']} ms. If the machine is "
@@ -159,11 +172,19 @@ def test_pii_is_within_budget(pii: PiiDetector) -> None:
     )
 
 
-def test_output_leakage_is_within_budget(
-    pii: PiiDetector, leakage: OutputLeakageDetector
-) -> None:
+def test_output_leakage_is_within_budget(pii: PiiDetector) -> None:
+    """Measured on its own instance, which is the worst case and the honest one.
+
+    The registry gives it the same PiiDetector that `pii` uses, so in a real scan it is
+    usually a cache hit costing nothing. That is the optimisation, not the budget: a
+    budget has to cover the case where this detector runs first, or runs alone.
+    """
+    solo = OutputLeakageDetector()
+    solo.warm()
     budget = CATALOGUE["output_leakage"].budget_ms * SCALE
-    measured = p95(lambda: leakage.run(REFERENCE_INPUT, CFG, SOURCED), 25)
+    measured = p95(
+        lambda: solo.run(REFERENCE_INPUT, CFG, SOURCED), 25, before=solo.forget
+    )
     assert measured <= budget, (
         f"output_leakage {measured:.1f} ms exceeds {budget:.1f} ms"
     )
@@ -183,7 +204,7 @@ def test_a_t0_detector_is_orders_of_magnitude_cheaper_than_a_model_pass(
     worse, starts loading something.
     """
     rules = p95(lambda: SecretsDetector().run(REFERENCE_INPUT, CFG, CTX), 200)
-    model = p95(lambda: pii.run(REFERENCE_INPUT, CFG, CTX), 15)
+    model = p95(lambda: pii.run(REFERENCE_INPUT, CFG, CTX), 15, before=pii.forget)
     assert model / max(rules, 1e-6) > 100, (
         f"T0 is only {model / max(rules, 1e-6):.0f}x cheaper than a model pass. "
         "T0 runs on every scan and cannot be switched off, so it must stay negligible."
@@ -198,9 +219,9 @@ def test_cost_is_linear_in_tokens_not_quadratic(pii: PiiDetector) -> None:
     correctness test still passes. Attention is quadratic within a window, but a
     window is fixed size, so the whole should be linear in the window count.
     """
-    short = p95(lambda: pii.run(REFERENCE_INPUT, CFG, CTX), 10)
+    short = p95(lambda: pii.run(REFERENCE_INPUT, CFG, CTX), 10, before=pii.forget)
     long_input = REFERENCE_INPUT * 4
-    long_cost = p95(lambda: pii.run(long_input, CFG, CTX), 6)
+    long_cost = p95(lambda: pii.run(long_input, CFG, CTX), 6, before=pii.forget)
     ratio = long_cost / short
     assert ratio < 8.0, (
         f"4x the input cost {ratio:.1f}x the time. Linear would be near 4x; "
@@ -261,7 +282,7 @@ def test_loading_a_session_costs_far_more_than_using_it(pii: PiiDetector) -> Non
     session_for("piiguard", verify=False)
     load_ms = (time.perf_counter() - started) * 1000.0
 
-    one_pass = p95(lambda: pii.run(REFERENCE_INPUT, CFG, CTX), 10)
+    one_pass = p95(lambda: pii.run(REFERENCE_INPUT, CFG, CTX), 10, before=pii.forget)
     assert load_ms > one_pass, (
         f"session load {load_ms:.0f} ms is not more than one pass {one_pass:.0f} ms. "
         "If loading became cheap, warm() matters less and this test should be "
@@ -286,6 +307,23 @@ def test_a_second_detector_reusing_the_session_pays_nothing_to_start(
 # ------------------------------------------------------------------ what a scan costs
 
 
+def test_the_shared_instance_makes_the_second_detector_nearly_free(
+    pii: PiiDetector, leakage: OutputLeakageDetector
+) -> None:
+    """The payoff of sharing the inference rather than only the session.
+
+    Before this, an output-side scan cost 116 ms, of which 51 ms was output_leakage
+    running the encoder again over text `pii` had just read for the same answer.
+    """
+    pii.forget()
+    pii.run(REFERENCE_INPUT, CFG, SOURCED)
+    reuse = p95(lambda: leakage.run(REFERENCE_INPUT, CFG, SOURCED), 20)
+    assert reuse < CATALOGUE["pii"].budget_ms / 5, (
+        f"output_leakage took {reuse:.1f} ms after pii had already scanned the same "
+        "text, so it is repeating the inference instead of reusing it."
+    )
+
+
 def test_the_full_output_side_scan_is_recorded(
     pii: PiiDetector, leakage: OutputLeakageDetector
 ) -> None:
@@ -298,13 +336,15 @@ def test_the_full_output_side_scan_is_recorded(
     """
     disclosure = DisclosureDetector()
     disclosure.warm()
+    shared = pii
 
     def whole_scan() -> None:
         disclosure.run(REFERENCE_INPUT, CFG, SOURCED)
         pii.run(REFERENCE_INPUT, CFG, SOURCED)
         leakage.run(REFERENCE_INPUT, CFG, SOURCED)
 
-    total = p95(whole_scan, 12)
+    total = p95(whole_scan, 12, before=shared.forget)
     print(f"\n  full output-side scan p95: {total:.1f} ms at the reference input")
-    # Two encoder passes plus a rule check. Three would mean something ran twice.
-    assert total <= 3 * CATALOGUE["pii"].budget_ms * SCALE
+    # One encoder pass plus two rule checks, because output_leakage reuses pii's result.
+    # Two would mean the shared instance stopped being shared.
+    assert total <= 2 * CATALOGUE["pii"].budget_ms * SCALE

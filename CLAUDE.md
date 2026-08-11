@@ -128,9 +128,16 @@ disable it, not about it being cheaper. A single 75 ms budget for every encoder 
 is the honest consequence.
 
 **The tier ceilings are not per-scan totals.** A full output-side scan with everything
-wired would be one rule check plus seven encoder passes: roughly 360 ms at the reference
-length. The tier system is what keeps that off the common path, T2 being disableable and
-T3 running only on escalation, and that is a scheduling property rather than a cost one.
+wired would be one rule check plus six encoder passes, roughly 310 ms at the reference
+length: `pii` and `output_leakage` share a single pass, and each of the five T2
+classifiers is a different model and needs its own. The tier system is what keeps that
+off the common path, T2 being disableable and T3 running only on escalation, which is a
+scheduling property rather than a cost one.
+
+Measured today, with `disclosure`, `pii` and `output_leakage` wired: 51.9 ms for the
+output side. It was 116 ms until `output_leakage` stopped repeating `pii`'s encoder pass
+over the same text for the same answer. Sharing the session saved memory; sharing the
+inference saved the time.
 
 **Threads buy the old numbers back, and the library will not take them.** Measured at 96
 tokens: 54.7 ms at one thread, 29.8 at two, 17.8 at four, 12.4 at eight. So a 15 ms T1

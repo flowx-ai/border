@@ -67,11 +67,20 @@ class OutputLeakageDetector:
     model_revision: str | None = None
     weights_sha256: str | None = None
 
-    def __init__(self, *, threads: int | None = None) -> None:
+    def __init__(
+        self, *, threads: int | None = None, shared: PiiDetector | None = None
+    ) -> None:
         # Composition rather than inheritance. The tagging, windowing, offset mapping
         # and run merging are all identical, and duplicating them would mean fixing the
         # email-fragmentation bug twice.
-        self._pii = PiiDetector(threads=threads)
+        #
+        # `shared` is how the registry passes in the very same PiiDetector that the `pii`
+        # entry uses, which is what makes the inference cache do its job. Given its own
+        # instance this detector still works and still shares the 279 MB session, but it
+        # pays for a second encoder pass over text `pii` has already read: 51 ms of the
+        # 116 ms an output-side scan used to cost. Defaulting to a private instance keeps
+        # the class usable on its own.
+        self._pii = shared if shared is not None else PiiDetector(threads=threads)
 
     def warm(self) -> None:
         self._pii.warm()
@@ -123,6 +132,10 @@ class OutputLeakageDetector:
             if finding.span is not None
             and _comparable(text[finding.span[0] : finding.span[1]]) not in haystack
         ]
+
+    def forget(self) -> None:
+        """Drop the shared detector's inference cache. See PiiDetector.forget."""
+        self._pii.forget()
 
     @property
     def shares_model_with(self) -> str:

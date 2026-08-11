@@ -104,6 +104,11 @@ UNTESTED_LANGUAGES: Final[tuple[str, ...]] = tuple(
     )
 )
 
+#: How many inference results to keep. Two covers the input and the output side of one
+#: exchange, which is the case that matters: `output_leakage` scans the same text `pii`
+#: just scanned, and without this it paid for the encoder a second time.
+_CACHE_ENTRIES: Final = 2
+
 #: Tokens of overlap between windows. An entity longer than this straddling a boundary
 #: can still be cut, and 16 subword tokens is far longer than any of these entity types.
 DEFAULT_OVERLAP: Final = 16
@@ -229,6 +234,11 @@ class PiiDetector:
     def __init__(self, *, threads: int | None = None) -> None:
         self._threads = threads
         self._labels: dict[int, str] | None = None
+        # Insertion-ordered, so the oldest entry is the one evicted. See `entities`.
+        self._cache: dict[
+            tuple[str, int, int, int], dict[tuple[int, int], tuple[str, float]]
+        ] = {}
+        self._cache_lock = threading.Lock()
 
     def warm(self) -> None:
         """Load weights and tokenizer, run a throwaway pass, and record the attestation.
@@ -248,26 +258,45 @@ class PiiDetector:
             MODEL_ID
         )
 
-    def run(
-        self,
-        text: str,
-        cfg: DetectorConfig,
-        ctx: Context,  # noqa: ARG002 - the Detector protocol fixes this signature
-    ) -> list[Finding]:
+    def entities(
+        self, text: str, threads: int, window_tokens: int | None, overlap: int
+    ) -> dict[tuple[int, int], tuple[str, float]]:
+        """Every entity the model finds, before any policy filtering. Memoised.
+
+        Split out from `run` so that `output_leakage` can reuse the inference rather than
+        repeat it. The two detectors already shared the session, which saved 279 MB of
+        weights, but each still ran its own encoder pass over the same text: measured
+        2026-08-11, 51 ms each and 116 ms for a full output-side scan, so about half of
+        that was duplicated work for an identical answer.
+
+        The cache key is the text and the window geometry, and deliberately not the
+        threshold or the entity list, because those filter a result rather than change it.
+        Two entries, which covers the input and output side of one exchange; a scan of a
+        third text evicts the oldest.
+
+        Correctness rests on constraint 6: the same text through the same weights gives
+        the same answer, so a cached result cannot go stale within a process. The cache
+        holds spans and scores, never a copy of the caller's text beyond the key itself,
+        and it is process-local.
+        """
         import numpy as np
 
-        from flowx_border.models.onnx import DEFAULT_THREADS, session_for
+        from flowx_border.models.onnx import session_for
 
-        if not text.strip():
-            return []
-
-        threads = int(cfg.options.get("threads", self._threads or DEFAULT_THREADS))
         loaded = session_for(MODEL_ID, threads=threads)
+        size = (
+            loaded.spec.trained_max_length if window_tokens is None else window_tokens
+        ) - 2
+        key = (text, threads, size, overlap)
+
+        with self._cache_lock:
+            hit = self._cache.get(key)
+        if hit is not None:
+            return hit
+
         if self._labels is None:
             self._labels = _label_map()
         labels = self._labels
-
-        wanted = self._wanted_entities(cfg)
         tokenizer = _tokenizer()
 
         # Encode once, without special tokens, so that a token index maps directly to a
@@ -276,12 +305,9 @@ class PiiDetector:
         ids: list[int] = list(encoded.ids)
         offsets: list[tuple[int, int]] = list(encoded.offsets)
         if not ids:
-            return []
+            return {}
 
-        size = int(cfg.options.get("window_tokens", loaded.spec.trained_max_length)) - 2
-        overlap = int(cfg.options.get("window_overlap", DEFAULT_OVERLAP))
         bos, eos = self._special_ids(tokenizer)
-
         found: dict[tuple[int, int], tuple[str, float]] = {}
         for start, end in _windows(len(ids), max(1, size), overlap):
             window_ids = [bos, *ids[start:end], eos]
@@ -296,8 +322,6 @@ class PiiDetector:
             for span, entity, score in self._decode(
                 probabilities[1:-1], offsets[start:end], labels
             ):
-                if entity not in wanted:
-                    continue
                 # The same entity found in two overlapping windows keeps the higher
                 # score, so a boundary-truncated view does not beat a complete one.
                 previous = found.get(span)
@@ -305,6 +329,49 @@ class PiiDetector:
                     found[span] = (entity, score)
 
         merged = self._merge_runs(text, self._snap_to_words(text, found))
+        with self._cache_lock:
+            if len(self._cache) >= _CACHE_ENTRIES:
+                self._cache.pop(next(iter(self._cache)))
+            self._cache[key] = merged
+        return merged
+
+    def forget(self) -> None:
+        """Drop the inference cache.
+
+        For measurement, and only for measurement. tests/test_budgets.py calls it between
+        timed iterations, because repeating one text would otherwise turn every reading
+        after the first into a cache hit and a budget suite that measures cache hits
+        measures nothing while still passing green.
+        """
+        with self._cache_lock:
+            self._cache.clear()
+
+    def run(
+        self,
+        text: str,
+        cfg: DetectorConfig,
+        ctx: Context,  # noqa: ARG002 - the Detector protocol fixes this signature
+    ) -> list[Finding]:
+        from flowx_border.models.onnx import DEFAULT_THREADS
+
+        if not text.strip():
+            return []
+
+        threads = int(cfg.options.get("threads", self._threads or DEFAULT_THREADS))
+        window_tokens = cfg.options.get("window_tokens")
+        overlap = int(cfg.options.get("window_overlap", DEFAULT_OVERLAP))
+        wanted = self._wanted_entities(cfg)
+
+        merged = {
+            span: value
+            for span, value in self.entities(
+                text,
+                threads,
+                None if window_tokens is None else int(window_tokens),
+                overlap,
+            ).items()
+            if value[0] in wanted
+        }
         return [
             Finding(
                 detector_id=self.id,

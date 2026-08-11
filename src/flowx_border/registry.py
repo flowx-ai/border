@@ -46,6 +46,8 @@ def _build() -> dict[str, Detector]:
     from flowx_border.detectors.pii import PiiDetector
     from flowx_border.detectors.secrets import SecretsDetector
 
+    pii = PiiDetector()
+
     built: dict[str, Detector] = {
         # T0: rules, no weights, no download. This is what lets the library do
         # something useful on a machine that has never fetched a model.
@@ -54,8 +56,11 @@ def _build() -> dict[str, Detector]:
         # T1. Both share one piiguard session: constructing them does not load weights,
         # `warm()` does, and the second `warm()` is a cache hit rather than another
         # 279 MB.
-        "pii": PiiDetector(),
-        "output_leakage": OutputLeakageDetector(),
+        "pii": pii,
+        # The same instance, not another one. They share the session either way; sharing
+        # the object also shares the inference cache, so an output-side scan runs the
+        # encoder once instead of twice over the same text.
+        "output_leakage": OutputLeakageDetector(shared=pii),
     }
 
     # Phase 4 adds: injection, regulated_advice, toxicity, nsfw, bias, gibberish,
