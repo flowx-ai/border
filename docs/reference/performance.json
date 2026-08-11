@@ -16,7 +16,7 @@
       "tier": "T1"
     },
     "bias": {
-      "budget_ms": 75.0,
+      "budget_ms": 225.0,
       "caveats": [
         "26 of 26 languages have fewer than 10 positive examples: az, bg, cs, da, de, el, en, es, et, fi, fr, ga, hr, hu, it, lt, lv, mt, nl, pl, pt, ro, sk, sl, sv, tr. Their individual scores are indicative rather than measured."
       ],
@@ -240,7 +240,7 @@
       "tier": "T0"
     },
     "gibberish": {
-      "budget_ms": 75.0,
+      "budget_ms": 225.0,
       "caveats": [
         "26 of 26 languages have fewer than 10 positive examples: az, bg, cs, da, de, el, en, es, et, fi, fr, ga, hr, hu, it, lt, lv, mt, nl, pl, pt, ro, sk, sl, sv, tr. Their individual scores are indicative rather than measured."
       ],
@@ -586,7 +586,7 @@
       "tier": "T3"
     },
     "injection": {
-      "budget_ms": 75.0,
+      "budget_ms": 225.0,
       "caveats": [
         "26 of 26 languages have fewer than 10 positive examples: az, bg, cs, da, de, el, en, es, et, fi, fr, ga, hr, hu, it, lt, lv, mt, nl, pl, pt, ro, sk, sl, sv, tr. Their individual scores are indicative rather than measured."
       ],
@@ -867,7 +867,7 @@
       "why_not_built": "weights are not published yet and no local override provides them"
     },
     "nsfw": {
-      "budget_ms": 75.0,
+      "budget_ms": 225.0,
       "caveats": [
         "26 of 26 languages have fewer than 10 positive examples: az, bg, cs, da, de, el, en, es, et, fi, fr, ga, hr, hu, it, lt, lv, mt, nl, pl, pt, ro, sk, sl, sv, tr. Their individual scores are indicative rather than measured.",
         "scores zero in mt, which is absent from XLM-RoBERTa's pretraining. A different base model would be required, not more data."
@@ -1120,7 +1120,7 @@
       "tier": "T1"
     },
     "politeness": {
-      "budget_ms": 75.0,
+      "budget_ms": 225.0,
       "caveats": [
         "26 of 26 languages have fewer than 10 positive examples: az, bg, cs, da, de, el, en, es, et, fi, fr, ga, hr, hu, it, lt, lv, mt, nl, pl, pt, ro, sk, sl, sv, tr. Their individual scores are indicative rather than measured."
       ],
@@ -1344,7 +1344,7 @@
       "tier": "T1"
     },
     "regulated_advice": {
-      "budget_ms": 75.0,
+      "budget_ms": 225.0,
       "caveats": [],
       "in_core": true,
       "metrics": {
@@ -1801,7 +1801,7 @@
       "tier": "T3"
     },
     "toxicity": {
-      "budget_ms": 75.0,
+      "budget_ms": 225.0,
       "caveats": [
         "26 of 26 languages have fewer than 10 positive examples: az, bg, cs, da, de, el, en, es, et, fi, fr, ga, hr, hu, it, lt, lv, mt, nl, pl, pt, ro, sk, sl, sv, tr. Their individual scores are indicative rather than measured."
       ],
@@ -2058,77 +2058,77 @@
   "latency": {
     "per_detector_ms": {
       "banned_terms": {
-        "p95": 0.205
+        "p95": 0.218
       },
       "bias": {
-        "p95": 152.904
+        "p95": 152.287
       },
       "disclosure": {
-        "p95": 0.036
+        "p95": 0.035
       },
       "gibberish": {
-        "p95": 152.514
+        "p95": 152.257
       },
       "groundedness": {
-        "p95": 60.95
+        "p95": 60.773
       },
       "injection": {
-        "p95": 153.069
+        "p95": 153.072
       },
       "internal_domains": {
         "p95": 0.204
       },
       "invisible_text": {
-        "p95": 0.032
+        "p95": 0.031
       },
       "json_schema": {
         "p95": 0.001
       },
       "markup_injection": {
-        "p95": 0.208
+        "p95": 0.213
       },
       "nsfw": {
-        "p95": 153.091
+        "p95": 153.137
       },
       "output_format": {
         "p95": 0.001
       },
       "output_leakage": {
-        "p95": 51.142
+        "p95": 50.344
       },
       "pii": {
-        "p95": 49.906
+        "p95": 50.588
       },
       "politeness": {
-        "p95": 153.667
+        "p95": 152.524
       },
       "postal_code": {
         "p95": 0.001
       },
       "regulated_advice": {
-        "p95": 152.675
+        "p95": 152.815
       },
       "repetition": {
-        "p95": 0.383
+        "p95": 0.375
       },
       "secrets": {
-        "p95": 0.037
+        "p95": 0.039
       },
       "sql_injection": {
-        "p95": 0.202
+        "p95": 0.215
       },
       "system_prompt_leakage": {
         "describes": "the path where the detector reported leakage_unverifiable rather than the path where it does its work, because the reference configuration does not give it what it needs",
-        "p95": 0.255
+        "p95": 0.257
       },
       "topic_scope": {
-        "p95": 213.477
+        "p95": 213.116
       },
       "toxicity": {
-        "p95": 152.704
+        "p95": 153.057
       },
       "url_reachability": {
-        "p95": 0.006
+        "p95": 0.007
       }
     },
     "provider": "CPUExecutionProvider",

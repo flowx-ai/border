@@ -89,6 +89,33 @@ MEASURED_MS = {
     # token. A realistic statement is measured separately below, because a budget taken
     # only on the cheap path is not a budget.
     "sql_injection": 0.22,
+    # The seven sequence classifiers, measured 2026-08-11 on the same machine and input.
+    # Three times the cost of pii on the same base model at the same length, and the
+    # reason
+    # is the quantisation recipe rather than the head: INT8 over all ops changed 51 of
+    # 300
+    # decisions, so the export quantises the embedding matrix only and leaves the
+    # encoder in
+    # fp32. That is 511 MB against piiguard's 266 and 151 ms against its 51. Recovering
+    # it
+    # means finding the op subset that quantises without moving a decision, which is
+    # queued
+    # on the training side.
+    #
+    # One figure for all seven because they are the same base at the same length and the
+    # differences between them were inside the noise on a busy machine.
+    "injection": 151.0,
+    "regulated_advice": 151.0,
+    "toxicity": 151.0,
+    "nsfw": 151.0,
+    "bias": 151.0,
+    "gibberish": 151.0,
+    "politeness": 151.0,
+    # T3. Both at the reference input, which for groundedness is one sentence against
+    # one
+    # source, and for topic_scope is the three-node taxonomy in benchmarks/collect.py.
+    "groundedness": 61.0,
+    "topic_scope": 214.0,
 }
 
 #: Multiplier for a runner known to be slower than the reference machine. A documented
@@ -622,3 +649,93 @@ def test_sql_injection_is_within_budget_on_a_statement_it_can_parse() -> None:
         f"{len(REFERENCE_SQL)} character statement. Measured 0.31 ms on 2026-08-11."
     )
     assert detector.run(REFERENCE_SQL, cfg, CTX) == []  # type: ignore[attr-defined]
+
+
+# ------------------------------------------------------- the classifiers and the T3
+# pair
+
+
+#: The seven sequence classifiers. Nothing measured any of them until 2026-08-11, which
+#: is
+#: why they sat at a 75 ms budget while costing 151: the suite covered pii, the rule
+#: detectors and the tiers, and a detector with no assertion has no budget in practice.
+CLASSIFIER_IDS = (
+    "injection",
+    "regulated_advice",
+    "toxicity",
+    "nsfw",
+    "bias",
+    "gibberish",
+    "politeness",
+)
+
+
+@pytest.mark.parametrize("detector_id", CLASSIFIER_IDS)
+def test_a_classifier_is_within_budget(detector_id: str) -> None:
+    from flowx_border.detectors.classifier import ClassifierDetector
+    from flowx_border.models.registry import ModelUnavailableError
+
+    detector = ClassifierDetector(detector_id, detector_id)
+    try:
+        detector.warm()
+    except ModelUnavailableError as error:
+        pytest.skip(f"{detector_id} weights not available: {error}")
+
+    side_cfg = DetectorConfig(on_fail="flag")
+    # Outside the measurement, because the tokenizer loads on first use and costs 437
+    # ms.
+    # Leaving it inside is exactly the mistake that had the collector publishing 362 ms.
+    detector.run(REFERENCE_INPUT, side_cfg, CTX)
+
+    budget = CATALOGUE[detector_id].budget_ms * SCALE
+    measured = p95(
+        lambda: detector.run(REFERENCE_INPUT, side_cfg, CTX), 20, before=detector.forget
+    )
+    assert measured <= budget, (
+        f"{detector_id} {measured:.1f} ms exceeds {budget:.1f} ms at "
+        f"{len(REFERENCE_INPUT)} characters. Reference was "
+        f"{MEASURED_MS[detector_id]} ms. If the machine is slower rather than the "
+        "code, set FLOWX_BUDGET_SCALE."
+    )
+
+
+def test_every_classifier_costs_about_the_same() -> None:
+    """A machine-independent invariant, which the absolute ceilings are not.
+
+    All seven are the same base model at the same input length, so a spread between
+    them is evidence about something other than the model: a head read the wrong way, a
+    tokenizer reloaded, a window count that differs. Compared as a ratio inside one
+    process, so it holds on a slow runner too.
+    """
+    from flowx_border.detectors.classifier import ClassifierDetector
+    from flowx_border.models.registry import ModelUnavailableError
+
+    timings = {}
+    for detector_id in CLASSIFIER_IDS:
+        detector = ClassifierDetector(detector_id, detector_id)
+        try:
+            detector.warm()
+        except ModelUnavailableError:
+            continue
+        cfg = DetectorConfig(on_fail="flag")
+        detector.run(REFERENCE_INPUT, cfg, CTX)
+        timings[detector_id] = p95(
+            lambda d=detector, c=cfg: d.run(REFERENCE_INPUT, c, CTX),
+            8,
+            before=detector.forget,
+        )
+
+    if len(timings) < 2:
+        pytest.skip(
+            "fewer than two classifiers available, so there is nothing to compare"
+        )
+
+    slowest = max(timings.values())
+    fastest = min(timings.values())
+    # Generous, because loading seven 511 MB sessions in one process adds real memory
+    # pressure and the later ones measured slower for that reason rather than a code
+    # one.
+    assert slowest / fastest < 3.0, (
+        f"classifier cost varies by {slowest / fastest:.1f}x across the same base "
+        f"model at the same length: { {k: round(v, 1) for k, v in timings.items()} }"
+    )

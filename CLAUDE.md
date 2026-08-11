@@ -229,7 +229,7 @@ length the model was trained on. Budgets are per detector, per scan, at that inp
 | `invisible_text` | input, output | T0 | rule | 5 ms | 0.04 ms | built |
 | `pii` | input, output | T1 | NER, XLM-R base ONNX | 75 ms | 51 ms | built |
 | `output_leakage` | output | T1 | NER, reuses `pii` weights | 75 ms | 51 ms | built |
-| `gibberish` | input | T1 | classifier | 75 ms | – | trained, not wired |
+| `gibberish` | input | T1 | classifier | 225 ms | 151 ms | built |
 | `banned_terms` | input, output | T1 | policy term list | 5 ms | 0.23 ms | built |
 | `system_prompt_leakage` | output | T1 | containment + phrases | 5 ms | 0.36 ms | built |
 | `markup_injection` | input, output | T1 | rule | 5 ms | 0.23 ms | built |
@@ -241,27 +241,39 @@ length the model was trained on. Budgets are per detector, per scan, at that inp
 | `sql_injection` | output | T1 | SQL parse tree, `sql` extra | 5 ms | 0.31 ms | built |
 | `url_reachability` | output | T3 | HTTP request, needs network | 3000 ms | deadline | built |
 | `moderation` | input, output | T2 | 13-label classifier, Qwen3-0.6B | 150 ms | – | pipeline built, corpus outstanding |
-| `injection` | input | T2 | classifier | 75 ms | – | trained, not wired |
-| `regulated_advice` | output | T2 | classifier | 75 ms | – | trained, not wired |
-| `toxicity` | input, output | T2 | classifier | 75 ms | – | trained, not wired |
-| `nsfw` | input, output | T2 | classifier | 75 ms | – | trained, not wired |
-| `bias` | output | T2 | classifier | 75 ms | – | trained, not wired |
-| `politeness` | output | T2 | classifier | 75 ms | – | trained, not wired |
-| `topic_scope` | input | T3 | bi-encoder vs taxonomy | 300 ms | – | needs an export path |
-| `groundedness` | output | T3 | evidence scoring vs sources | 300 ms | – | trained, not wired |
+| `injection` | input | T2 | classifier | 225 ms | 151 ms | built |
+| `regulated_advice` | output | T2 | classifier | 225 ms | 151 ms | built |
+| `toxicity` | input, output | T2 | classifier | 225 ms | 151 ms | built |
+| `nsfw` | input, output | T2 | classifier | 225 ms | 151 ms | built |
+| `bias` | output | T2 | classifier | 225 ms | 151 ms | built |
+| `politeness` | output | T2 | classifier | 225 ms | 151 ms | built |
+| `topic_scope` | input | T3 | bi-encoder vs taxonomy | 300 ms | 214 ms | built |
+| `groundedness` | output | T3 | cross-encoder vs sources | 300 ms | 61 ms | built, model refused |
 
 Three things this table now says that the old one did not.
 
-**Cost is per token, and linear.** 0.60 ms per token at one thread, measured. Every
-model-backed detector is the same XLM-RoBERTa base, so they all cost the same at the same
-input length, and the T1/T2 split is about *when* a detector runs and whether a policy may
-disable it, not about it being cheaper. A single 75 ms budget for every encoder detector
-is the honest consequence.
+**Cost is per token, and linear**, but the budget is not one number for every encoder
+detector, because the quantisation recipe differs. 0.60 ms per token at one thread for
+`piiguard`, whose INT8 export quantises throughout and weighs 266 MB. The nine models
+trained here quantise the embedding matrix only, because INT8 over all ops moved 51 of 300
+decisions, and that leaves the transformer in fp32 at 511 MB and 151 ms for the same 87
+tokens. Three times the cost, measured 2026-08-11, and the price of an export that does not
+change a verdict.
+
+So the seven classifiers carry a 225 ms budget and `pii` keeps 75. Recovering the
+difference means finding the op subset that quantises without moving a decision, which is
+queued on the training side rather than assumed to exist. Until then the honest statement
+is that a decision-safe export costs three times a decision-changing one.
+
+`piiguard` itself predates the flip gate and was never measured against it, so its 51 ms and
+its quality numbers both come from a file held to a weaker standard than the other nine.
+Running the gate on it is queued.
 
 **The tier ceilings are not per-scan totals.** A full output-side scan with everything
-wired would be one rule check plus six encoder passes, roughly 310 ms at the reference
-length: `pii` and `output_leakage` share a single pass, and each of the five T2
-classifiers is a different model and needs its own. The tier system is what keeps that
+wired is one rule check plus six encoder passes: `pii` and `output_leakage` share a single
+pass at 51 ms, and each of the five output-side T2 classifiers is a different model needing
+its own at 151 ms. That is roughly 810 ms at the reference length, not the 310 ms this
+paragraph claimed while the classifiers were unwired and assumed to cost what `pii` costs. The tier system is what keeps that
 off the common path, T2 being disableable and T3 running only on escalation, which is a
 scheduling property rather than a cost one.
 
