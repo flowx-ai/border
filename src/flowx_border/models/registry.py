@@ -61,12 +61,27 @@ class ModelSpec:
     # offsets come from it, and a span computed against a different tokenizer than the
     # one the model was trained with is a wrong span, not an approximate one.
     extra_files: tuple[str, ...] = ()
+    # True when these weights came from a directory on this machine rather than from a
+    # pinned commit on the hub. It changes what may be attested: see __post_init__.
+    local: bool = False
     # The token length the model was trained at. Windowing uses it, and the latency
     # figures quoted anywhere have to say which length they describe.
     trained_max_length: int = 96
     notes: str = ""
 
     def __post_init__(self) -> None:
+        if self.local:
+            # A local spec is explicitly not pinned, and its revision has to look
+            # different from a commit so that no reader mistakes one for the other. An
+            # evidence record claiming a published revision for a file somebody had on
+            # their laptop would be a forgery, so the shape of the string is enforced
+            # rather than left to whoever constructs it.
+            if not self.revision.startswith("local:"):
+                raise ValueError(
+                    f"{self.model_id}: a local revision must start with 'local:', "
+                    "so that it cannot be mistaken for a published commit."
+                )
+            return
         if len(self.revision) != 40 or not all(
             c in "0123456789abcdef" for c in self.revision
         ):
@@ -106,6 +121,16 @@ MODELS: Final[dict[str, ModelSpec]] = {
     ),
 }
 
+#: The reason shared by every artifact that exists and is deliberately unreleased. Held
+#: back on the owner's instruction of 2026-08-11: one release at the end rather than a
+#: trickle, so that what is public is a set somebody chose.
+_HELD_BACK: Final = (
+    "{detector} is trained, exported and verified, and deliberately not published yet: "
+    "everything ships in one release at the end of the project. Measured {note}. "
+    "Point FLOWX_BORDER_MODEL_DIR at a directory of artifact folders to load it from "
+    "disk in the meantime."
+)
+
 #: Named, intended, and not published. `resolve` raises for these with the repo in the
 #: message. Listed rather than omitted so that "not built yet" and "typo" are different
 #: errors.
@@ -127,6 +152,24 @@ UNPUBLISHED: Final[dict[str, str]] = {
         "no ONNX artifact is published for groundedness yet. The trained model scores "
         "1.000, which is saturated rather than good, so the corpus needs hard cases "
         "before the number means anything."
+    ),
+    "toxicity": _HELD_BACK.format(
+        detector="toxicity", note="macro-F1 0.882 at threshold 0.32"
+    ),
+    "nsfw": _HELD_BACK.format(detector="nsfw", note="macro-F1 0.817 at threshold 0.31"),
+    "bias": _HELD_BACK.format(detector="bias", note="macro-F1 0.869 at threshold 0.22"),
+    "gibberish": _HELD_BACK.format(
+        detector="gibberish", note="macro-F1 0.834 at threshold 0.37"
+    ),
+    "politeness": _HELD_BACK.format(
+        detector="politeness", note="macro-F1 0.887 at threshold 0.5"
+    ),
+    "topic_scope": _HELD_BACK.format(
+        detector="topic_scope",
+        note=(
+            "a bi-encoder with 15 taxonomy nodes embedded at export time, verified at "
+            "0.99928 minimum cosine to the fp32 model"
+        ),
     ),
     "semantic-mapper": (
         "flowxai/semantic-mapper is a 4B Qwen3 LoRA published as GGUF. It "
@@ -160,8 +203,75 @@ def offline() -> bool:
     )
 
 
+#: Where to look for unreleased weights. A directory holding one folder per model, in
+#: the
+#: layout the training repo produces: `<root>/<model>-full/onnx/model.int8.onnx`.
+LOCAL_DIR_ENV: Final = "FLOWX_BORDER_MODEL_DIR"
+
+#: Specs that `resolve` actually used, keyed by model id. `attestation_for` reads this
+#: first, which is what makes a record describe the weights that ran rather than the
+#: ones
+#: the table hoped for. Without it, loading a local override and then attesting the
+#: published revision would be trivial and silent.
+_RESOLVED: dict[str, ModelSpec] = {}
+
+
+def local_root() -> Path | None:
+    """The local model directory, if one is configured and exists."""
+    raw = os.environ.get(LOCAL_DIR_ENV, "").strip()
+    if not raw:
+        return None
+    root = Path(raw).expanduser()
+    return root if root.is_dir() else None
+
+
+def local_spec_for(model_id: str) -> ModelSpec | None:
+    """A spec for weights found on this machine, or None.
+
+    Exists because nothing is published until the end of the project. Without it,
+    every detector past the T0 pair would be unloadable and phases 4 and 5 could not
+    be tested at all.
+
+    The revision is `local:` plus the first 12 characters of the file's own hash. It is
+    deliberately not a commit and cannot be mistaken for one, which is the point: a
+    reader of an evidence record must be able to tell "these were the pinned published
+    weights" from "this was a file on a laptop".
+    """
+    root = local_root()
+    if root is None:
+        return None
+
+    # Both layouts, because the training repo writes `<detector>-full` and a hand-made
+    # directory is more likely to be named after the detector alone.
+    for folder in (f"{model_id}-full", model_id, model_id.replace("_", "") + "-full"):
+        candidate = root / folder / "onnx" / "model.int8.onnx"
+        if candidate.exists():
+            digest = sha256_of(candidate)
+            return ModelSpec(
+                model_id=f"local/{model_id}",
+                repo=str(root / folder),
+                revision=f"local:{digest[:12]}",
+                filename=str(candidate),
+                sha256=digest,
+                local=True,
+                notes=(
+                    f"loaded from {candidate}, not from the hub. Unreleased "
+                    "weights, see the held-back note in UNPUBLISHED."
+                ),
+            )
+    return None
+
+
 def spec_for(model_id: str) -> ModelSpec:
-    """The spec for a short model id, or a useful error naming what is missing."""
+    """The spec for a short model id, or a useful error naming what is missing.
+
+    A local override wins over the published table. That ordering is intentional for a
+    project mid-development: if someone has pointed at a directory of weights they mean
+    it, and silently preferring a published file would make the override untestable.
+    """
+    local = local_spec_for(model_id)
+    if local is not None:
+        return local
     if model_id in MODELS:
         return MODELS[model_id]
     if model_id in UNPUBLISHED:
@@ -189,6 +299,12 @@ def resolve(model_id: str, *, verify: bool = True) -> tuple[Path, ModelSpec]:
     wrong.
     """
     spec = spec_for(model_id)
+
+    if spec.local:
+        # Nothing to fetch and nothing to compare: the hash in the spec came from this
+        # file a moment ago. Recorded as resolved so the attestation is honest about it.
+        _RESOLVED[model_id] = spec
+        return Path(spec.filename), spec
 
     from huggingface_hub import hf_hub_download
     from huggingface_hub.errors import LocalEntryNotFoundError

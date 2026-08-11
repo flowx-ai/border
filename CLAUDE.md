@@ -46,6 +46,19 @@ layout" section below is still the target, not the present.
 **Phase 1 is next**, the policy layer and the engine. `scan_input`, `scan_output` and
 `load_policy` raise `NotImplementedError` until it lands.
 
+**Nothing is published to Hugging Face until the end of the project.** Decided
+2026-08-11 by the owner. The artifacts exist and are verified, and they stay on the training
+VM until a single deliberate release at the end, alongside making this repository public.
+
+The consequence to plan around: the library cannot fetch what is not published, so every
+detector after the T0 pair would be unloadable and phases 4 and 5 would be untestable. The
+answer is the local override in `models/registry.py`, `FLOWX_BORDER_MODEL_DIR`, which points
+at a directory of artifact folders and is how development and tests run against unreleased
+weights. A record produced from a local override says so: its revision reads `local:<sha>`
+rather than a commit, because an evidence record that claimed a pinned published revision for
+a file somebody had on their laptop would be a forgery. See the tests in
+`tests/test_local_models.py`.
+
 `BUILD_PLAN.md` is the sequencing document: seven phases, each with a paste-ready
 prompt and a definition of done. Before starting work, find the lowest phase whose
 definition of done does not yet hold, and do that one. Rules from that file that
