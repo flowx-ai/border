@@ -107,8 +107,9 @@ Behaviour differences that the tuple cannot express:
 - `output_format` (T1, output)
 - `sql_injection` (T1, output, needs the `sql` extra)
 - `url_reachability` (T3, output, makes an HTTP request)
+- `invisible_text` (T0, input and output)
 
-The last seven arrived on 2026-08-11 with the Guardrails Hub port, and six of them
+The last eight arrived on 2026-08-11 with the Guardrails Hub port, and six of them
 moved a scanner out of the unsupported table above.
 
 ## Scanners that gained a detector on 2026-08-11
@@ -152,10 +153,10 @@ different number than the one you asked about.
 answers and whether a link is hostile are different questions, and the second needs a
 reputation feed this library does not ship.
 
-`InvisibleText` is closer than it was. `detectors/multilingual.py` drops zero-width and
-format characters before matching, so they cannot be used to evade a term in any ported
-detector. What is missing is a detector that reports their presence as a finding in its
-own right.
+`InvisibleText` is no longer one of them. `invisible_text` closes it: it reports
+bidirectional controls, tag characters and zero-width characters, at T0, on both sides.
+The shim still raises for the scanner name, for the same reason as the entries above,
+and the mapping is a one-line change to `SUPPORTED` whenever somebody wants it.
 
 `disclosure` is the one to look at if you are here for an AI Act evidence trail: it
 reports whether a required disclosure is present in the output, in any of 26 languages,

@@ -72,6 +72,12 @@ CATALOGUE: Final[MappingProxyType[str, Spec]] = MappingProxyType(
     {
         "secrets": Spec("T0", frozenset({INPUT}), 1.0),
         "disclosure": Spec("T0", frozenset({OUTPUT}), 5.0),
+        # T0 because all 26 supported languages are left to right, so a bidi
+        # override has no typographic purpose in any text this library claims to
+        # support, and tag characters render nowhere at all. The categories that do
+        # have legitimate uses are off by default rather than making the detector
+        # optional. See its module docstring.
+        "invisible_text": Spec("T0", frozenset({INPUT, OUTPUT}), 5.0),
         "pii": Spec("T1", frozenset({INPUT, OUTPUT}), 75.0),
         "output_leakage": Spec("T1", frozenset({OUTPUT}), 75.0),
         "gibberish": Spec("T1", frozenset({INPUT}), 75.0),

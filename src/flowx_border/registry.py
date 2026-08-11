@@ -48,6 +48,7 @@ def _build() -> dict[str, Detector]:
     from flowx_border.detectors.banned_terms import BannedTermsDetector
     from flowx_border.detectors.disclosure import DisclosureDetector
     from flowx_border.detectors.internal_domains import InternalDomainsDetector
+    from flowx_border.detectors.invisible_text import InvisibleTextDetector
     from flowx_border.detectors.markup_injection import MarkupInjectionDetector
     from flowx_border.detectors.output_format import OutputFormatDetector
     from flowx_border.detectors.output_leakage import OutputLeakageDetector
@@ -64,6 +65,7 @@ def _build() -> dict[str, Detector]:
         # something useful on a machine that has never fetched a model.
         "secrets": SecretsDetector(),
         "disclosure": DisclosureDetector(),
+        "invisible_text": InvisibleTextDetector(),
         # T1 rules, ported from the Guardrails Hub. Also no weights and no download,
         # so they are available on the same machine the T0 pair is. Two of them need a
         # list from the policy and report that they have none rather than reporting a

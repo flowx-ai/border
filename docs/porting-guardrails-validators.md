@@ -226,7 +226,14 @@ This port answered "which hub validators are worth having". It did not answer "w
 missing from the detector set as a whole", which is queued after the migration.
 
 The raw material is assembled: the `gap = yes` rows above, the `UNSUPPORTED` table in
-`src/flowx_border/adapters/llm_guard_compat.py` whose `InvisibleText` entry is a real
-gap that `multilingual.py` now does most of the work for, and the three detectors that
-ship unavailable for want of published weights (`injection`, `regulated_advice`,
+`src/flowx_border/adapters/llm_guard_compat.py`, and the three detectors that ship
+unavailable for want of published weights (`injection`, `regulated_advice`,
 `groundedness`).
+
+`InvisibleText` left that list on 2026-08-11 by being built. It was not a hub validator,
+so it appears in none of the tables above, but it was the clearest gap either inventory
+named and it is now `invisible_text`: bidirectional controls, tag characters and
+zero-width characters, at T0, on both sides. It is the only detector whose case for T0
+rests on the language list rather than on cost, since all 26 supported languages are
+left to right and a bidirectional override therefore has no typographic purpose in any
+text this library claims to support.

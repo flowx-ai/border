@@ -69,6 +69,7 @@ REFERENCE_INPUT = (
 MEASURED_MS = {
     "secrets": 0.04,
     "disclosure": 0.04,
+    "invisible_text": 0.04,
     "pii": 51.0,
     "output_leakage": 51.0,
     # The four ported from the Guardrails Hub, measured 2026-08-11 on the same machine
@@ -169,6 +170,25 @@ def test_secrets_is_within_budget() -> None:
     budget = CATALOGUE["secrets"].budget_ms * SCALE
     measured = p95(lambda: SecretsDetector().run(REFERENCE_INPUT, CFG, CTX), 200)
     assert measured <= budget, f"secrets {measured:.3f} ms exceeds {budget:.1f} ms"
+
+
+def test_invisible_text_is_within_budget() -> None:
+    """T0, so this runs on every scan in every deployment and cannot be switched off.
+
+    That makes the ceiling matter more than it does for a detector a policy can
+    disable: a regression here is paid by everyone.
+    """
+    from flowx_border.detectors.invisible_text import InvisibleTextDetector
+
+    detector = InvisibleTextDetector()
+    budget = CATALOGUE["invisible_text"].budget_ms * SCALE
+    measured = p95(lambda: detector.run(REFERENCE_INPUT, CFG, CTX), 200)
+    assert measured <= budget, (
+        f"invisible_text {measured:.3f} ms exceeds {budget:.1f} ms"
+    )
+    # And it finds nothing in ordinary Romanian prose, which is the T0 false-positive
+    # question rather than a performance one.
+    assert detector.run(REFERENCE_INPUT, CFG, CTX) == []
 
 
 def test_disclosure_is_within_budget() -> None:

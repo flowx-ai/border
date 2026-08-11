@@ -106,7 +106,7 @@ way.
 
 **Core** is every detector that needs nothing beyond a CPU and the base install. It runs
 on a laptop with the network interface down, and it is what a caller gets unless they
-enable something else deliberately. As of 2026-08-11 it is eighteen of the nineteen.
+enable something else deliberately. As of 2026-08-11 it is nineteen of the twenty-one.
 
 Two are outside it, and between them they exercise the whole mechanism:
 
@@ -153,7 +153,7 @@ than prohibitions.
    an embeddable library that always needs a GPU is one most callers cannot embed.
 3. **A new detector has to earn its place, and there is no cap on how many can.** The
    count gate went on 2026-08-11. It was eight for v1, thirteen on 2026-08-10, and
-   uncapped on 2026-08-11 when the Guardrails Hub port landed. v1 is twenty and
+   uncapped on 2026-08-11 when the Guardrails Hub port landed. v1 is twenty-one and
    nineteen landed the same day. What is left is three things a detector must do:
 
    - Work in all 26 languages, with fixtures for each and, if it is model-backed, a
@@ -211,6 +211,7 @@ length the model was trained on. Budgets are per detector, per scan, at that inp
 |---|---|---|---|---|---|---|
 | `secrets` | input | T0 | regex + entropy | 1 ms | 0.04 ms | built |
 | `disclosure` | output | T0 | rule + template match | 5 ms | 0.04 ms | built |
+| `invisible_text` | input, output | T0 | rule | 5 ms | 0.04 ms | built |
 | `pii` | input, output | T1 | NER, XLM-R base ONNX | 75 ms | 51 ms | built |
 | `output_leakage` | output | T1 | NER, reuses `pii` weights | 75 ms | 51 ms | built |
 | `gibberish` | input | T1 | classifier | 75 ms | – | trained, not wired |
@@ -328,6 +329,7 @@ src/flowx_border/
     base.py            # Detector protocol
     secrets.py         # T0
     disclosure.py      # T0
+    invisible_text.py  # T0, bidi controls, tag characters, zero-width
     pii.py             # T1
     injection.py       # T2
     regulated_advice.py# T2
@@ -375,6 +377,7 @@ repository for this library. `models/registry.py` pins every entry to a commit s
 |---|---|---|
 | `secrets` | – | rules, no weights |
 | `disclosure` | – | rules plus a phrasings data file |
+| `invisible_text` | – | rules, no weights |
 | `pii` | `flowxai/piiguard` default, `flowxai/cee-pii` policy-selectable | piiguard has ONNX and INT8 published |
 | `output_leakage` | whichever session `pii` loaded | never a second copy |
 | `banned_terms` | – | rules over a policy-supplied term list |
@@ -427,7 +430,7 @@ generative model.
 **Three detectors ship unavailable, and they ship loudly.** The registry entry names
 the intended repo, the detector raises an error naming the missing model, and the
 tests are `xfail` with the repo id in the comment. There is no silent no-op, because
-a silent no-op in a security library is a vulnerability. v1 is 12 of 20 detectors real,
+a silent no-op in a security library is a vulnerability. v1 is 13 of 21 detectors real,
 stated plainly in the README. Nothing on the site or in the docs may imply otherwise.
 
 **`semantic-mapper` does not fit the detector contract as it stands.** It is a 4B

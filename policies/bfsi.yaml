@@ -30,6 +30,8 @@ detectors:
     on_fail: block
   disclosure:
     on_fail: block          # a missing AI disclosure is itself a compliance finding here
+  invisible_text:
+    on_fail: block          # smuggled instructions are not something to redact and forward
 
   pii:
     on_fail: redact

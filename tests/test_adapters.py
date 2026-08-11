@@ -29,7 +29,7 @@ from flowx_border.adapters.llm_guard_compat import (
     scan_output,
     scan_prompt,
 )
-from flowx_border.detectors.catalogue import CATALOGUE
+from flowx_border.detectors.catalogue import ALWAYS_ON, CATALOGUE
 from flowx_border.policy import DetectorPolicy, Policy
 
 # `secrets` and `disclosure` are the two detectors that need no weights, so an adapter
@@ -175,8 +175,12 @@ def a_policy() -> Policy:
         version=1,
         fail_mode=dict.fromkeys(("T0", "T1", "T2", "T3"), "open"),
         detectors={
+            # ALWAYS_ON rather than a literal pair: T0 cannot be disabled, and naming
+            # the T0 detectors here means this helper breaks every time one is added.
+            # It did, when `invisible_text` landed.
             name: DetectorPolicy(
-                enabled=name in ("secrets", "disclosure"), on_fail="redact"
+                enabled=name in ALWAYS_ON or name in ("secrets", "disclosure"),
+                on_fail="redact",
             )
             for name in CATALOGUE
         },
@@ -221,7 +225,8 @@ def test_the_langgraph_node_routes_on_block_rather_than_raising() -> None:
             # validator refuses to construct a policy that tries. It is output-side, so
             # it has no effect on the input scans below.
             name: DetectorPolicy(
-                enabled=name in ("secrets", "disclosure"), on_fail="block"
+                enabled=name in ALWAYS_ON or name in ("secrets", "disclosure"),
+                on_fail="block",
             )
             for name in CATALOGUE
         },
@@ -296,7 +301,8 @@ def test_the_fastapi_dependency_returns_422_on_a_block() -> None:
             # validator refuses to construct a policy that tries. It is output-side, so
             # it has no effect on the input scans below.
             name: DetectorPolicy(
-                enabled=name in ("secrets", "disclosure"), on_fail="block"
+                enabled=name in ALWAYS_ON or name in ("secrets", "disclosure"),
+                on_fail="block",
             )
             for name in CATALOGUE
         },
@@ -404,7 +410,8 @@ def test_the_fastapi_middleware_blocks_a_request_field() -> None:
         fail_mode=dict.fromkeys(("T0", "T1", "T2", "T3"), "open"),
         detectors={
             name: DetectorPolicy(
-                enabled=name in ("secrets", "disclosure"), on_fail="block"
+                enabled=name in ALWAYS_ON or name in ("secrets", "disclosure"),
+                on_fail="block",
             )
             for name in CATALOGUE
         },
@@ -442,7 +449,8 @@ def test_the_fastapi_middleware_redacts_a_response_field() -> None:
         fail_mode=dict.fromkeys(("T0", "T1", "T2", "T3"), "open"),
         detectors={
             name: DetectorPolicy(
-                enabled=name in ("secrets", "disclosure", "pii"), on_fail="redact"
+                enabled=name in ALWAYS_ON or name in ("secrets", "disclosure", "pii"),
+                on_fail="redact",
             )
             for name in CATALOGUE
         },

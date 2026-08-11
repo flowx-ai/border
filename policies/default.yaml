@@ -35,6 +35,8 @@ detectors:
     on_fail: block          # a leaked credential is not something to flag and forward
   disclosure:
     on_fail: flag           # absence of a disclosure is a reporting matter, not a refusal
+  invisible_text:
+    on_fail: redact         # strip them; the visible text is unchanged by doing so
 
   # T1.
   pii:
