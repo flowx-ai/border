@@ -439,7 +439,7 @@ repository for this library. `models/registry.py` pins every entry to a commit s
 | `moderation` | ours, Qwen3-0.6B, see `training/` | pipeline validated, corpus outstanding |
 | `injection` | none published | ships unavailable in v1 |
 | `regulated_advice` | none published | ships unavailable in v1 |
-| `groundedness` | none published | ships unavailable in v1 |
+| `groundedness` | retrained 2026-08-13, see below | not published, ships unavailable in v1 |
 
 `piiguard` is XLM-RoBERTa base with 7 entity types (CARD, DATE, EMAIL, IBAN,
 NATIONAL_ID, PERSON, PHONE) and checksum validation. `cee-pii` is GLiNER with 34
@@ -589,6 +589,40 @@ decline are in `docs/porting-guardrails-validators.md`, rendered from
 `detectors/guardrails_hub.py` so the two cannot drift. Do not restate those counts by
 hand: read them off `PORTED` and `DECLINED`, which is how the numbers in this paragraph
 were found to have drifted from seven and 57.
+
+**`groundedness` was retrained on source-side pairs and the leak is closed.** The failure
+this fixes: the old corpus asked for ten items of one register per generation request with
+the register named in the prompt, so the candidate sentence's style carried the label and the
+model classified style instead of comparing anything. 0.882 exact-match accuracy on its own
+test split, and four of eight registers barely moved when scored against an unrelated source.
+
+The new corpus is source-side pairs. One candidate sentence, two different sources, opposite
+labels. The candidate text is byte-identical across a pair, so style cannot carry the label
+by construction rather than by care. Verified on the corpus before spending the GPU: 1574 of
+1574 pairs identical-candidate and opposite-label, every register exactly balanced across its
+two labels, and a decision stump on lexical overlap beats the majority class by 0.021.
+
+Two numbers from 2026-08-13, and the first is the one that matters:
+
+- **Leak check retained 0.33**, 15 of 46 correct verdicts surviving an unrelated source,
+  against the module's own "above about 0.5 is a leak worth chasing". `lexical_overlap`,
+  which leaked worst before at 0.54 retained, is now 0.00. The residual sits in
+  `numeric_conflict` at 0.50 and `negation_conflict` at 0.38, and is as likely to be the
+  model's prior on `supported`, which is half the rows, as any remaining style signal.
+- **Pair accuracy 0.6814**, which is the headline the eval prints. Both members of a pair
+  correct, so a source-blind model scores near zero on it: it would have to give two
+  different labels to two identical candidate texts. That is why this metric is worth more
+  than the 0.80 single-row accuracy beside it.
+
+What it is not yet. The corpus is 1574 train pairs, about 60 per language, and the
+per-language cells hold 14 to 18 examples, so one item moves a score by six points. The
+weak cells, `ga` 0.556, `mt` 0.571, `nl` and `tr` 0.688, are noise at that size and must not
+be published as findings. Irish is the one worth chasing first, because Irish is in XLM-R so
+the pretraining excuse is unavailable and the corpus is the remaining explanation.
+
+And the `mt` row carries a "not in base model pretraining" note that this file has already
+disproved once: `nsfw` Maltese went 0.000 to 1.000 on corpus size alone. At n=14 that note is
+a guess, and repeating it as an explanation is the mistake named at the end of this section.
 
 **The open-weight guardrail models are a retrain, not a port.** Decided 2026-08-11 for
 Llama Guard and ShieldGemma, extended 2026-08-12 to `gpt-oss-safeguard` when the owner
