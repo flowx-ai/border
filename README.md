@@ -34,7 +34,7 @@ Read this part first, because it is the part most likely to be assumed wrong.
   a policy configured actually ran.
 - **Not a replacement for a security review.** A detector that finds nothing is evidence
   that these checks found nothing, and nothing more.
-- **Not a finished set of detectors.** 15 of the 25 in the catalogue run on a fresh
+- **Not a finished set of detectors.** 16 of the 26 in the catalogue run on a fresh
   install. The rest are counted, named, and explained below rather than implied to work.
 - **Not calibrated for your data.** Every quality number here was measured on synthetic
   corpora built for this project, and most of them rest on very few examples per language.
@@ -270,16 +270,16 @@ construction when something always fires. An earlier version of this project pub
 
 ## Detectors
 
-25 catalogued. 24 implemented. 15 run on a fresh install with no model download, 9 are
+26 catalogued. 25 implemented. 16 run on a fresh install with no model download, 9 are
 implemented and waiting on weights that are not published yet, and 1 is not implemented.
 The full table, generated from the code, is in [docs/detectors.md](docs/detectors.md).
 
-Twelve of the 15 need nothing beyond a CPU and the base install, and work on a machine
+Thirteen of the 16 need nothing beyond a CPU and the base install, and work on a machine
 with the network interface down:
 
 `secrets`, `disclosure`, `invisible_text`, `banned_terms`, `system_prompt_leakage`,
-`markup_injection`, `internal_domains`, `output_format`, `postal_code` and `repetition` are
-rules and need no model at all. `pii` and `output_leakage` share one 266 MB model, so they
+`markup_injection`, `internal_domains`, `output_format`, `postal_code`, `repetition` and
+`summary_support` are rules and need no model at all. `pii` and `output_leakage` share one 266 MB model, so they
 need it cached once and nothing after that.
 
 The other three run without a model download but ask for something else, and declare it:
@@ -287,7 +287,7 @@ The other three run without a model download but ask for something else, and dec
 an HTTP request during a scan. `deployment_notes` names them at policy load, so you find out
 when you enable one rather than from a latency graph.
 
-Eleven detectors were ported from the Guardrails Hub. Which validators went where, and the
+Twelve detectors were ported from the Guardrails Hub. Which validators went where, and the
 reasons the other 34 were declined, are in
 [docs/porting-guardrails-validators.md](docs/porting-guardrails-validators.md), rendered
 from the code so the two cannot drift.

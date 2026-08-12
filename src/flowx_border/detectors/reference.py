@@ -91,6 +91,13 @@ SUMMARIES: Final[MappingProxyType[str, str]] = MappingProxyType(
             "Postal codes that cannot exist in the countries the product serves: the "
             "wrong shape, or outside a published province or department range."
         ),
+        "summary_support": (
+            "Whether each sentence of a summary appears in the source it summarises, by"
+            " "
+            "string overlap rather than by judgement. Useful for an extractive summary,"
+            " "
+            "and not a groundedness check: it says so in its own docstring."
+        ),
         "repetition": (
             "Sentences the answer says twice, compared over folded text so a change of "
             "case or diacritic spelling does not hide a repeat."

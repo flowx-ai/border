@@ -34,6 +34,7 @@ means the score is unverified rather than good or bad.
 | `repetition` | T1 | built | – | – | – | – | – | – |
 | `secrets` | T0 | built | – | – | – | – | – | – |
 | `sql_injection` | T1 | built | – | – | – | – | – | – |
+| `summary_support` | T1 | built | – | – | – | – | – | – |
 | `system_prompt_leakage` | T1 | built | – | – | – | – | – | – |
 | `topic_scope` | T3 | built | top1_accuracy | 0.865 | 0.857 | 0.375 | 175 | examples evaluated |
 | `toxicity` | T2 | built | f1 | 0.960 | 1.000 | 0.400 | 104 | positive examples |
@@ -54,27 +55,28 @@ At a 396 character reference input, 1 thread, CPUExecutionProvider. Romanian pro
 
 | Detector | p95 ms | Budget ms | note |
 |---|---|---|---|
-| `banned_terms` | 0.212 | 5.0 | – |
-| `bias` | 152.702 | 225.0 | – |
-| `disclosure` | 0.037 | 5.0 | – |
-| `gibberish` | 154.132 | 225.0 | – |
-| `groundedness` | 61.204 | 300.0 | – |
-| `injection` | 155.236 | 225.0 | – |
-| `internal_domains` | 0.204 | 5.0 | – |
-| `invisible_text` | 0.036 | 5.0 | – |
+| `banned_terms` | 0.215 | 5.0 | – |
+| `bias` | 156.315 | 225.0 | – |
+| `disclosure` | 0.036 | 5.0 | – |
+| `gibberish` | 156.480 | 225.0 | – |
+| `groundedness` | 61.827 | 300.0 | – |
+| `injection` | 153.783 | 225.0 | – |
+| `internal_domains` | 0.219 | 5.0 | – |
+| `invisible_text` | 0.032 | 5.0 | – |
 | `json_schema` | 0.001 | 5.0 | – |
-| `markup_injection` | 0.220 | 5.0 | – |
-| `nsfw` | 153.817 | 225.0 | – |
+| `markup_injection` | 0.211 | 5.0 | – |
+| `nsfw` | 153.879 | 225.0 | – |
 | `output_format` | 0.001 | 5.0 | – |
-| `output_leakage` | 154.419 | 225.0 | – |
-| `pii` | 153.250 | 225.0 | – |
-| `politeness` | 153.410 | 225.0 | – |
+| `output_leakage` | 154.117 | 225.0 | – |
+| `pii` | 152.986 | 225.0 | – |
+| `politeness` | 152.853 | 225.0 | – |
 | `postal_code` | 0.002 | 5.0 | – |
-| `regulated_advice` | 154.437 | 225.0 | – |
-| `repetition` | 0.384 | 5.0 | – |
-| `secrets` | 0.039 | 1.0 | – |
+| `regulated_advice` | 154.572 | 225.0 | – |
+| `repetition` | 0.382 | 5.0 | – |
+| `secrets` | 0.037 | 1.0 | – |
 | `sql_injection` | 0.201 | 5.0 | – |
-| `system_prompt_leakage` | 0.248 | 5.0 | the unconfigured path |
-| `topic_scope` | 213.264 | 300.0 | – |
-| `toxicity` | 153.454 | 225.0 | – |
+| `summary_support` | 0.720 | 5.0 | – |
+| `system_prompt_leakage` | 0.245 | 5.0 | the unconfigured path |
+| `topic_scope` | 214.432 | 300.0 | – |
+| `toxicity` | 156.008 | 225.0 | – |
 | `url_reachability` | 0.006 | 3000.0 | – |

@@ -11,12 +11,12 @@ from here. Regenerate with:
 
 | figure | value |
 |---|---|
-| detectors in the catalogue | 25 |
-| implemented in the library | 24 |
-| that run on a fresh install, with no model download | 15 |
+| detectors in the catalogue | 26 |
+| implemented in the library | 25 |
+| that run on a fresh install, with no model download | 16 |
 | implemented but waiting on weights that are not published | 9 |
 | catalogued but not yet implemented | 1 |
-| that need nothing beyond a CPU and the base install | 22 |
+| that need nothing beyond a CPU and the base install | 23 |
 | that need something more, and declare it | 3 |
 | supported languages | 26 |
 
@@ -47,6 +47,7 @@ one on, so a caller finds out when they enable it rather than in production.
 | `postal_code` | T1 | output | built | nothing beyond a CPU | 5 ms | Postal codes that cannot exist in the countries the product serves: the wrong shape, or outside a published province or department range. |
 | `repetition` | T1 | output | built | nothing beyond a CPU | 5 ms | Sentences the answer says twice, compared over folded text so a change of case or diacritic spelling does not hide a repeat. |
 | `sql_injection` | T1 | output | built | dependency | 5 ms | Generated SQL that does more than the product asked for: a second statement, a forbidden statement kind, a tautology, an unexpected UNION. |
+| `summary_support` | T1 | output | built | nothing beyond a CPU | 5 ms | Whether each sentence of a summary appears in the source it summarises, by string overlap rather than by judgement. Useful for an extractive summary, and not a groundedness check: it says so in its own docstring. |
 | `system_prompt_leakage` | T1 | output | built | nothing beyond a CPU | 5 ms | Whether the answer gave away the instructions the model was operating under, by containment against the system prompt and by phrase match in 26 languages. |
 | `bias` | T2 | output | built | nothing beyond a CPU | 225 ms | Output carrying bias related to a protected characteristic. |
 | `injection` | T2 | input | built | nothing beyond a CPU | 225 ms | Attempts to talk the model out of its instructions. |

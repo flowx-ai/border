@@ -68,6 +68,7 @@ def _build() -> tuple[dict[str, Detector], frozenset[str]]:
     from flowx_border.detectors.postal_code import PostalCodeDetector
     from flowx_border.detectors.repetition import RepetitionDetector
     from flowx_border.detectors.secrets import SecretsDetector
+    from flowx_border.detectors.summary_support import SummarySupportDetector
     from flowx_border.detectors.system_prompt_leakage import (
         SystemPromptLeakageDetector,
     )
@@ -91,6 +92,7 @@ def _build() -> tuple[dict[str, Detector], frozenset[str]]:
         "output_format": OutputFormatDetector(),
         "postal_code": PostalCodeDetector(),
         "repetition": RepetitionDetector(),
+        "summary_support": SummarySupportDetector(),
         # T1. Both share one piiguard session: constructing them does not load weights,
         # `warm()` does, and the second `warm()` is a cache hit rather than another 279
         # MB.

@@ -92,6 +92,13 @@ MEASURED_MS = {
     # can cost more than this, and that cost belongs to whoever wrote it.
     "output_format": 0.02,
     "postal_code": 0.02,
+    # Measured with the reference input as its own source, which is the extractive case
+    # the detector is for: every sentence has an exact counterpart, so the comparison
+    # runs rather than short circuiting. Twenty times the other rules and still a
+    # seventh of the budget, because the work is sentences times source sentences rather
+    # than a single pass. That product is what `max_sentences` and
+    # `max_source_sentences` bound, and both report when they truncate.
+    "summary_support": 0.70,
     # Measured on the reference input, which is prose and so fails to parse at the first
     # token. A realistic statement is measured separately below, because a budget taken
     # only on the cheap path is not a budget.
@@ -252,10 +259,12 @@ def test_disclosure_is_within_budget() -> None:
     assert measured <= budget, f"disclosure {measured:.3f} ms exceeds {budget:.1f} ms"
 
 
-#: The four rule detectors ported from the Guardrails Hub, each with a configuration
+#: Every rule detector that takes configuration, each with a configuration
 #: representative of what a policy would give it. Configuration matters to the
 #: measurement: banned_terms compiles an alternation over its term list, so measuring it
-#: with an empty list would measure the unconfigured path and prove nothing.
+#: with an empty list would measure the unconfigured path and prove nothing. Same for a
+#: detector that needs context: summary_support with no source returns a finding and
+#: stops.
 RULE_DETECTORS: list[tuple[str, object, DetectorConfig, Context]] = [
     (
         "banned_terms",
@@ -314,6 +323,17 @@ RULE_DETECTORS: list[tuple[str, object, DetectorConfig, Context]] = [
         ),
         CTX,
     ),
+    # Its own source, for the same reason system_prompt_leakage gets a real system
+    # prompt: with `ctx.sources` empty this detector reports
+    # `summary_support_unverifiable` and returns, so CTX would time the path that does
+    # no work. Using the reference input as its own source is the extractive case,
+    # where every sentence matches and the comparison runs to completion.
+    (
+        "summary_support",
+        None,
+        CFG,
+        Context(sources=(REFERENCE_INPUT,)),
+    ),
 ]
 
 
@@ -329,6 +349,7 @@ def _rule_detector(detector_id: str) -> object:
     from flowx_border.detectors.output_format import OutputFormatDetector
     from flowx_border.detectors.postal_code import PostalCodeDetector
     from flowx_border.detectors.sql_injection import SqlInjectionDetector
+    from flowx_border.detectors.summary_support import SummarySupportDetector
     from flowx_border.detectors.system_prompt_leakage import (
         SystemPromptLeakageDetector,
     )
@@ -341,6 +362,7 @@ def _rule_detector(detector_id: str) -> object:
         "output_format": OutputFormatDetector,
         "postal_code": PostalCodeDetector,
         "sql_injection": SqlInjectionDetector,
+        "summary_support": SummarySupportDetector,
     }[detector_id]()
 
 

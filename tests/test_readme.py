@@ -169,7 +169,10 @@ def test_the_offline_list_names_only_detectors_that_are_in_core(readme: str) -> 
     """
     from flowx_border.detectors.catalogue import CORE
 
-    section = readme[readme.index("Twelve of the 15 need nothing beyond") :]
+    # Anchored on wording that does not carry a count, because the count changes every
+    # time a
+    # rule detector lands and a test that breaks for that reason teaches nothing.
+    section = readme[readme.index("need nothing beyond a CPU and the base install") :]
     section = section[: section.index("The other three run without")]
     named = set(re.findall(r"`([a-z_]+)`", section))
     unknown = sorted(named - set(CATALOGUE))
@@ -184,7 +187,7 @@ def test_the_detectors_needing_more_than_core_are_named_as_such(readme: str) -> 
     from flowx_border.registry import implemented_detectors
 
     section = readme[readme.index("The other three run without") :]
-    section = section[: section.index("Eleven detectors were ported")]
+    section = section[: section.index("detectors were ported from the Guardrails Hub")]
     named = set(re.findall(r"`([a-z_]+)`", section))
     expected = {
         d for d in implemented_detectors() if d not in UNPUBLISHED and d not in CORE

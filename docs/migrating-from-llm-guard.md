@@ -165,3 +165,12 @@ and the mapping is a one-line change to `SUPPORTED` whenever somebody wants it.
 `disclosure` is the one to look at if you are here for an AI Act evidence trail: it
 reports whether a required disclosure is present in the output, in any of 26 languages,
 and records the affirmative rather than only the absence.
+
+## Added since the port
+
+`summary_support` is new, and llm-guard has no equivalent scanner: it comes from the Guardrails
+Hub's `extracted_summary_sentences_match`. It asks whether each sentence of a summary appears in
+the source it summarises, by string overlap rather than by asking a model. Useful when the output
+is meant to be extractive. It is not a groundedness check, and its docstring is explicit about
+that: a true paraphrase reads as unsupported and a copied sentence with a negation inserted reads
+as supported.

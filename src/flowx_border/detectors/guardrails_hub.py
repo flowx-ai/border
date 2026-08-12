@@ -85,6 +85,16 @@ REASONS: Final[MappingProxyType[str, str]] = MappingProxyType(
 #: mechanism with the list taken out.
 PORTED: Final[MappingProxyType[str, Port]] = MappingProxyType(
     {
+        "extracted_summary_sentences_match": Port(
+            "summary_support",
+            "the hub validator asks an LLM whether each summary sentence appears in the"
+            " "
+            "source. difflib answers the same question, so the port is a rule detector "
+            "with no weights. It measures overlap rather than entailment and says so in"
+            " "
+            "its own docstring, which matters because the detector that judges support "
+            "here is `groundedness` and its model does not yet do it.",
+        ),
         "ban_list": Port(
             "banned_terms",
             "the base case. Its fuzzy spaceless matching is not carried over, see the "
@@ -238,7 +248,6 @@ DECLINED: Final[MappingProxyType[str, Decline]] = MappingProxyType(
             "`injection`. Upstream calls OpenAI through the Rebuff library to "
             "answer it; the encoder here answers the same question locally.",
         ),
-        "extracted_summary_sentences_match": Decline("llm", "calls OpenAI.", gap=True),
         "gibberish_text": Decline("covered", "`gibberish`."),
         "guardrails_pii": Decline("covered", "`pii`."),
         "llamaguard_7b": Decline(

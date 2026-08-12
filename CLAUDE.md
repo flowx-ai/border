@@ -120,8 +120,8 @@ way.
 
 **Core** is every detector that needs nothing beyond a CPU and the base install. It runs
 on a laptop with the network interface down, and it is what a caller gets unless they
-enable something else deliberately. As of 2026-08-11 it is twenty-one of the
-twenty-five.
+enable something else deliberately. As of 2026-08-12 it is twenty-three of the
+twenty-six.
 
 Two are outside it, and between them they exercise the whole mechanism:
 
@@ -168,8 +168,8 @@ than prohibitions.
    an embeddable library that always needs a GPU is one most callers cannot embed.
 3. **A new detector has to earn its place, and there is no cap on how many can.** The
    count gate went on 2026-08-11. It was eight for v1, thirteen on 2026-08-10, and
-   uncapped on 2026-08-11 when the Guardrails Hub port landed. v1 is twenty-five and
-   nineteen landed the same day. What is left is three things a detector must do:
+   uncapped on 2026-08-11 when the Guardrails Hub port landed. v1 is twenty-six and
+   nineteen landed on one day. What is left is three things a detector must do:
 
    - Work in all 26 languages, with fixtures for each and, if it is model-backed, a
      per-language evaluation table rather than one aggregate.
@@ -237,6 +237,7 @@ length the model was trained on. Budgets are per detector, per scan, at that inp
 | `output_format` | output | T1 | policy shape assertions | 5 ms | 0.02 ms | built |
 | `postal_code` | output | T1 | per-country format + range | 5 ms | 0.02 ms | built |
 | `repetition` | output | T1 | sentence similarity | 5 ms | 0.09 ms | built |
+| `summary_support` | output | T1 | sentence overlap vs source | 5 ms | 0.71 ms | built |
 | `json_schema` | output | T1 | JSON Schema, `schema` extra | 5 ms | 0.02 ms | built |
 | `sql_injection` | output | T1 | SQL parse tree, `sql` extra | 5 ms | 0.31 ms | built |
 | `url_reachability` | output | T3 | HTTP request, needs network | 3000 ms | deadline | built |
@@ -375,6 +376,7 @@ src/flowx_border/
     output_format.py   # T1, policy-supplied shape assertions, the only non-security one
     postal_code.py     # T1, per-country postcode shape and range, 29 countries
     repetition.py      # T1, a sentence said twice
+    summary_support.py # T1, a summary sentence with no counterpart in the source
     json_schema.py     # T1, the policy's schema, requires the schema extra
     sql_injection.py   # T1, sqlglot parse tree, requires the sql extra
     url_reachability.py# T3, the only detector that leaves the machine
@@ -421,6 +423,7 @@ repository for this library. `models/registry.py` pins every entry to a commit s
 | `output_format` | – | rules over policy-supplied shape assertions |
 | `postal_code` | – | per-country formats in a packaged data file |
 | `repetition` | – | stdlib difflib, no weights |
+| `summary_support` | – | stdlib difflib against the caller's sources |
 | `json_schema` | – | the caller's schema, from the policy |
 | `sql_injection` | – | the sqlglot parse tree, no weights |
 | `url_reachability` | – | an HTTP request, no weights |
@@ -448,11 +451,14 @@ fallback. A real UK NINo carries no checksum, so a fallback is defensible, but t
 model learned a German-shaped number as a UK identifier. Do not state that English
 national IDs are checksum validated.
 
-**The seven ported from the Guardrails Hub carry no weights at all**, which is why they
-work on a machine that has never downloaded a model, the same as the T0 pair. Their
-provenance, and the 57 hub validators that were declined with the reason for each, are in
-`docs/porting-guardrails-validators.md`, rendered from `detectors/guardrails_hub.py` so
-the two cannot drift.
+**Everything ported from the Guardrails Hub carries no weights at all**, which is why it
+works on a machine that has never downloaded a model, the same as the T0 pair. Ten
+detectors between them absorbed 32 hub validators, `output_format` taking 18 of those on
+its own, and 33 validators were declined. Their provenance and the reason for each
+decline are in `docs/porting-guardrails-validators.md`, rendered from
+`detectors/guardrails_hub.py` so the two cannot drift. Do not restate those counts by
+hand: read them off `PORTED` and `DECLINED`, which is how the numbers in this paragraph
+were found to have drifted from seven and 57.
 
 **Llama Guard and ShieldGemma are a retrain, not a port.** Decided 2026-08-11. Both are
 moderation models whose entire value is weights this project cannot ship: Llama Guard is
@@ -483,7 +489,7 @@ understated rather than as ceilings, and reach for the corpus before the archite
 **Three detectors ship unavailable, and they ship loudly.** The registry entry names
 the intended repo, the detector raises an error naming the missing model, and the
 tests are `xfail` with the repo id in the comment. There is no silent no-op, because
-a silent no-op in a security library is a vulnerability. v1 is 15 of 25 detectors real,
+a silent no-op in a security library is a vulnerability. v1 is 16 of 26 detectors real,
 stated plainly in the README. Nothing on the site or in the docs may imply otherwise.
 
 **`semantic-mapper` does not fit the detector contract as it stands.** It is a 4B

@@ -101,6 +101,14 @@ CATALOGUE: Final[MappingProxyType[str, Spec]] = MappingProxyType(
         # same reason: no model is needed. stdlib difflib replaces the two
         # dependencies upstream uses, so it stays in CORE.
         "repetition": Spec("T1", frozenset({OUTPUT}), 5.0),
+        # Ported from the hub's extracted_summary_sentences_match, which calls OpenAI to
+        # ask
+        # what difflib answers. Measures overlap rather than entailment and says so in
+        # its own
+        # docstring, which matters because `groundedness` is the detector that judges
+        # support
+        # and its model does not yet do it.
+        "summary_support": Spec("T1", frozenset({OUTPUT}), 5.0),
         # Needs jsonschema, so it is outside CORE alongside sql_injection.
         "json_schema": Spec("T1", frozenset({OUTPUT}), 5.0, frozenset({"dependency"})),
         # The first entry to leave CORE. It needs the sqlglot parser, which is the

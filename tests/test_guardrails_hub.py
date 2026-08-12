@@ -74,6 +74,9 @@ def test_every_entry_carries_a_note() -> None:
 
 def test_the_ported_detectors_are_all_represented() -> None:
     assert {entry.detector for entry in PORTED.values()} == {
+        # summary_support joined on 2026-08-12, from extracted_summary_sentences_match,
+        # which the hub answers with an OpenAI call and difflib answers for nothing.
+        "summary_support",
         "banned_terms",
         "system_prompt_leakage",
         "markup_injection",
@@ -96,9 +99,16 @@ def test_the_gaps_are_the_declines_worth_revisiting() -> None:
     # Twelve until 2026-08-11, when `valid_address` stopped being one: the half of
     # it that can be answered without a vendor is built as `postal_code`, and the
     # half that cannot is declined for good rather than pending.
-    # Eight since the scope group was built on 2026-08-11. What is left is six that
-    # need a local generative model and the two moderation retrains.
-    assert len(gaps()) == 8
+    # Seven since extracted_summary_sentences_match was ported on 2026-08-12: the hub
+    # asks an
+    # LLM whether a summary's sentences appear in the source, and difflib answers the
+    # same
+    # question, so it became `summary_support` rather than staying a gap. What is left
+    # is five
+    # that need a local generative model and the two moderation retrains, and
+    # docs/proposed-detectors.md recommends declining all seven for the reasons recorded
+    # there.
+    assert len(gaps()) == 7
     assert "llamaguard_7b" in gaps()
     assert "valid_address" not in gaps()
     # exclude_sql_predicates and valid_sql left this list on 2026-08-11 by being

@@ -340,13 +340,23 @@ def latency_for(detectors: dict[str, Any]) -> dict[str, Any]:
         },
         "banned_terms": {"terms": ["parola", "kennwort", "sifre"]},
         "internal_domains": {"domains": ["internal.example", "corp.example"]},
+        # The shared `ctx` source below is four words, under this detector's minimum, so
+        # without this it measured 0.01 ms for the path where it reports that the source
+        # carried no usable sentence. The reference input as its own source is the
+        # extractive case: every sentence matches, and the comparison runs.
+        "summary_support": {"sources": [REFERENCE_INPUT]},
     }
 
     #: A finding label ending in one of these means the detector reported that it could
     #: not do its job, so the timing describes the refusal rather than the work. Matched
     #: by suffix rather than by detector id, so a new detector reporting the same way is
     #: covered without the collector knowing about it.
-    did_not_run = ("_unconfigured", "_unverifiable", "_no_claims")
+    did_not_run = (
+        "_unconfigured",
+        "_unverifiable",
+        "_no_claims",
+        "_no_source_sentences",
+    )
     out: dict[str, Any] = {
         "reference_input": {
             "characters": len(REFERENCE_INPUT),

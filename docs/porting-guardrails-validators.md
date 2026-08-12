@@ -137,6 +137,7 @@ instead of sixteen.
 | `redundant_sentences` | `repetition` | the two dependencies are gone: stdlib difflib replaces `thefuzz` and multilingual.sentences replaces `nltk`, which is what keeps the detector in CORE. |
 | `exclude_sql_predicates` | `sql_injection` | inverted into an allowlist of statement kinds. A denylist of SQL statement types is a list somebody has to keep complete, and the consequence of missing one is a statement that runs. |
 | `valid_sql` | `sql_injection` | the parse half. Reported as `sql_unparseable` rather than as its own detector, because whether generated SQL parses and whether it does more than was asked are the same question with one parser behind it. |
+| `extracted_summary_sentences_match` | `summary_support` | the hub validator asks an LLM whether each summary sentence appears in the source. difflib answers the same question, so the port is a rule detector with no weights. It measures overlap rather than entailment and says so in its own docstring, which matters because the detector that judges support here is `groundedness` and its model does not yet do it. |
 | `detect_system_prompt_leakage` | `system_prompt_leakage` | rewritten from whole-string similarity to containment. The original passes a long answer that quotes the prompt verbatim. |
 | `endpoint_is_reachable` | `url_reachability` | with a deadline, a refusal to request private addresses, and 3xx counted as reachable. Upstream has no timeout at all, fetches whatever the model emitted from inside your network, and reports a redirect as unreachable. |
 
@@ -192,7 +193,6 @@ which is a data task across the 26 and a different detector from this one.
 | `toxic_language` | covered | `toxicity`. | no |
 | `toxic_language_llm` | covered | `toxicity`. Upstream asks a model for the same seven categories the classifier here scores. | no |
 | `unusual_prompt` | covered | `injection`. Upstream asks a model whether the prompt is tricky. | no |
-| `extracted_summary_sentences_match` | llm | calls OpenAI. | yes |
 | `llm_critic` | llm | grades the output with a second model. | yes |
 | `logic_check` | llm | asks a model to find logical fallacies. | yes |
 | `response_evaluator` | llm | calls a model through litellm. | yes |
