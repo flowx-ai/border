@@ -112,19 +112,43 @@ detectors:
   regulated_advice:
     on_fail: flag           # default install only reports; BFSI blocks, see bfsi.yaml
     threshold: 0.5
+  # The four thresholds in this block are the values each model's own calibration.json
+  # chose on its validation split, maximising macro F1. They were hand-picked numbers
+  # until 2026-08-13, all four well under the calibrated value, and the gap showed up as
+  # findings on ordinary text: 18 substantive findings over 20 mundane business
+  # sentences, 14 once aligned. bias alone went from 3 of 20 to none.
+  #
+  # The calibration was computed when each model was trained and written into its
+  # training config, and nothing carried it across into this file, so a caller running
+  # the shipped default was getting thresholds no measurement supported.
+  #
+  # Not every threshold in this policy is the calibrated one, and the two that are not
+  # are deliberate rather than left over. `injection` at 0.43 and `gibberish` at 0.37 are
+  # both above their calibrated 0.26 and 0.05, which makes them less sensitive than macro
+  # F1 would like. Neither fires on the mundane set at either value, so the choice costs
+  # nothing measurable there and the reasoning stays with each key.
   toxicity:
     on_fail: flag
-    threshold: 0.32
+    threshold: 0.48
   nsfw:
+    # 0.95 is calibrated, and it does not fix this detector. Measured 2026-08-13, it
+    # fires on 11 of 20 ordinary business sentences at a median score of 0.9845, where
+    # its own test negatives score 0.0005. Those negatives are all long and
+    # topic-adjacent, art history and clinical prose, so mundane text is nowhere in the
+    # corpus and the sigmoid saturates on it. That is a corpus gap and needs a retrain.
+    #
+    # `on_fail` is deliberately left at block pending the owner's call, because lowering
+    # it is a decision about what this library claims to do rather than a bug fix. Read
+    # the number above before deploying with this detector enabled.
     on_fail: block
-    threshold: 0.31
+    threshold: 0.95
   bias:
     on_fail: flag
-    threshold: 0.22
+    threshold: 0.84
   politeness:
     enabled: false          # off by default: a style check that blocks is a support ticket
     on_fail: log
-    threshold: 0.5
+    threshold: 0.89
 
   # T3. Runs only on escalation unless 'always' is set.
   url_reachability:

@@ -618,6 +618,44 @@ Llama Guard and ShieldGemma was real and `gpt-oss-safeguard` answers it. It is t
 two objections, which were always the load-bearing ones, that a 20B policy reasoner makes
 worse rather than better.
 
+**`nsfw` blocks ordinary business text, and this is the thing to fix before release.**
+Found on 2026-08-13 by running `scan_output` end to end on three sentences after wiring the
+checksum pass, which is worth noting: the detector table, the per-language evaluations and
+1915 passing tests all looked healthy and none of them touched this. Measured over 20
+mundane sentences in ten languages, invoices and appointments and parcel tracking:
+
+| detector | calibrated threshold | fires on its own test negatives | fires on mundane prose | median mundane score |
+|---|---|---|---|---|
+| `nsfw` | 0.95 | 3.8% | **55%** | **0.9845** |
+| `injection` | 0.26 | 0.0% | 15% | 0.0024 |
+| `bias` | 0.84 | 2.5% | 0% | 0.0377 |
+| `toxicity` | 0.48 | 5.0% | 0% | 0.0063 |
+| `politeness` | 0.89 | 1.2% | 0% | 0.0014 |
+| `gibberish` | 0.05 | 5.0% | 0% | 0.0012 |
+
+`nsfw` ships `on_fail: block` in the default policy, so 55% of ordinary output would be
+refused. Four of the six are clean, so this is one detector rather than a systemic fault.
+
+The cause is not the model and not the library. Its own test negatives score 0.0005 and its
+positives 0.9998 through the same INT8 session, which is a correctly trained head. The
+negatives are the problem: every one is long and topic-adjacent, art history and clinical
+prose and breastfeeding, deliberately hard cases near the boundary. Mundane text is nowhere
+in the corpus, so the sigmoid has nothing to place it against and saturates. A macro F1 of
+0.976 and a per-language FPR of 0.0 are both true and both measured against hard negatives
+only, which is not what a guardrail mostly sees.
+
+Seventh instance of the pattern, and the one that would have shipped. The fix is easy
+negatives in the corpus and a retrain, not a threshold: at the calibrated 0.95 it still
+fires on 11 of 20.
+
+**A separate finding from the same run: the shipped policies ignored the calibration.**
+`toxicity`, `nsfw`, `bias` and `politeness` all carried hand-picked thresholds in
+`policies/default.yaml` well below the value each model's `calibration.json` chose on its
+validation split. The calibration landed in the training configs and nothing carried it
+across. Aligned on 2026-08-13, which took 20 mundane sentences from 18 substantive findings
+to 14 and removed every `bias` false positive. `injection` at 0.43 and `gibberish` at 0.37
+stay deliberately above their calibrated 0.26 and 0.05, and say so at the key.
+
 **Corpus size was the binding constraint, not the models.** Demonstrated on 2026-08-11 and
 worth holding onto, because it changes where effort should go. `nsfw` and `gibberish` were the
 two weakest detectors in the table. Their corpora were rebuilt with more positives per
