@@ -14,9 +14,12 @@ string with the right shape. None is live.
 
 from __future__ import annotations
 
+from typing import Final
+
 import pytest
 
 from flowx_border.detectors.base import Context, DetectorConfig
+from flowx_border.detectors.multilingual import LANGUAGES as CLAIMED
 from flowx_border.detectors.secrets import SecretsDetector, shannon_entropy
 
 DETECTOR = SecretsDetector()
@@ -199,26 +202,74 @@ def test_an_empty_or_whitespace_input_produces_nothing() -> None:
 # ------------------------------------------------------------- non-English keywords
 
 
-@pytest.mark.parametrize(
-    ("language", "text"),
-    [
-        ("ro", 'parola mea este "Zk3Jf9dQ2xLm0PqR7"'),
-        ("pl", 'hasło: "Zk3Jf9dQ2xLm0PqR7"'),
-        ("hu", 'jelszó = "Zk3Jf9dQ2xLm0PqR7"'),
-        ("tr", 'şifre: "Zk3Jf9dQ2xLm0PqR7"'),
-        ("az", 'şifrə: "Zk3Jf9dQ2xLm0PqR7"'),
-        ("de", 'Passwort: "Zk3Jf9dQ2xLm0PqR7"'),
-        ("es", 'contraseña: "Zk3Jf9dQ2xLm0PqR7"'),
-        ("el", 'κωδικός: "Zk3Jf9dQ2xLm0PqR7"'),
-        ("bg", 'парола: "Zk3Jf9dQ2xLm0PqR7"'),
-    ],
-)
+#: The word that means "a credential follows", in each of the 26 languages, around one
+#: high entropy string. Every word here must also be in `_KEYWORDS` in the detector, and
+#: that list already covered all 26 when this fixture was written: it was the test that
+#: stopped at nine.
+#: Worth having anyway rather than trusting the list. Greek is the precedent: the
+#: literal "κωδικός" could never match casefolded input, because casefold rewrites the
+#: final sigma, and nothing failed until a test ran the word through the detector. A
+#: keyword list is only as good as the folding it survives.
+ENTROPIC: Final = "Zk3Jf9dQ2xLm0PqR7"
+
+KEYWORDS: dict[str, str] = {
+    "en": f'password: "{ENTROPIC}"',
+    "ro": f'parola mea este "{ENTROPIC}"',
+    "bg": f'парола: "{ENTROPIC}"',
+    "cs": f'heslo: "{ENTROPIC}"',
+    "da": f'adgangskode: "{ENTROPIC}"',
+    "de": f'Passwort: "{ENTROPIC}"',
+    "el": f'κωδικός: "{ENTROPIC}"',
+    "es": f'contraseña: "{ENTROPIC}"',
+    "et": f'parool: "{ENTROPIC}"',
+    "fi": f'salasana: "{ENTROPIC}"',
+    "fr": f'ma clé: "{ENTROPIC}"',
+    "ga": f'eochair: "{ENTROPIC}"',
+    "hr": f'lozinka: "{ENTROPIC}"',
+    "hu": f'jelszó = "{ENTROPIC}"',
+    "it": f'la parola d\'ordine è "{ENTROPIC}"',
+    "lt": f'slaptažodis: "{ENTROPIC}"',
+    "lv": f'atslēga: "{ENTROPIC}"',
+    "mt": f'passwerd: "{ENTROPIC}"',
+    "nl": f'wachtwoord: "{ENTROPIC}"',
+    "pl": f'hasło: "{ENTROPIC}"',
+    "pt": f'senha: "{ENTROPIC}"',
+    "sk": f'kluc: "{ENTROPIC}"',
+    "sl": f'geslo: "{ENTROPIC}"',
+    "sv": f'lösenord: "{ENTROPIC}"',
+    "tr": f'şifre: "{ENTROPIC}"',
+    "az": f'şifrə: "{ENTROPIC}"',
+}
+
+
+def test_the_keyword_fixtures_cover_every_language_the_project_claims() -> None:
+    assert set(KEYWORDS) == CLAIMED
+
+
+@pytest.mark.parametrize("code", sorted(KEYWORDS))
 def test_a_credential_keyword_in_another_language_still_lowers_the_floor(
-    language: str, text: str
+    code: str,
 ) -> None:
     # Without this the entropy rule is an English-only rule, and the library claims 26
     # languages on the input side.
-    assert "high_entropy_string_near_keyword" in labels(text), language
+    assert "high_entropy_string_near_keyword" in labels(KEYWORDS[code]), code
+
+
+@pytest.mark.parametrize("code", sorted(KEYWORDS))
+def test_the_keyword_lowers_the_floor_without_removing_it(code: str) -> None:
+    """The other half, per language, so the sweep above is not vacuous.
+
+    Adding 26 keywords to the detector risks the opposite failure: a keyword plus any
+    string at all. So each language's keyword is kept and the credential is swapped for
+    a string of one repeated character, whose entropy is zero. The keyword lowers the
+    bar and the string still has to clear it.
+
+    The first version of this test used "abcdefghijklmnop" as the benign string, which
+    is sixteen distinct characters and therefore maximum entropy for its length. It
+    failed in thirteen languages and the detector was right every time.
+    """
+    dull = ENTROPIC[0] * len(ENTROPIC)
+    assert labels(KEYWORDS[code].replace(ENTROPIC, dull)) == [], code
 
 
 # ----------------------------------------------------------------------- entropy fn
@@ -269,8 +320,8 @@ def test_findings_never_carry_the_matched_text() -> None:
 def test_a_name_joined_to_a_national_id_is_not_a_secret() -> None:
     # Found by running the phase 2 definition of done: this fired as
     # `high_entropy_string` on a detector the default policy sets to `block`, so an
-    # ordinary sentence became a refused request. It is also the wrong detector's job,
-    # a national id belongs to `pii`.
+    # ordinary sentence became a refused request. It is also the wrong detector's job, a
+    # national id belongs to `pii`.
     assert labels("my name is Ionescu-Bogdan-CNP-1920304050607") == []
 
 

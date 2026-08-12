@@ -18,7 +18,9 @@ from __future__ import annotations
 import pytest
 
 from flowx_border.detectors.base import Context, DetectorConfig
+from flowx_border.detectors.multilingual import LANGUAGES as CLAIMED
 from flowx_border.detectors.summary_support import (
+    DEFAULT_MIN_WORDS,
     SummarySupportDetector,
     SummarySupportError,
 )
@@ -227,58 +229,217 @@ def test_a_zero_similarity_is_refused(detector: SummarySupportDetector) -> None:
 # ------------------------------------------------------------- the languages
 
 
-@pytest.mark.parametrize(
-    ("language", "source", "supported", "invented"),
-    [
-        (
-            "ro",
-            "Contul plătește o rată anuală de 3,1 procente. Retragerile în primele "
-            "douăsprezece luni au un comision de 5 EUR.",
-            "Retragerile în primele douăsprezece luni au un comision de 5 EUR.",
-            "Contul include asigurare de călătorie gratuită pentru toți clienții.",
-        ),
-        (
-            "de",
-            "Das Konto zahlt einen Jahreszins von 3,1 Prozent. Abhebungen in den "
-            "ersten zwölf Monaten kosten eine Gebühr von 5 EUR.",
-            "Abhebungen in den ersten zwölf Monaten kosten eine Gebühr von 5 EUR.",
-            "Das Konto beinhaltet eine kostenlose Reiseversicherung für alle Kunden.",
-        ),
-        (
-            "el",
-            "Ο λογαριασμός αποδίδει ετήσιο επιτόκιο 3,1 τοις εκατό. Οι αναλήψεις στους "
-            "πρώτους δώδεκα μήνες έχουν χρέωση 5 EUR.",
-            "Οι αναλήψεις στους πρώτους δώδεκα μήνες έχουν χρέωση 5 EUR.",
-            "Ο λογαριασμός περιλαμβάνει δωρεάν ταξιδιωτική ασφάλιση για όλους.",
-        ),
-        (
-            "tr",
-            "Hesap yıllık yüzde 3,1 faiz ödüyor. İlk on iki ayda yapılan çekimler için "
-            "5 EUR ücret alınır.",
-            "İlk on iki ayda yapılan çekimler için 5 EUR ücret alınır.",
-            "Hesap tüm müşteriler için ücretsiz seyahat sigortası içerir.",
-        ),
-    ],
-)
-def test_it_works_the_same_in_other_languages(
-    detector: SummarySupportDetector,
-    language: str,
-    source: str,
-    supported: str,
-    invented: str,
-) -> None:
-    """A sample of the 26, including a non-Latin script and an agglutinative language.
+#: One source, one sentence lifted from it, and one sentence that is not in it, per
+#: language. The same banking passage throughout, so a failure points at the language
+#: rather than at the subject matter.
+#: What this is really testing is composition. The folding and the sentence splitting
+#: belong to the shared multilingual core and have their own tests; what has to hold
+#: here is that a sentence lifted from a Greek source is recognised through both of
+#: them, and an invented Maltese one is not. Every `invented` entry deliberately opens
+#: with the same word as its source, so a detector that matched on a prefix rather than
+#: on the sentence would pass the supported case and fail this one.
+CASES: dict[str, tuple[str, str, str]] = {
+    "en": (
+        "The account pays 3.1 percent annual interest. Withdrawals in the first "
+        "twelve months incur a fee of 5 EUR.",
+        "Withdrawals in the first twelve months incur a fee of 5 EUR.",
+        "The account includes free travel insurance for all customers.",
+    ),
+    "ro": (
+        "Contul plătește o rată anuală de 3,1 procente. Retragerile în primele "
+        "douăsprezece luni au un comision de 5 EUR.",
+        "Retragerile în primele douăsprezece luni au un comision de 5 EUR.",
+        "Contul include asigurare de călătorie gratuită pentru toți clienții.",
+    ),
+    "bg": (
+        "Сметката плаща 3,1 процента годишна лихва. Тегленията през първите "
+        "дванадесет месеца се таксуват с 5 EUR.",
+        "Тегленията през първите дванадесет месеца се таксуват с 5 EUR.",
+        "Сметката включва безплатна застраховка при пътуване за всички клиенти.",
+    ),
+    "cs": (
+        "Účet platí roční úrok 3,1 procenta. Výběry v prvních dvanácti měsících "
+        "podléhají poplatku 5 EUR.",
+        "Výběry v prvních dvanácti měsících podléhají poplatku 5 EUR.",
+        "Účet zahrnuje bezplatné cestovní pojištění pro všechny klienty.",
+    ),
+    "da": (
+        "Kontoen giver 3,1 procent i årlig rente. Udbetalinger i de første tolv "
+        "måneder koster et gebyr på 5 EUR.",
+        "Udbetalinger i de første tolv måneder koster et gebyr på 5 EUR.",
+        "Kontoen indeholder gratis rejseforsikring for alle kunder.",
+    ),
+    "de": (
+        "Das Konto zahlt einen Jahreszins von 3,1 Prozent. Abhebungen in den "
+        "ersten zwölf Monaten kosten eine Gebühr von 5 EUR.",
+        "Abhebungen in den ersten zwölf Monaten kosten eine Gebühr von 5 EUR.",
+        "Das Konto beinhaltet eine kostenlose Reiseversicherung für alle Kunden.",
+    ),
+    "el": (
+        "Ο λογαριασμός αποδίδει ετήσιο επιτόκιο 3,1 τοις εκατό. Οι αναλήψεις στους "
+        "πρώτους δώδεκα μήνες έχουν χρέωση 5 EUR.",
+        "Οι αναλήψεις στους πρώτους δώδεκα μήνες έχουν χρέωση 5 EUR.",
+        "Ο λογαριασμός περιλαμβάνει δωρεάν ταξιδιωτική ασφάλιση για κάθε πελάτη.",
+    ),
+    "es": (
+        "La cuenta paga un interés anual del 3,1 por ciento. Las retiradas en los "
+        "primeros doce meses tienen una comisión de 5 EUR.",
+        "Las retiradas en los primeros doce meses tienen una comisión de 5 EUR.",
+        "La cuenta incluye un seguro de viaje gratuito para todos los clientes.",
+    ),
+    "et": (
+        "Konto maksab aastas 3,1 protsenti intressi. Esimese kaheteistkümne kuu "
+        "väljamaksete eest võetakse 5 EUR tasu.",
+        "Esimese kaheteistkümne kuu väljamaksete eest võetakse 5 EUR tasu.",
+        "Konto sisaldab tasuta reisikindlustust kõikidele klientidele.",
+    ),
+    "fi": (
+        "Tili maksaa 3,1 prosentin vuosikoron. Ensimmäisten kahdentoista kuukauden "
+        "nostoista veloitetaan 5 EUR maksu.",
+        "Ensimmäisten kahdentoista kuukauden nostoista veloitetaan 5 EUR maksu.",
+        "Tili sisältää ilmaisen matkavakuutuksen kaikille asiakkaille.",
+    ),
+    "fr": (
+        "Le compte verse un intérêt annuel de 3,1 pour cent. Les retraits pendant "
+        "les douze premiers mois entraînent des frais de 5 EUR.",
+        "Les retraits pendant les douze premiers mois entraînent des frais de 5 EUR.",
+        "Le compte comprend une assurance voyage gratuite pour tous les clients.",
+    ),
+    "ga": (
+        "Íocann an cuntas ús bliantúil de 3,1 faoin gcéad. Gearrtar táille 5 EUR ar "
+        "aistarraingtí sa chéad dhá mhí dhéag.",
+        "Gearrtar táille 5 EUR ar aistarraingtí sa chéad dhá mhí dhéag.",
+        "Íocann an cuntas árachas taistil saor in aisce do gach custaiméir.",
+    ),
+    "hr": (
+        "Račun plaća godišnju kamatu od 3,1 posto. Povlačenja u prvih dvanaest "
+        "mjeseci imaju naknadu od 5 EUR.",
+        "Povlačenja u prvih dvanaest mjeseci imaju naknadu od 5 EUR.",
+        "Račun uključuje besplatno putno osiguranje za sve klijente.",
+    ),
+    "hu": (
+        "A számla évi 3,1 százalék kamatot fizet. Az első tizenkét hónapban a "
+        "kifizetésekre 5 EUR díj vonatkozik.",
+        "Az első tizenkét hónapban a kifizetésekre 5 EUR díj vonatkozik.",
+        "A számla ingyenes utasbiztosítást tartalmaz minden ügyfél számára.",
+    ),
+    "it": (
+        "Il conto paga un interesse annuo del 3,1 per cento. I prelievi nei primi "
+        "dodici mesi comportano una commissione di 5 EUR.",
+        "I prelievi nei primi dodici mesi comportano una commissione di 5 EUR.",
+        "Il conto offre una copertura di viaggio gratuita per tutti i clienti.",
+    ),
+    "lt": (
+        "Sąskaita moka 3,1 procento metines palūkanas. Per pirmuosius dvylika "
+        "mėnesių išėmimams taikomas 5 EUR mokestis.",
+        "Per pirmuosius dvylika mėnesių išėmimams taikomas 5 EUR mokestis.",
+        "Sąskaita apima nemokamą kelionių draudimą visiems klientams.",
+    ),
+    "lv": (
+        "Kontam ir 3,1 procenta gada procentu likme. Izmaksām pirmajos divpadsmit "
+        "mēnešos piemēro 5 EUR maksu.",
+        "Izmaksām pirmajos divpadsmit mēnešos piemēro 5 EUR maksu.",
+        "Kontam ir bezmaksas ceļojumu apdrošināšana visiem klientiem.",
+    ),
+    "mt": (
+        "Il-kont iħallas imgħax annwali ta' 3,1 fil-mija. L-irtirar fl-ewwel "
+        "tnax-il xahar għandu tariffa ta' 5 EUR.",
+        "L-irtirar fl-ewwel tnax-il xahar għandu tariffa ta' 5 EUR.",
+        "Il-kont jinkludi assigurazzjoni tal-ivvjaġġar bla ħlas għall-klijenti kollha.",
+    ),
+    "nl": (
+        "De rekening betaalt 3,1 procent jaarlijkse rente. Opnames in de eerste "
+        "twaalf maanden kosten een vergoeding van 5 EUR.",
+        "Opnames in de eerste twaalf maanden kosten een vergoeding van 5 EUR.",
+        "De rekening bevat een gratis reisverzekering voor alle klanten.",
+    ),
+    "pl": (
+        "Rachunek płaci 3,1 procent odsetek w skali roku. Wypłaty w pierwszych "
+        "dwunastu miesiącach podlegają opłacie 5 EUR.",
+        "Wypłaty w pierwszych dwunastu miesiącach podlegają opłacie 5 EUR.",
+        "Rachunek obejmuje bezpłatne ubezpieczenie podróżne dla wszystkich klientów.",
+    ),
+    "pt": (
+        "A conta paga juros anuais de 3,1 por cento. Os saques nos primeiros doze "
+        "meses têm uma taxa de 5 EUR.",
+        "Os saques nos primeiros doze meses têm uma taxa de 5 EUR.",
+        "A conta inclui seguro de viagem gratuito para todos os clientes.",
+    ),
+    "sk": (
+        "Účet platí ročný úrok 3,1 percenta. Výbery v prvých dvanástich mesiacoch "
+        "podliehajú poplatku 5 EUR.",
+        "Výbery v prvých dvanástich mesiacoch podliehajú poplatku 5 EUR.",
+        "Účet zahŕňa bezplatné cestovné poistenie pre všetkých klientov.",
+    ),
+    "sl": (
+        "Račun plačuje 3,1 odstotka letnih obresti. Dvigi v prvih dvanajstih "
+        "mesecih so obremenjeni s 5 EUR.",
+        "Dvigi v prvih dvanajstih mesecih so obremenjeni s 5 EUR.",
+        "Račun vključuje brezplačno potovalno zavarovanje za vse stranke.",
+    ),
+    "sv": (
+        "Kontot ger 3,1 procent årlig ränta. Uttag under de första tolv månaderna "
+        "kostar en avgift på 5 EUR.",
+        "Uttag under de första tolv månaderna kostar en avgift på 5 EUR.",
+        "Kontot innehåller en gratis reseförsäkring för alla kunder.",
+    ),
+    "tr": (
+        "Hesap yıllık yüzde 3,1 faiz ödüyor. İlk on iki ayda yapılan çekimler için "
+        "5 EUR ücret alınır.",
+        "İlk on iki ayda yapılan çekimler için 5 EUR ücret alınır.",
+        "Hesap tüm müşteriler için ücretsiz seyahat sigortası içerir.",
+    ),
+    "az": (
+        "Hesab illik 3,1 faiz gəlir ödəyir. İlk on iki ayda çıxarışlar üçün 5 EUR "
+        "komissiya tutulur.",
+        "İlk on iki ayda çıxarışlar üçün 5 EUR komissiya tutulur.",
+        "Hesab bütün müştərilər üçün pulsuz səyahət sığortası daxil edir.",
+    ),
+}
 
-    The folding and sentence splitting this relies on are the shared multilingual core,
-    which has its own tests. What this checks is that the detector composes with them:
-    that a sentence lifted from a Greek source is recognised, and an invented Turkish
-    one is not.
-    """
+
+def test_the_fixtures_cover_every_language_the_project_claims() -> None:
+    assert set(CASES) == CLAIMED
+
+
+@pytest.mark.parametrize("code", sorted(CASES))
+def test_a_sentence_lifted_from_the_source_is_recognised(code: str) -> None:
+    source, supported, _ = CASES[code]
     context = Context(sources=(source,))
-    assert detector.run(supported, CFG, context) == [], (
-        f"{language}: extract not recognised"
-    )
-    found = detector.run(invented, CFG, context)
-    assert [f.label for f in found] == ["unsupported_sentence"], (
-        f"{language}: invention not reported"
-    )
+    assert detector_for().run(supported, CFG, context) == [], code
+
+
+@pytest.mark.parametrize("code", sorted(CASES))
+def test_a_sentence_absent_from_the_source_is_reported(code: str) -> None:
+    """Which is what gives the test above its meaning.
+
+    Without this the pair would pass for a detector that reported nothing ever, and
+    "reports nothing ever" is the failure mode this library treats as a vulnerability.
+    """
+    source, _, invented = CASES[code]
+    context = Context(sources=(source,))
+    found = detector_for().run(invented, CFG, context)
+    assert [f.label for f in found] == ["unsupported_sentence"], code
+
+
+@pytest.mark.parametrize("code", sorted(CASES))
+def test_every_lifted_sentence_is_long_enough_to_be_judged(code: str) -> None:
+    """A fixture below `min_words` would pass the supported case by being skipped.
+
+    The compounding languages are the risk: a Finnish or Hungarian sentence carrying the
+    same content as an English one can do it in fewer words, and five is the floor.
+    """
+    _, supported, invented = CASES[code]
+    assert len(supported.split()) >= DEFAULT_MIN_WORDS, code
+    assert len(invented.split()) >= DEFAULT_MIN_WORDS, code
+
+
+def detector_for() -> SummarySupportDetector:
+    """A warmed detector for the sweeps above, which are parametrized on a code.
+
+    The `detector` fixture would work too. This is a plain function because the sweeps
+    read better taking one argument, and warming costs nothing: there is no model.
+    """
+    found = SummarySupportDetector()
+    found.warm()
+    return found
