@@ -58,13 +58,13 @@ OUT_MD = REPO / "docs" / "reference" / "performance.md"
 THIN_SUPPORT = 10
 
 #: Absent from XLM-RoBERTa's pretraining corpus, which is a fact about the base model
-#: and worth attaching to a score from it.
-#: What it is NOT is an explanation for a low score, and this file said it was until
-#: 2026-08-11. nsfw scored 0.000 in Maltese and the caveat read "which no data fixes".
-#: Then the corpus went from 2 positives per language to 10 and Maltese scored 1.000,
-#: precision and recall both perfect. The 0.000 was the sample size the whole time. So
-#: the note now states the fact and stops there: a reader can weigh it, and nobody is
-#: told a number is unfixable when it was only unmeasured.
+#: and worth attaching to a score from it. What it is NOT is an explanation for a low
+#: score, and this file said it was until 2026-08-11. nsfw scored 0.000 in Maltese and
+#: the caveat read "which no data fixes". Then the corpus went from 2 positives per
+#: language to 10 and Maltese scored 1.000, precision and recall both perfect. The 0.000
+#: was the sample size the whole time. So the note now states the fact and stops there:
+#: a reader can weigh it, and nobody is told a number is unfixable when it was only
+#: unmeasured.
 NOT_IN_BASE_MODEL = {"mt"}
 
 LANGUAGE_NAMES = {
@@ -117,7 +117,9 @@ def _read_eval(folder: Path, detector: str) -> dict[str, Any] | None:
     return None
 
 
-def _shape_of(per_language: dict[str, Any]) -> tuple[str, str, str]:
+def _shape_of(
+    per_language: dict[str, Any], evaluation: dict[str, Any] | None = None
+) -> tuple[str, str, str]:
     """Which metric this evaluation can honestly report, and what its count means.
 
     Three shapes exist in the artifacts, and conflating them is how a misleading number
@@ -143,6 +145,16 @@ def _shape_of(per_language: dict[str, Any]) -> tuple[str, str, str]:
     if all(isinstance(row, int | float) for row in rows):
         return "top1_accuracy", "", "not recorded"
 
+    # A bi-encoder's nearest-node accuracy, which is neither F1 nor exact match over
+    # labels and should not be reported as either. Recognised by the key the evaluation
+    # puts at the top level rather than by the detector's name, so the collector stays
+    # free of that knowledge.  Until 2026-08-12 topic_scope wrote bare floats here and
+    # its rows published n: null, which made it the one detector whose numbers could not
+    # be weighed. They can now, and they turn out to rest on 6 to 8 examples per
+    # language.
+    if evaluation is not None and "top1_accuracy" in evaluation:
+        return "top1_accuracy", "accuracy", "examples evaluated"
+
     has_f1 = any(isinstance(row, dict) and row.get("f1", 0.0) > 0.0 for row in rows)
     if has_f1:
         return "f1", "f1", "positive examples"
@@ -162,7 +174,7 @@ def quality_for(root: Path, detector: str) -> dict[str, Any] | None:
     if not per_language:
         return None
 
-    metric, score_key, count_means = _shape_of(per_language)
+    metric, score_key, count_means = _shape_of(per_language, evaluation)
 
     languages: dict[str, Any] = {}
     for code, row in sorted(per_language.items()):

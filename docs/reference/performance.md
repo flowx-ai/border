@@ -35,7 +35,7 @@ means the score is unverified rather than good or bad.
 | `secrets` | T0 | built | – | – | – | – | – | – |
 | `sql_injection` | T1 | built | – | – | – | – | – | – |
 | `system_prompt_leakage` | T1 | built | – | – | – | – | – | – |
-| `topic_scope` | T3 | built | top1_accuracy | 0.872 | 0.857 | 0.375 | not recorded | not recorded |
+| `topic_scope` | T3 | built | top1_accuracy | 0.865 | 0.857 | 0.375 | 175 | examples evaluated |
 | `toxicity` | T2 | built | f1 | 0.960 | 1.000 | 0.400 | 104 | positive examples |
 | `url_reachability` | T3 | built | – | – | – | – | – | – |
 
@@ -44,7 +44,7 @@ means the score is unverified rather than good or bad.
 - **`gibberish`**: 2 of 26 languages have fewer than 10 positive examples: bg, en. Their individual scores are indicative rather than measured.
 - **`groundedness`**: no calibrated threshold recorded, so this detector runs at the policy default. Several detectors in this family reported nothing at 0.5 while separating positives from negatives well below it.
 - **`injection`**: 1 of 26 languages have fewer than 10 positive examples: es. Their individual scores are indicative rather than measured.
-- **`topic_scope`**: the evaluation recorded no sample size for 26 of 26 languages, so those scores cannot be checked for how much they rest on. Treat them as unverified.
+- **`topic_scope`**: 26 of 26 languages have fewer than 10 examples evaluated: az, bg, cs, da, de, el, en, es, et, fi, fr, ga, hr, hu, it, lt, lv, mt, nl, pl, pt, ro, sk, sl, sv, tr. Their individual scores are indicative rather than measured.
 - **`topic_scope`**: no calibrated threshold recorded, so this detector runs at the policy default. Several detectors in this family reported nothing at 0.5 while separating positives from negatives well below it.
 - **`toxicity`**: 26 of 26 languages have fewer than 10 positive examples: az, bg, cs, da, de, el, en, es, et, fi, fr, ga, hr, hu, it, lt, lv, mt, nl, pl, pt, ro, sk, sl, sv, tr. Their individual scores are indicative rather than measured.
 
@@ -54,27 +54,27 @@ At a 396 character reference input, 1 thread, CPUExecutionProvider. Romanian pro
 
 | Detector | p95 ms | Budget ms | note |
 |---|---|---|---|
-| `banned_terms` | 0.229 | 5.0 | – |
-| `bias` | 170.899 | 225.0 | – |
-| `disclosure` | 0.035 | 5.0 | – |
-| `gibberish` | 174.526 | 225.0 | – |
-| `groundedness` | 70.239 | 300.0 | – |
-| `injection` | 167.271 | 225.0 | – |
-| `internal_domains` | 0.212 | 5.0 | – |
-| `invisible_text` | 0.032 | 5.0 | – |
+| `banned_terms` | 0.212 | 5.0 | – |
+| `bias` | 152.702 | 225.0 | – |
+| `disclosure` | 0.037 | 5.0 | – |
+| `gibberish` | 154.132 | 225.0 | – |
+| `groundedness` | 61.204 | 300.0 | – |
+| `injection` | 155.236 | 225.0 | – |
+| `internal_domains` | 0.204 | 5.0 | – |
+| `invisible_text` | 0.036 | 5.0 | – |
 | `json_schema` | 0.001 | 5.0 | – |
-| `markup_injection` | 0.211 | 5.0 | – |
-| `nsfw` | 165.692 | 225.0 | – |
+| `markup_injection` | 0.220 | 5.0 | – |
+| `nsfw` | 153.817 | 225.0 | – |
 | `output_format` | 0.001 | 5.0 | – |
-| `output_leakage` | 169.264 | 225.0 | – |
-| `pii` | 168.627 | 225.0 | – |
-| `politeness` | 169.830 | 225.0 | – |
-| `postal_code` | 0.001 | 5.0 | – |
-| `regulated_advice` | 166.290 | 225.0 | – |
-| `repetition` | 0.390 | 5.0 | – |
+| `output_leakage` | 154.419 | 225.0 | – |
+| `pii` | 153.250 | 225.0 | – |
+| `politeness` | 153.410 | 225.0 | – |
+| `postal_code` | 0.002 | 5.0 | – |
+| `regulated_advice` | 154.437 | 225.0 | – |
+| `repetition` | 0.384 | 5.0 | – |
 | `secrets` | 0.039 | 1.0 | – |
-| `sql_injection` | 0.209 | 5.0 | – |
-| `system_prompt_leakage` | 0.259 | 5.0 | the unconfigured path |
-| `topic_scope` | 231.910 | 300.0 | – |
-| `toxicity` | 163.024 | 225.0 | – |
-| `url_reachability` | 0.007 | 3000.0 | – |
+| `sql_injection` | 0.201 | 5.0 | – |
+| `system_prompt_leakage` | 0.248 | 5.0 | the unconfigured path |
+| `topic_scope` | 213.264 | 300.0 | – |
+| `toxicity` | 153.454 | 225.0 | – |
+| `url_reachability` | 0.006 | 3000.0 | – |

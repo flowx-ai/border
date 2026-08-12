@@ -1316,233 +1316,206 @@
     "topic_scope": {
       "budget_ms": 300.0,
       "caveats": [
-        "the evaluation recorded no sample size for 26 of 26 languages, so those scores cannot be checked for how much they rest on. Treat them as unverified.",
+        "26 of 26 languages have fewer than 10 examples evaluated: az, bg, cs, da, de, el, en, es, et, fi, fr, ga, hr, hu, it, lt, lv, mt, nl, pl, pt, ro, sk, sl, sv, tr. Their individual scores are indicative rather than measured.",
         "no calibrated threshold recorded, so this detector runs at the policy default. Several detectors in this family reported nothing at 0.5 while separating positives from negatives well below it."
       ],
       "in_core": true,
       "metrics": {
         "best": 1.0,
         "languages_evaluated": 26,
-        "languages_without_a_count": [
-          "az",
-          "bg",
-          "cs",
-          "da",
-          "de",
-          "el",
-          "en",
-          "es",
-          "et",
-          "fi",
-          "fr",
-          "ga",
-          "hr",
-          "hu",
-          "it",
-          "lt",
-          "lv",
-          "mt",
-          "nl",
-          "pl",
-          "pt",
-          "ro",
-          "sk",
-          "sl",
-          "sv",
-          "tr"
-        ],
-        "macro": 0.8718,
+        "languages_without_a_count": [],
+        "macro": 0.8654,
         "median": 0.8571,
         "metric": "top1_accuracy",
-        "n_means": "not recorded",
+        "n_means": "examples evaluated",
         "per_language": {
           "az": {
-            "n": null,
+            "n": 7,
             "notes": [
-              "the evaluation did not record how many examples this rests on, so the score is unverifiable rather than measured"
+              "only 7 examples evaluated, so one case moves this materially"
             ],
             "score": 0.8571
           },
           "bg": {
-            "n": null,
+            "n": 7,
             "notes": [
-              "the evaluation did not record how many examples this rests on, so the score is unverifiable rather than measured"
+              "only 7 examples evaluated, so one case moves this materially"
             ],
             "score": 0.8571
           },
           "cs": {
-            "n": null,
+            "n": 6,
             "notes": [
-              "the evaluation did not record how many examples this rests on, so the score is unverifiable rather than measured"
+              "only 6 examples evaluated, so one case moves this materially"
             ],
             "score": 1.0
           },
           "da": {
-            "n": null,
+            "n": 7,
             "notes": [
-              "the evaluation did not record how many examples this rests on, so the score is unverifiable rather than measured"
+              "only 7 examples evaluated, so one case moves this materially"
             ],
             "score": 0.8571
           },
           "de": {
-            "n": null,
+            "n": 7,
             "notes": [
-              "the evaluation did not record how many examples this rests on, so the score is unverifiable rather than measured"
+              "only 7 examples evaluated, so one case moves this materially"
             ],
             "score": 1.0
           },
           "el": {
-            "n": null,
+            "n": 7,
             "notes": [
-              "the evaluation did not record how many examples this rests on, so the score is unverifiable rather than measured"
+              "only 7 examples evaluated, so one case moves this materially"
             ],
             "score": 0.8571
           },
           "en": {
-            "n": null,
+            "n": 6,
             "notes": [
-              "the evaluation did not record how many examples this rests on, so the score is unverifiable rather than measured"
+              "only 6 examples evaluated, so one case moves this materially"
             ],
             "score": 1.0
           },
           "es": {
-            "n": null,
+            "n": 7,
             "notes": [
-              "the evaluation did not record how many examples this rests on, so the score is unverifiable rather than measured"
+              "only 7 examples evaluated, so one case moves this materially"
             ],
             "score": 1.0
           },
           "et": {
-            "n": null,
+            "n": 7,
             "notes": [
-              "the evaluation did not record how many examples this rests on, so the score is unverifiable rather than measured"
+              "only 7 examples evaluated, so one case moves this materially"
             ],
             "score": 1.0
           },
           "fi": {
-            "n": null,
+            "n": 6,
             "notes": [
-              "the evaluation did not record how many examples this rests on, so the score is unverifiable rather than measured"
+              "only 6 examples evaluated, so one case moves this materially"
             ],
             "score": 0.8333
           },
           "fr": {
-            "n": null,
+            "n": 6,
             "notes": [
-              "the evaluation did not record how many examples this rests on, so the score is unverifiable rather than measured"
+              "only 6 examples evaluated, so one case moves this materially"
             ],
             "score": 1.0
           },
           "ga": {
-            "n": null,
+            "n": 8,
             "notes": [
-              "the evaluation did not record how many examples this rests on, so the score is unverifiable rather than measured"
+              "only 8 examples evaluated, so one case moves this materially"
             ],
             "score": 0.375
           },
           "hr": {
-            "n": null,
+            "n": 6,
             "notes": [
-              "the evaluation did not record how many examples this rests on, so the score is unverifiable rather than measured"
+              "only 6 examples evaluated, so one case moves this materially"
             ],
             "score": 1.0
           },
           "hu": {
-            "n": null,
+            "n": 8,
             "notes": [
-              "the evaluation did not record how many examples this rests on, so the score is unverifiable rather than measured"
+              "only 8 examples evaluated, so one case moves this materially"
             ],
             "score": 0.625
           },
           "it": {
-            "n": null,
+            "n": 6,
             "notes": [
-              "the evaluation did not record how many examples this rests on, so the score is unverifiable rather than measured"
+              "only 6 examples evaluated, so one case moves this materially"
             ],
             "score": 0.8333
           },
           "lt": {
-            "n": null,
+            "n": 7,
             "notes": [
-              "the evaluation did not record how many examples this rests on, so the score is unverifiable rather than measured"
+              "only 7 examples evaluated, so one case moves this materially"
             ],
             "score": 0.7143
           },
           "lv": {
-            "n": null,
+            "n": 7,
             "notes": [
-              "the evaluation did not record how many examples this rests on, so the score is unverifiable rather than measured"
+              "only 7 examples evaluated, so one case moves this materially"
             ],
             "score": 1.0
           },
           "mt": {
-            "n": null,
+            "n": 8,
             "notes": [
-              "the evaluation did not record how many examples this rests on, so the score is unverifiable rather than measured",
+              "only 8 examples evaluated, so one case moves this materially",
               "absent from the base model's pretraining corpus, which is worth knowing but has not been shown to bound the score: nsfw went from 0.000 to 1.000 here on more examples"
             ],
             "score": 0.5
           },
           "nl": {
-            "n": null,
+            "n": 6,
             "notes": [
-              "the evaluation did not record how many examples this rests on, so the score is unverifiable rather than measured"
+              "only 6 examples evaluated, so one case moves this materially"
             ],
             "score": 0.8333
           },
           "pl": {
-            "n": null,
+            "n": 6,
             "notes": [
-              "the evaluation did not record how many examples this rests on, so the score is unverifiable rather than measured"
+              "only 6 examples evaluated, so one case moves this materially"
             ],
             "score": 0.8333
           },
           "pt": {
-            "n": null,
+            "n": 7,
             "notes": [
-              "the evaluation did not record how many examples this rests on, so the score is unverifiable rather than measured"
+              "only 7 examples evaluated, so one case moves this materially"
             ],
             "score": 1.0
           },
           "ro": {
-            "n": null,
+            "n": 6,
             "notes": [
-              "the evaluation did not record how many examples this rests on, so the score is unverifiable rather than measured"
+              "only 6 examples evaluated, so one case moves this materially"
             ],
-            "score": 1.0
+            "score": 0.8333
           },
           "sk": {
-            "n": null,
+            "n": 7,
             "notes": [
-              "the evaluation did not record how many examples this rests on, so the score is unverifiable rather than measured"
+              "only 7 examples evaluated, so one case moves this materially"
             ],
             "score": 1.0
           },
           "sl": {
-            "n": null,
+            "n": 7,
             "notes": [
-              "the evaluation did not record how many examples this rests on, so the score is unverifiable rather than measured"
+              "only 7 examples evaluated, so one case moves this materially"
             ],
             "score": 0.8571
           },
           "sv": {
-            "n": null,
+            "n": 6,
             "notes": [
-              "the evaluation did not record how many examples this rests on, so the score is unverifiable rather than measured"
+              "only 6 examples evaluated, so one case moves this materially"
             ],
             "score": 0.8333
           },
           "tr": {
-            "n": null,
+            "n": 7,
             "notes": [
-              "the evaluation did not record how many examples this rests on, so the score is unverifiable rather than measured"
+              "only 7 examples evaluated, so one case moves this materially"
             ],
             "score": 1.0
           }
         },
         "threshold": null,
         "threshold_chosen_by": null,
-        "total_examples": null,
+        "total_examples": 175,
         "worst": 0.375
       },
       "requires": {},
@@ -1810,77 +1783,77 @@
   "latency": {
     "per_detector_ms": {
       "banned_terms": {
-        "p95": 0.229
-      },
-      "bias": {
-        "p95": 170.899
-      },
-      "disclosure": {
-        "p95": 0.035
-      },
-      "gibberish": {
-        "p95": 174.526
-      },
-      "groundedness": {
-        "p95": 70.239
-      },
-      "injection": {
-        "p95": 167.271
-      },
-      "internal_domains": {
         "p95": 0.212
       },
+      "bias": {
+        "p95": 152.702
+      },
+      "disclosure": {
+        "p95": 0.037
+      },
+      "gibberish": {
+        "p95": 154.132
+      },
+      "groundedness": {
+        "p95": 61.204
+      },
+      "injection": {
+        "p95": 155.236
+      },
+      "internal_domains": {
+        "p95": 0.204
+      },
       "invisible_text": {
-        "p95": 0.032
+        "p95": 0.036
       },
       "json_schema": {
         "p95": 0.001
       },
       "markup_injection": {
-        "p95": 0.211
+        "p95": 0.22
       },
       "nsfw": {
-        "p95": 165.692
+        "p95": 153.817
       },
       "output_format": {
         "p95": 0.001
       },
       "output_leakage": {
-        "p95": 169.264
+        "p95": 154.419
       },
       "pii": {
-        "p95": 168.627
+        "p95": 153.25
       },
       "politeness": {
-        "p95": 169.83
+        "p95": 153.41
       },
       "postal_code": {
-        "p95": 0.001
+        "p95": 0.002
       },
       "regulated_advice": {
-        "p95": 166.29
+        "p95": 154.437
       },
       "repetition": {
-        "p95": 0.39
+        "p95": 0.384
       },
       "secrets": {
         "p95": 0.039
       },
       "sql_injection": {
-        "p95": 0.209
+        "p95": 0.201
       },
       "system_prompt_leakage": {
         "describes": "the path where the detector reported leakage_unverifiable rather than the path where it does its work, because the reference configuration does not give it what it needs",
-        "p95": 0.259
+        "p95": 0.248
       },
       "topic_scope": {
-        "p95": 231.91
+        "p95": 213.264
       },
       "toxicity": {
-        "p95": 163.024
+        "p95": 153.454
       },
       "url_reachability": {
-        "p95": 0.007
+        "p95": 0.006
       }
     },
     "provider": "CPUExecutionProvider",

@@ -220,7 +220,7 @@ column.**
 | `toxicity` | F1 | 0.960 | 0.400 | 104 positives |
 | `bias` | F1 | 0.957 | 0.867 | 398 positives |
 | `groundedness` | exact match | 0.882 | 0.636 | 479 evaluated |
-| `topic_scope` | top-1 accuracy | 0.872 | 0.375 | not recorded |
+| `topic_scope` | top-1 accuracy | 0.865 | 0.375 | 175 evaluated |
 
 **The support column is why this table is ordered by it and not by score.** Six of these
 detectors had their corpora rebuilt over 2026-08-11 and 12, and no model changed architecture
@@ -246,9 +246,17 @@ but its INT8 export was refused by the decision-flip gate at a margin of 0.0687 
 band, so the previously verified model is the one that ships. A better number that cannot be
 exported safely is not a number this library will publish.
 
-`topic_scope`'s evaluation recorded no sample sizes at all, so its rows publish a null and say
-why. `gibberish` clears ten positives per language in 24 of 26, with Bulgarian and English at
-nine and flagged for it.
+`topic_scope`'s evaluation recorded no sample sizes until 2026-08-12, which made it the one
+detector here whose numbers could not be weighed at all. They can now, and they rest on 6 to 8
+examples per language, so all 26 are flagged as thin. Its figure also moved from 0.872 to 0.865
+because it is now measured on the INT8 artifact that ships rather than on the torch checkpoint.
+
+Worth knowing about that detector separately: its test split contains 78 out-of-taxonomy
+examples that nothing scores, so no number here describes whether it rejects input belonging to
+no node, which is half of what it is for.
+
+`gibberish` clears ten positives per language in 24 of 26, with Bulgarian and English at nine
+and flagged for it.
 
 Maltese is absent from XLM-RoBERTa's pretraining entirely, which is worth knowing about any
 score in that language. It is not, on the evidence here, what bounds one: `nsfw` scored 0.000

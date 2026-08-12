@@ -166,6 +166,7 @@ def test_the_metric_is_named_rather_than_assumed(performance: dict[str, Any]) ->
         assert entry["metrics"]["metric"] in (
             "f1",
             "exact_match_accuracy",
+            "top1_accuracy",
             # topic_scope, a bi-encoder: the share of inputs whose nearest taxonomy node
             # was the right one. Not comparable with either of the others, which is the
             # reason this list is an allow-list rather than a free string.
