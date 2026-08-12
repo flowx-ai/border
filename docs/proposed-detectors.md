@@ -3,11 +3,13 @@
 A proposal, requested after the Guardrails Hub port rather than folded into it, so that the
 question "should this exist" was asked separately from "can this be ported". Written 2026-08-12.
 
-It recommends **building three**, **folding two into a detector that already exists**, and
-**declining eight**, and it gives a tier, a budget and a cost for each so the recommendation can
-be argued with rather than taken on trust.
+It recommended **building three**, **folding two into a detector that already exists**, and
+**declining eight**, with a tier, a budget and a cost for each so the recommendation could be
+argued with rather than taken on trust.
 
-Nothing here is a decision. The owner's call.
+**All three were approved and built on 2026-08-12**, so the first half of this document is a
+record rather than a proposal. The declines stand. What each detector actually cost, and the
+two places this document was wrong, are in "What it cost" at the end.
 
 ## Where the candidates come from
 
@@ -27,7 +29,7 @@ T0 detector in CORE. That is corrected, and it is worth recording as the cheapes
 migration table that understates what exists sends people away for something they already have.
 
 **Not included: the three that ship unavailable.** `injection`, `regulated_advice` and
-`groundedness` are already catalogued, already counted against the 25, and need weights or a
+`groundedness` are already catalogued, already counted against the total, and need weights or a
 corpus rather than a decision about whether to exist. `moderation` is the same. They are not
 candidates and adding them here would double-count them.
 
@@ -53,7 +55,7 @@ or it is nothing, and every one of those is declined below on that basis rather 
 
 ## Recommended: build three
 
-### 1. `summary_support`, from `extracted_summary_sentences_match`
+### 1. `summary_support`, from `extracted_summary_sentences_match` (built)
 
 **T1, 5 ms, no weights, CORE.** The one candidate that is free.
 
@@ -71,7 +73,7 @@ a detector that is honest about measuring overlap is worth more than one that im
 **Cost:** half a day. No corpus, no GPU, no API spend. Fixtures in 26 languages, which for a
 `difflib` detector is a data task of writing 26 summary and source pairs.
 
-### 2. `code_present`, from `BanCode` and `Code`
+### 2. `code_present`, from `BanCode` and `Code` (built)
 
 **T1, 5 ms, no weights, CORE.** Two llm-guard scanners, one detector.
 
@@ -92,7 +94,7 @@ to avoid the obvious false positive.
 **Cost:** two days, most of it fixtures. The languages a caller cares about are not the 26 human
 ones, which is worth saying out loud in the catalogue entry.
 
-### 3. `token_limit`, from `TokenLimit`
+### 3. `token_limit`, from `TokenLimit` (built)
 
 **T1, 5 ms, `dependency`, outside CORE.** Small, and only worth it because the reason it was
 declined is fixable.
@@ -173,17 +175,49 @@ does not tell an operator whether to block it. Declined as answering no security
 question, which is the bar entry 3 in CLAUDE.md sets, and the one detector that fails it
 (`output_format`) exists only because it gave sixteen hub shape validators one destination.
 
-## If all of this were built
+## What it cost
+
+The projection below was written before any of the three existed. The measured column is
+what `benchmarks/collect.py` and `tests/test_budgets.py` report now.
 
 | | detectors | CORE | that run with no download |
 |---|---|---|---|
-| today | 25 catalogued, 24 implemented | 22 | 15 |
-| with the three recommended | 28 catalogued, 27 implemented | 24 | 18 |
+| before | 25 catalogued, 24 implemented | 22 | 15 |
+| projected | 28 catalogued, 27 implemented | 24 | 18 |
+| measured | 28 catalogued, 27 implemented | 26 | 18 |
 
-Three detectors, none of them model-backed, none of them needing a GPU or a corpus, and all three
-answering a question a migrating llm-guard caller or a hub user asked for. Roughly three and a
-half days of work, most of it fixtures in 26 languages.
+The one number that missed is CORE, 26 rather than 24, and the reason is the first of two
+things this document got wrong.
+
+**`token_limit` is in CORE, not outside it.** This document put it outside with
+`requires={"dependency"}`, on the assumption that loading a tokenizer meant a new package.
+`tokenizers` has been in the base install since phase 0, so the detector needs nothing and
+declares nothing. The projection was two short because it also counted `code_present` out
+on the same reasoning.
+
+**The interesting part of `code_present` was not the fixtures.** This document costed it at
+two days, most of it fixtures, and predicted the hard part would be the false positive on
+prose about programming. The fixtures were quick. What took the thought was that every
+pattern has to be anchored at the start of a line: without the anchor, "Our function is to
+keep your money safe" reports as a function definition, which was measured rather than
+imagined. The anchor costs a definition quoted inside a sentence, and that trade is now
+pinned by a test that asserts the miss and argues for it.
+
+Two things the document got right and are worth keeping for the next candidate.
+`summary_support` genuinely was half a day and genuinely needed no corpus. And the
+recommendation to fold `llamaguard_7b` and `shieldgemma_2b` into `moderation` rather than
+open them as candidates survived a direct challenge on 2026-08-12, when `gpt-oss-safeguard`
+was raised as an Apache-2.0 alternative: it answers the licence objection and makes the
+generative-in-a-detector and CPU-budget objections worse, so the disposition did not move.
+See CLAUDE.md for that record.
+
+**`token_limit` also needed a decision this document did not anticipate.** The declined note
+said a token count depends on a tokenizer the library does not know, and the answer here was
+"the policy names it". That is necessary and not sufficient: a named but unpinned tokenizer
+still makes the count unreproducible, which default 6 forbids. So the policy must name a
+local file, whose hash becomes the reported revision, or an id already carrying a commit.
+A bare Hugging Face repo id is refused.
 
 The five LLM judges and the three feed-or-model gaps stay declined and stay recorded, which is the
-same treatment the 34 declined validators got: the reason is written down so that the next person
+same treatment the 33 declined validators got: the reason is written down so that the next person
 to ask does not have to rediscover it.
