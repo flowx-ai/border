@@ -320,10 +320,11 @@ TRAINED = {
     "ro": ("Mă numesc Ionescu Bogdan și am CNP 1920304050607.", "national_id"),
     "bg": ("Иван Петров, имейл ivan@primer.bg.", "person"),
     "hu": ("Kovács Péter, e-mail: peter.kovacs@pelda.hu.", "email"),
-    # This model labels a German IBAN as national_id rather than iban. Recorded as the
-    # model's behaviour rather than asserted away: the number is detected and redacted,
-    # and the label is wrong. See the note in test_a_known_mislabelling_is_recorded.
-    "de": ("Herr Müller, IBAN DE89370400440532013000.", "national_id"),
+    # A Steuer-IdNr rather than the German IBAN this used to carry. The IBAN was here to
+    # check `national_id` and only did so because the model mislabelled it, so the day
+    # the label got fixed the case stopped testing anything. See
+    # test_the_checksum_pass_corrects_a_label_the_model_gets_wrong.
+    "de": ("Herr Müller, Steuer-IdNr 86095742719.", "national_id"),
     "it": ("Contattare Marco Rossi al numero +39 06 1234 5678.", "person"),
     "fr": ("Contactez Marie Dubois, née le 12 mars 1985.", "person"),
     "hr": ("Ivan Horvat, e-pošta ivan.horvat@primjer.hr.", "email"),
@@ -338,18 +339,64 @@ def test_each_trained_language_finds_its_entity(pii: PiiDetector, code: str) -> 
     assert expected in labels, f"{code}: got {labels}"
 
 
-def test_a_known_mislabelling_is_recorded_rather_than_hidden(pii: PiiDetector) -> None:
-    """A German IBAN comes back as national_id.
+def test_the_checksum_pass_corrects_a_label_the_model_gets_wrong(
+    pii: PiiDetector,
+) -> None:
+    """A German IBAN used to come back as national_id, and now comes back as an IBAN.
 
-    Kept as a test so that the day the model stops doing it, this fails and someone
-    updates the claim, rather than the wrong label quietly persisting in documentation.
-    The number is fully covered either way, so redaction is correct and only the entity
-    type in the evidence record is wrong.
+    This file recorded the mislabelling for weeks on the argument that the number was
+    covered either way and only the record's entity type was wrong. Both halves of that
+    are now testable, which is the point of keeping one test over both numbers:
+
+    The valid IBAN is relabelled, and not by the model. mod-97 says what it is, so
+    `checksummed.py` overrules the tag and the record stops carrying a false statement.
     """
     text = "Herr Müller, IBAN DE89370400440532013000."
     found = {value: label for label, value in labels_and_text(pii, text)}
-    assert "DE89370400440532013000" in found
-    assert found["DE89370400440532013000"] == "national_id"
+    assert found.get("DE89370400440532013000") == "iban"
+
+
+def test_the_model_itself_still_mislabels_and_that_is_the_measurement(
+    pii: PiiDetector,
+) -> None:
+    """The other half: change one digit and the old wrong label is back.
+
+    `DE89370400440532013001` fails mod-97, so the checksum pass declines it and what
+    reaches the caller is the raw tag. It is still `national_id`, measured 2026-08-12,
+    which is what proves the correction above comes from arithmetic rather than from the
+    model having improved. The day this fails, the model learned IBANs and the note in
+    the detector's docstring needs rewriting.
+
+    The number is still covered by a span, so this is a wrong label rather than a leak.
+    """
+    text = "Herr Müller, IBAN DE89370400440532013001."
+    found = {value: label for label, value in labels_and_text(pii, text)}
+    assert found.get("DE89370400440532013001") == "national_id"
+
+
+def test_a_spaced_card_number_is_covered_end_to_end(pii: PiiDetector) -> None:
+    """The leak that caused `checksummed.py`, asserted against the real weights.
+
+    Measured 2026-08-12 before the checksum pass: this text produced `national_id` over
+    `4111` and a shape rejection over the next four digits, so twelve of the sixteen
+    reached the caller unredacted. `tests/test_checksummed.py` covers the rule in
+    isolation and this covers the thing that matters, which is that the detector a
+    caller actually runs no longer leaves them there.
+    """
+    text = "Kartennummer 4111 1111 1111 1111 lautet auf Anna Schmidt."
+    found = labels_and_text(pii, text)
+    assert ("card", "4111 1111 1111 1111") in found
+
+    # Nothing may report a fragment of it. A second span inside the card would mean the
+    # old `national_id` finding survived, which is a false statement in the record even
+    # though the redaction would still be complete.
+    card = text.index("4111")
+    inside = [
+        (label, value)
+        for label, value in found
+        if value != "4111 1111 1111 1111" and value in text[card : card + 19]
+    ]
+    assert inside == []
 
 
 def test_a_long_document_is_not_silently_truncated(pii: PiiDetector) -> None:

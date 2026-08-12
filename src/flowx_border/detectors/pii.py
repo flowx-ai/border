@@ -52,6 +52,7 @@ import threading
 from typing import TYPE_CHECKING, Final
 
 from flowx_border.detectors.base import INPUT, OUTPUT, Context, DetectorConfig
+from flowx_border.detectors.checksummed import supplement
 from flowx_border.detectors.entity_shapes import (
     REJECTED_PREFIX,
     UNVERIFIED_PREFIX,
@@ -360,7 +361,17 @@ class PiiDetector:
                 if previous is None or score > previous[1]:
                     found[span] = (entity, score)
 
-        merged = self._merge_runs(text, self._snap_to_words(text, found))
+        # Last, and after the run merging rather than before it. `supplement` decides
+        # what to keep by containment, so it has to see whole spans: run against the raw
+        # subword fragments it would drop each of them separately and gain nothing.  Not
+        # optional, unlike `validate_shapes`. Two reasons. A cached result is keyed on
+        # the text and the window geometry, so an option here would have to join the key
+        # or the cache would serve the wrong answer. And there is no version of a caller
+        # who wants a Luhn-valid card number left in the clear, so the only thing a
+        # switch could do is reopen the leak this closes.
+        merged = supplement(
+            text, self._merge_runs(text, self._snap_to_words(text, found))
+        )
         with self._cache_lock:
             if len(self._cache) >= _CACHE_ENTRIES:
                 self._cache.pop(next(iter(self._cache)))

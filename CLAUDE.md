@@ -370,6 +370,8 @@ src/flowx_border/
     topic_scope.py     # T3
     groundedness.py    # T3
     output_leakage.py  # T1, reuses the pii session, does not load a second copy
+    entity_shapes.py   # what pii tagged that cannot be what it was tagged as
+    checksummed.py     # cards and IBANs the checksum finds whatever the model said
     multilingual.py    # folding and matching that behave alike in all 26 languages
     banned_terms.py    # T1, policy-supplied term list
     system_prompt_leakage.py  # T1, containment plus a 26-language phrase file
@@ -464,6 +466,32 @@ that is the work rather than the training, which is done and whose weights are f
 Either a template set held out of training, or real text. Until one exists, the run has
 no per-language table at all and none of its numbers may reach the model card, because a
 published 1.0 would be a claim about template memorisation.
+
+**The retrain also cannot be exported yet, and the reason is a surface form rather than a
+score.** The flip gate refused the INT8 export at one missed entity in 120 texts, and the
+entity it missed turned out to be a fragment of a card number that fp32 had mislabelled
+too. Measured 2026-08-12 through the detector, on both precisions:
+
+| written as | the model returns | what stays in the clear |
+|---|---|---|
+| `4111111111111111` | `national_id` over all of it | nothing, the label is wrong |
+| `4111 1111 1111 1111` | `national_id` over `4111` | twelve digits |
+| `4111-1111-1111-1111` | `national_id` over all of it | nothing, the label is wrong |
+| `DE89370400440532013000` | `national_id` over all of it | nothing, the label is wrong |
+| `RO49 AAAA 1B31 0075 9384 0000` | `iban` from `AAAA` onward | `RO49` |
+
+The cause is `make_pan` in the generator, which emits unspaced PANs, so the model has
+never seen a card number written the way a statement writes one. It is not a quantisation
+problem and lowering `--max-missed` to get the export through would have shipped a
+redactor that misses spaced cards.
+
+Two things follow. The library side is done: `detectors/checksummed.py` finds any
+Luhn-valid PAN and any mod-97-valid IBAN with no model at all, and overrules the tag, so
+the leak is closed today and stays closed whatever a future model does. The training side
+is queued as the generator fix, and it is presentation forms across the board rather than
+cards alone: spaced, hyphenated, dotted and compact for cards and IBANs, phone numbers with
+and without separators, plus the entity-free sentences the held-out harness showed are
+missing and more than three templates per locale.
 
 This is the fifth instance of the same failure in this project: the vacuous single-label
 F1, a latency budget measured through a tokenizer load, Maltese blamed on the base model,
