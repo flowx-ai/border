@@ -97,6 +97,13 @@ MEASURED_MS = {
     # failing search over 396 characters is close to free. A text full of code costs the
     # same: the patterns are anchored and none of them backtracks.
     "code_present": 0.01,
+    # Counted with piiguard's tokenizer, which is the one this repository pins, so the
+    # figure is a real 250k-piece SentencePiece pass rather than a toy vocabulary. The
+    # tokenizer load is outside the timed region because `tokenizer_for` caches it and
+    # `p95` warms first: measuring through the 437 ms load would report the cost of the
+    # first scan as the cost of every scan, which is the error that put the classifiers
+    # at 362 ms once already.
+    "token_limit": 0.19,
     # Measured with the reference input as its own source, which is the extractive case
     # the detector is for: every sentence has an exact counterpart, so the comparison
     # runs rather than short circuiting. Twenty times the other rules and still a
@@ -334,6 +341,20 @@ RULE_DETECTORS: list[tuple[str, object, DetectorConfig, Context]] = [
     # no work. Using the reference input as its own source is the extractive case,
     # where every sentence matches and the comparison runs to completion.
     ("code_present", None, CFG, CTX),
+    # A real pinned tokenizer, for the same reason banned_terms gets a real term list:
+    # unconfigured this detector reports token_limit_unconfigured and returns, so the
+    # measurement would time the refusal. max_tokens is high enough that the reference
+    # input passes, because a budget should measure the cost of counting rather than the
+    # cost of reporting.
+    (
+        "token_limit",
+        None,
+        DetectorConfig(
+            on_fail="flag",
+            options={"tokenizer_model": "piiguard", "max_tokens": 4096},
+        ),
+        CTX,
+    ),
     (
         "summary_support",
         None,
@@ -360,6 +381,7 @@ def _rule_detector(detector_id: str) -> object:
     from flowx_border.detectors.system_prompt_leakage import (
         SystemPromptLeakageDetector,
     )
+    from flowx_border.detectors.token_limit import TokenLimitDetector
 
     return {
         "banned_terms": BannedTermsDetector,
@@ -371,6 +393,7 @@ def _rule_detector(detector_id: str) -> object:
         "sql_injection": SqlInjectionDetector,
         "summary_support": SummarySupportDetector,
         "code_present": CodePresentDetector,
+        "token_limit": TokenLimitDetector,
     }[detector_id]()
 
 

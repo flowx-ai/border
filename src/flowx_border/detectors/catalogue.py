@@ -105,6 +105,15 @@ CATALOGUE: Final[MappingProxyType[str, Spec]] = MappingProxyType(
         # languages and there are a handful, which is a different claim from the 26
         # human ones the rest of this table is held to.
         "code_present": Spec("T1", frozenset({INPUT, OUTPUT}), 5.0),
+        # From llm-guard's TokenLimit, which was declined during the port because a
+        # token count depends on the tokenizer of the model being called. The answer is
+        # that the policy names it, and names it pinned: either a local tokenizer.json,
+        # whose hash goes into the revision, or an id already carrying a commit in
+        # models/registry.py. A bare repo id is refused, because a count from a moving
+        # target cannot be reproduced from the record that reported it. In CORE because
+        # `tokenizers` is already in the base install, which corrects
+        # docs/proposed-detectors.md.
+        "token_limit": Spec("T1", frozenset({INPUT, OUTPUT}), 5.0),
         # Ported from the hub's extracted_summary_sentences_match, which calls OpenAI to
         # ask what difflib answers. Measures overlap rather than entailment and says so
         # in its own docstring, which matters because `groundedness` is the detector

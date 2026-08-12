@@ -43,6 +43,10 @@ SUPPORTED: Final[dict[str, str]] = {
     # this gap. Both scanners ask the same question and get the same detector: the
     # difference upstream is which side it runs on, which is a policy choice here.
     "BanCode": "code_present",
+    # Declined during the port because a token count depends on the tokenizer of the
+    # model being called, which this library does not know. It knows it now: the policy
+    # names the tokenizer and pins it. Landed 2026-08-12.
+    "TokenLimit": "token_limit",
     "Code": "code_present",
     # Listed as unsupported until 2026-08-12, with a note saying no detector reported
     # these characters yet. One had shipped: invisible_text is T0, in CORE, and covers
@@ -99,12 +103,6 @@ UNSUPPORTED: Final[dict[str, str]] = {
         "every detector rather than gating on which one a text is in."
     ),
     "LanguageSame": "no language identification, as above.",
-    "TokenLimit": (
-        "output_format counts graphemes and words, and a token limit is neither. "
-        "Tokens depend on the tokenizer of the model you are calling, which this "
-        "library does not know, so mapping this onto max_length would report a "
-        "different number than the one you asked about."
-    ),
     "Sentiment": (
         "no sentiment detector. politeness is the nearest, and it is not the same."
     ),

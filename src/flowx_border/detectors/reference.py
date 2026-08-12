@@ -92,11 +92,16 @@ SUMMARIES: Final[MappingProxyType[str, str]] = MappingProxyType(
             "wrong shape, or outside a published province or department range."
         ),
         "summary_support": (
-            "Whether each sentence of a summary appears in the source it summarises, by"
-            " "
-            "string overlap rather than by judgement. Useful for an extractive summary,"
-            " "
-            "and not a groundedness check: it says so in its own docstring."
+            "Whether each sentence of a summary appears in the source it "
+            "summarises, by string overlap rather than by judgement. Useful for an "
+            "extractive summary, and not a groundedness check: it says so in its own "
+            "docstring."
+        ),
+        "token_limit": (
+            "Text longer than the token budget of the model it is going to, counted "
+            "with a tokenizer the policy names and pins: a local file, whose hash is "
+            "reported as the revision, or an id already carrying a commit. A bare "
+            "repo id is refused, because an unpinned count cannot be reproduced."
         ),
         "code_present": (
             "Source code in text that should be prose, reported as one finding per "

@@ -73,6 +73,7 @@ def _build() -> tuple[dict[str, Detector], frozenset[str]]:
     from flowx_border.detectors.system_prompt_leakage import (
         SystemPromptLeakageDetector,
     )
+    from flowx_border.detectors.token_limit import TokenLimitDetector
 
     pii = PiiDetector()
 
@@ -93,6 +94,7 @@ def _build() -> tuple[dict[str, Detector], frozenset[str]]:
         "output_format": OutputFormatDetector(),
         "postal_code": PostalCodeDetector(),
         "code_present": CodePresentDetector(),
+        "token_limit": TokenLimitDetector(),
         "repetition": RepetitionDetector(),
         "summary_support": SummarySupportDetector(),
         # T1. Both share one piiguard session: constructing them does not load weights,

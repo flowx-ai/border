@@ -11,12 +11,12 @@ from here. Regenerate with:
 
 | figure | value |
 |---|---|
-| detectors in the catalogue | 27 |
-| implemented in the library | 26 |
-| that run on a fresh install, with no model download | 17 |
+| detectors in the catalogue | 28 |
+| implemented in the library | 27 |
+| that run on a fresh install, with no model download | 18 |
 | implemented but waiting on weights that are not published | 9 |
 | catalogued but not yet implemented | 1 |
-| that need nothing beyond a CPU and the base install | 24 |
+| that need nothing beyond a CPU and the base install | 25 |
 | that need something more, and declare it | 3 |
 | supported languages | 26 |
 
@@ -50,6 +50,7 @@ one on, so a caller finds out when they enable it rather than in production.
 | `sql_injection` | T1 | output | built | dependency | 5 ms | Generated SQL that does more than the product asked for: a second statement, a forbidden statement kind, a tautology, an unexpected UNION. |
 | `summary_support` | T1 | output | built | nothing beyond a CPU | 5 ms | Whether each sentence of a summary appears in the source it summarises, by string overlap rather than by judgement. Useful for an extractive summary, and not a groundedness check: it says so in its own docstring. |
 | `system_prompt_leakage` | T1 | output | built | nothing beyond a CPU | 5 ms | Whether the answer gave away the instructions the model was operating under, by containment against the system prompt and by phrase match in 26 languages. |
+| `token_limit` | T1 | input, output | built | nothing beyond a CPU | 5 ms | Text longer than the token budget of the model it is going to, counted with a tokenizer the policy names and pins: a local file, whose hash is reported as the revision, or an id already carrying a commit. A bare repo id is refused, because an unpinned count cannot be reproduced. |
 | `bias` | T2 | output | built | nothing beyond a CPU | 225 ms | Output carrying bias related to a protected characteristic. |
 | `injection` | T2 | input | built | nothing beyond a CPU | 225 ms | Attempts to talk the model out of its instructions. |
 | `moderation` | T2 | input, output | trained, but on a seed corpus rather than a training set | nothing beyond a CPU | 150 ms | Thirteen hazard categories in one pass, from violent crime to election misinformation. Replaces the capability Llama Guard and ShieldGemma provide, with weights this project can ship. |

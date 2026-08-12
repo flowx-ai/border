@@ -34,7 +34,7 @@ Read this part first, because it is the part most likely to be assumed wrong.
   a policy configured actually ran.
 - **Not a replacement for a security review.** A detector that finds nothing is evidence
   that these checks found nothing, and nothing more.
-- **Not a finished set of detectors.** 17 of the 27 in the catalogue run on a fresh
+- **Not a finished set of detectors.** 18 of the 28 in the catalogue run on a fresh
   install. The rest are counted, named, and explained below rather than implied to work.
 - **Not calibrated for your data.** Every quality number here was measured on synthetic
   corpora built for this project, and most of them rest on very few examples per language.
@@ -270,7 +270,7 @@ construction when something always fires. An earlier version of this project pub
 
 ## Detectors
 
-27 catalogued. 26 implemented. 17 run on a fresh install with no model download, 9 are
+28 catalogued. 27 implemented. 18 run on a fresh install with no model download, 9 are
 implemented and waiting on weights that are not published yet, and 1 is not implemented.
 The full table, generated from the code, is in [docs/detectors.md](docs/detectors.md).
 

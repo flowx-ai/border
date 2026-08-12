@@ -1340,6 +1340,20 @@
       "status": "built",
       "tier": "T1"
     },
+    "token_limit": {
+      "budget_ms": 5.0,
+      "caveats": [],
+      "in_core": true,
+      "metrics": null,
+      "metrics_note": "no evaluation artifact was available at collection time. A rules-based detector has none by nature; a model-backed one missing this is a gap.",
+      "requires": {},
+      "sides": [
+        "input",
+        "output"
+      ],
+      "status": "built",
+      "tier": "T1"
+    },
     "topic_scope": {
       "budget_ms": 300.0,
       "caveats": [
@@ -1810,28 +1824,28 @@
   "latency": {
     "per_detector_ms": {
       "banned_terms": {
-        "p95": 0.225
+        "p95": 0.212
       },
       "bias": {
-        "p95": 212.552
+        "p95": 154.686
       },
       "code_present": {
-        "p95": 0.014
+        "p95": 0.01
       },
       "disclosure": {
-        "p95": 0.056
+        "p95": 0.037
       },
       "gibberish": {
-        "p95": 236.076
+        "p95": 153.737
       },
       "groundedness": {
-        "p95": 83.17
+        "p95": 61.073
       },
       "injection": {
-        "p95": 218.637
+        "p95": 154.178
       },
       "internal_domains": {
-        "p95": 0.199
+        "p95": 0.209
       },
       "invisible_text": {
         "p95": 0.033
@@ -1840,53 +1854,57 @@
         "p95": 0.001
       },
       "markup_injection": {
-        "p95": 0.214
+        "p95": 0.212
       },
       "nsfw": {
-        "p95": 201.687
+        "p95": 154.861
       },
       "output_format": {
-        "p95": 0.002
+        "p95": 0.001
       },
       "output_leakage": {
-        "p95": 200.06
+        "p95": 153.56
       },
       "pii": {
-        "p95": 181.789
+        "p95": 153.493
       },
       "politeness": {
-        "p95": 178.54
+        "p95": 152.878
       },
       "postal_code": {
-        "p95": 0.002
+        "p95": 0.001
       },
       "regulated_advice": {
-        "p95": 185.042
+        "p95": 153.533
       },
       "repetition": {
-        "p95": 0.419
+        "p95": 0.393
       },
       "secrets": {
-        "p95": 0.042
+        "p95": 0.045
       },
       "sql_injection": {
-        "p95": 0.229
+        "p95": 0.207
       },
       "summary_support": {
-        "p95": 0.785
+        "p95": 0.723
       },
       "system_prompt_leakage": {
         "describes": "the path where the detector reported leakage_unverifiable rather than the path where it does its work, because the reference configuration does not give it what it needs",
-        "p95": 0.292
+        "p95": 0.241
+      },
+      "token_limit": {
+        "describes": "the path where the detector reported token_limit_unconfigured rather than the path where it does its work, because the reference configuration does not give it what it needs",
+        "p95": 0.001
       },
       "topic_scope": {
-        "p95": 292.132
+        "p95": 213.441
       },
       "toxicity": {
-        "p95": 199.052
+        "p95": 153.782
       },
       "url_reachability": {
-        "p95": 0.007
+        "p95": 0.006
       }
     },
     "provider": "CPUExecutionProvider",

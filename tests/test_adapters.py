@@ -545,17 +545,26 @@ def test_a_scanner_that_gained_a_detector_is_no_longer_refused(scanner: str) -> 
     assert SUPPORTED[scanner] == NEWLY_SUPPORTED[scanner]
 
 
-def test_token_limit_is_still_refused_because_the_units_differ() -> None:
-    """The mapping that was almost made and would have been wrong.
+def test_token_limit_maps_to_the_detector_rather_than_to_output_format() -> None:
+    """The mapping that was almost made wrong, and the one that is now right.
 
-    `output_format` counts graphemes and words. A token limit counts tokens, which
-    depend on the tokenizer of the model being called, and this library does not know
-    which model that is. Mapping it onto `max_length` would report a different number
-    than the one the caller asked about, which is the "approximately right is worse than
-    absent" failure this module's own header warns about.
+    This test used to assert TokenLimit stayed refused, and it was right to do so:
+    the tempting mapping was onto `output_format.max_length`, which counts graphemes
+    and words. A token count is a different unit, and reporting a different number
+    from the one the caller asked about is the "approximately right is worse than
+    absent" failure this module's header warns about.
+
+    What changed on 2026-08-12 is not that objection, which still holds, but that the
+    library stopped needing to guess the tokenizer: `token_limit` makes the policy name
+    one and pin it. So the mapping goes to the detector that counts tokens, and never to
+    the one that counts graphemes.
     """
-    assert "TokenLimit" not in SUPPORTED
-    assert "graphemes and words" in UNSUPPORTED["TokenLimit"]
+    assert SUPPORTED["TokenLimit"] == "token_limit"
+    assert "TokenLimit" not in UNSUPPORTED
+    assert SUPPORTED["TokenLimit"] != "output_format", (
+        "the unit objection has not gone away, only the reason the library could not "
+        "answer in the right unit"
+    )
 
 
 def test_malicious_urls_is_still_refused_and_says_why_reachability_is_not_it() -> None:
