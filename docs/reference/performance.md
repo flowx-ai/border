@@ -54,27 +54,27 @@ At a 396 character reference input, 1 thread, CPUExecutionProvider. Romanian pro
 
 | Detector | p95 ms | Budget ms | note |
 |---|---|---|---|
-| `banned_terms` | 0.263 | 5.0 | – |
-| `bias` | 255.204 | 225.0 | – |
-| `disclosure` | 0.122 | 5.0 | – |
-| `gibberish` | 331.927 | 225.0 | – |
-| `groundedness` | 191.130 | 300.0 | – |
-| `injection` | 368.784 | 225.0 | – |
-| `internal_domains` | 0.366 | 5.0 | – |
-| `invisible_text` | 0.051 | 5.0 | – |
+| `banned_terms` | 0.299 | 5.0 | – |
+| `bias` | 221.277 | 225.0 | – |
+| `disclosure` | 0.051 | 5.0 | – |
+| `gibberish` | 221.812 | 225.0 | – |
+| `groundedness` | 87.180 | 300.0 | – |
+| `injection` | 220.146 | 225.0 | – |
+| `internal_domains` | 0.289 | 5.0 | – |
+| `invisible_text` | 0.048 | 5.0 | – |
 | `json_schema` | 0.002 | 5.0 | – |
-| `markup_injection` | 0.324 | 5.0 | – |
-| `nsfw` | 282.709 | 225.0 | – |
-| `output_format` | 0.004 | 5.0 | – |
-| `output_leakage` | 81.642 | 75.0 | – |
-| `pii` | 70.597 | 75.0 | – |
-| `politeness` | 278.034 | 225.0 | – |
+| `markup_injection` | 0.308 | 5.0 | – |
+| `nsfw` | 220.597 | 225.0 | – |
+| `output_format` | 0.002 | 5.0 | – |
+| `output_leakage` | 72.675 | 75.0 | – |
+| `pii` | 72.293 | 75.0 | – |
+| `politeness` | 220.563 | 225.0 | – |
 | `postal_code` | 0.002 | 5.0 | – |
-| `regulated_advice` | 233.682 | 225.0 | – |
-| `repetition` | 0.547 | 5.0 | – |
-| `secrets` | 0.053 | 1.0 | – |
-| `sql_injection` | 0.306 | 5.0 | – |
-| `system_prompt_leakage` | 0.344 | 5.0 | the unconfigured path |
-| `topic_scope` | 326.947 | 300.0 | – |
-| `toxicity` | 259.781 | 225.0 | – |
-| `url_reachability` | 0.007 | 3000.0 | – |
+| `regulated_advice` | 220.964 | 225.0 | – |
+| `repetition` | 0.625 | 5.0 | – |
+| `secrets` | 0.056 | 1.0 | – |
+| `sql_injection` | 0.308 | 5.0 | – |
+| `system_prompt_leakage` | 0.379 | 5.0 | the unconfigured path |
+| `topic_scope` | 305.801 | 300.0 | – |
+| `toxicity` | 221.511 | 225.0 | – |
+| `url_reachability` | 0.009 | 3000.0 | – |

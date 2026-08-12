@@ -1810,77 +1810,77 @@
   "latency": {
     "per_detector_ms": {
       "banned_terms": {
-        "p95": 0.263
+        "p95": 0.299
       },
       "bias": {
-        "p95": 255.204
+        "p95": 221.277
       },
       "disclosure": {
-        "p95": 0.122
+        "p95": 0.051
       },
       "gibberish": {
-        "p95": 331.927
+        "p95": 221.812
       },
       "groundedness": {
-        "p95": 191.13
+        "p95": 87.18
       },
       "injection": {
-        "p95": 368.784
+        "p95": 220.146
       },
       "internal_domains": {
-        "p95": 0.366
+        "p95": 0.289
       },
       "invisible_text": {
-        "p95": 0.051
+        "p95": 0.048
       },
       "json_schema": {
         "p95": 0.002
       },
       "markup_injection": {
-        "p95": 0.324
+        "p95": 0.308
       },
       "nsfw": {
-        "p95": 282.709
+        "p95": 220.597
       },
       "output_format": {
-        "p95": 0.004
+        "p95": 0.002
       },
       "output_leakage": {
-        "p95": 81.642
+        "p95": 72.675
       },
       "pii": {
-        "p95": 70.597
+        "p95": 72.293
       },
       "politeness": {
-        "p95": 278.034
+        "p95": 220.563
       },
       "postal_code": {
         "p95": 0.002
       },
       "regulated_advice": {
-        "p95": 233.682
+        "p95": 220.964
       },
       "repetition": {
-        "p95": 0.547
+        "p95": 0.625
       },
       "secrets": {
-        "p95": 0.053
+        "p95": 0.056
       },
       "sql_injection": {
-        "p95": 0.306
+        "p95": 0.308
       },
       "system_prompt_leakage": {
         "describes": "the path where the detector reported leakage_unverifiable rather than the path where it does its work, because the reference configuration does not give it what it needs",
-        "p95": 0.344
+        "p95": 0.379
       },
       "topic_scope": {
-        "p95": 326.947
+        "p95": 305.801
       },
       "toxicity": {
-        "p95": 259.781
+        "p95": 221.511
       },
       "url_reachability": {
-        "p95": 0.007
+        "p95": 0.009
       }
     },
     "provider": "CPUExecutionProvider",
