@@ -460,16 +460,52 @@ decline are in `docs/porting-guardrails-validators.md`, rendered from
 hand: read them off `PORTED` and `DECLINED`, which is how the numbers in this paragraph
 were found to have drifted from seven and 57.
 
-**Llama Guard and ShieldGemma are a retrain, not a port.** Decided 2026-08-11. Both are
-moderation models whose entire value is weights this project cannot ship: Llama Guard is
-7B under the Llama Community Licence and ShieldGemma is 2B under the Gemma Terms of Use,
-and neither is Apache-2.0 compatible. The intent is our own, trained on a smaller Qwen
-base. Two things are unresolved and should be settled before that becomes a detector,
-because they are the same two that stopped `semantic-mapper`: a generative model reading a
-policy and writing a verdict is an LLM call inside a detector, which constraint 4 rules
-out at any size, and 1.6B generative is nowhere near a 75 ms CPU budget when the 278M
-encoders here cost 51 ms. Both point at a classification head on that base rather than a
-generative model.
+**The open-weight guardrail models are a retrain, not a port.** Decided 2026-08-11 for
+Llama Guard and ShieldGemma, extended 2026-08-12 to `gpt-oss-safeguard` when the owner
+asked whether Apache-2.0 changed the answer. It does not, and the reason it does not is
+the useful part.
+
+| | `gpt-oss-safeguard` | Llama Guard 4 | ShieldGemma |
+|---|---|---|---|
+| size | 20B and 120B, MoE | 12B | 2B, 9B, 27B text; 4B image |
+| design | reasons over a policy given at inference | fixed hazard taxonomy | `Yes`/`No` scored from token probabilities |
+| licence | Apache-2.0 plus a usage policy | Llama 4 Community | Gemma terms |
+
+Three positions a model can occupy here, and each row above wins a different one:
+
+- **Inside a detector, at scan time: none of them.** Not a quality judgement. All three
+  emit a verdict as generated tokens, which is constraint 4 at any size, and the smallest
+  candidate is 2B against the 278M encoders that already cost 151 ms at one thread. Two
+  of the three are barred before latency matters, because their weights cannot ship.
+  There is also a security argument that is stronger than the latency one: a model that
+  reads a policy and then reads attacker-controlled text is itself an injection surface.
+  Meta documents Llama Guard 4 as vulnerable to adversarial prompting and Google
+  documents ShieldGemma as sensitive to policy wording. A guardrail with the same attack
+  surface as the thing it guards is worth less than a classifier head that has none.
+- **As a teacher for the `moderation` corpus, off the scan path: `gpt-oss-safeguard-20b`,
+  and only it.** Apache-2.0 puts no restriction on its outputs, where the Llama 4 and
+  Gemma terms both constrain derivatives, and this repository goes public. Its
+  policy-at-inference design is also the right fit rather than merely the permitted one:
+  `moderation` is 13 labels defined by our own taxonomy, so a model that reads that
+  taxonomy labels against it directly, while a fixed-taxonomy classifier labels against
+  MLCommons categories that then need mapping onto our 13. The mapping is where label
+  errors would enter, and they would be invisible.
+- **As a benchmark baseline: all three.** Scoring a model is not redistributing it, so no
+  licence blocks this. The number answers "is our small head good enough" and belongs in
+  `benchmarks/`, never in the library.
+
+So the shipped detector stays a classification head on a small Apache-2.0 base, which is
+what defaults 4 and 6 want anyway, and the corpus that has been the actual blocker gets
+labelled by a model that runs on the training VM with no API spend and no key. Two things
+to check before relying on that: 20B needs roughly 16 GB resident even as MoE, so confirm
+the VM fits it, and its policy-following is evaluated mainly in English, so the 26-language
+claim is ours to establish. A teacher's errors become our labels either way, so a
+human-checked slice is not optional.
+
+Recorded rather than deleted, in the pattern this file uses: the licence objection to
+Llama Guard and ShieldGemma was real and `gpt-oss-safeguard` answers it. It is the other
+two objections, which were always the load-bearing ones, that a 20B policy reasoner makes
+worse rather than better.
 
 **Corpus size was the binding constraint, not the models.** Demonstrated on 2026-08-11 and
 worth holding onto, because it changes where effort should go. `nsfw` and `gibberish` were the

@@ -252,10 +252,13 @@ DECLINED: Final[MappingProxyType[str, Decline]] = MappingProxyType(
         "guardrails_pii": Decline("covered", "`pii`."),
         "llamaguard_7b": Decline(
             "retrain",
-            "Llama Guard is a 7B generative model under the Llama Community Licence, "
-            "which is not Apache-2.0 compatible, and 7B cannot meet a CPU budget. The "
-            "capability is wanted: the plan is our own smaller model rather than a "
-            "port. See the note in the document about what still has to be decided.",
+            "Llama Guard is a generative model under a Meta community licence, which "
+            "is not Apache-2.0 compatible, and the current 12B cannot meet a CPU "
+            "budget. "
+            "The capability is wanted: the plan is our own smaller model rather than a "
+            "port. An Apache-2.0 alternative, gpt-oss-safeguard, was evaluated on "
+            "2026-08-12 and declined for the detector at 20B while being adopted as a "
+            "corpus labeller. See the note in the document about what that settles.",
             gap=True,
         ),
         "llm_critic": Decline(
