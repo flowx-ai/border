@@ -467,35 +467,63 @@ Either a template set held out of training, or real text. Until one exists, the 
 no per-language table at all and none of its numbers may reach the model card, because a
 published 1.0 would be a claim about template memorisation.
 
-**The retrain also cannot be exported yet, and the reason is a surface form rather than a
-score.** The flip gate refused the INT8 export at one missed entity in 120 texts, and the
-entity it missed turned out to be a fragment of a card number that fp32 had mislabelled
-too. Measured 2026-08-12 through the detector, on both precisions:
+**piiguard does not recognise a card number, it recognises the sentence a card number
+came in.** Measured 2026-08-13 on the published nine-locale `piiguard`, which is the
+artifact v1 ships, over nine locales and PANs from the generator's own `make_pan`:
 
-| written as | the model returns | what stays in the clear |
-|---|---|---|
-| `4111111111111111` | `national_id` over all of it | nothing, the label is wrong |
-| `4111 1111 1111 1111` | `national_id` over `4111` | twelve digits |
-| `4111-1111-1111-1111` | `national_id` over all of it | nothing, the label is wrong |
-| `DE89370400440532013000` | `national_id` over all of it | nothing, the label is wrong |
-| `RO49 AAAA 1B31 0075 9384 0000` | `iban` from `AAAA` onward | `RO49` |
+| the sentence the card sits in | CARD label correct |
+|---|---|
+| the generator's own template | 100.0%, 360 of 360 |
+| the same template with its IBAN clause removed | 32.5%, 117 of 360 |
+| a sentence the generator never wrote | 18.3%, 44 of 240 |
 
-The cause is `make_pan` in the generator, which emits unspaced PANs, so the model has
-never seen a card number written the way a statement writes one. It is not a quantisation
-problem and lowering `--max-missed` to get the export through would have shipped a
-redactor that misses spaced cards.
+There are three templates per locale and in every one of the 26 the card follows an IBAN
+in the same clause, so what the model learned is "the digit run at the end of this
+sentence, after an IBAN, is a card". Take the IBAN away and it collapses to a third. Take
+the sentence away and it collapses to a fifth. That is also why the retrain reported a
+test F1 of 1.0: the test split draws on the same three templates.
 
-Two things follow. The library side is done: `detectors/checksummed.py` finds any
-Luhn-valid PAN and any mod-97-valid IBAN with no model at all, and overrules the tag, so
-the leak is closed today and stays closed whatever a future model does. The training side
-is queued as the generator fix, and it is presentation forms across the board rather than
-cards alone: spaced, hyphenated, dotted and compact for cards and IBANs, phone numbers with
-and without separators, plus the entity-free sentences the held-out harness showed are
-missing and more than three templates per locale.
+The second measurement, 240 sentences per form, model alone with the checksum pass
+neutralised. Read the `full span` column rather than the label one, because a short span is
+a disclosure where a wrong label is a wrong sentence in a record:
+
+| written as | any span | label `card` | full span |
+|---|---|---|---|
+| `4548 8388 2210 5536` spaced | 100% | 4.2% | **41.2%** |
+| compact | 100% | 0.0% | 100% |
+| hyphenated | 100% | 0.0% | 100% |
+| dotted | 100% | 0.0% | 100% |
+
+So the spaced form, which is the only form the generator has ever emitted, is the one where
+the span breaks: the model tags each group separately and with different labels, and the
+groups either side of a space cannot be joined. IBANs do better, 92.9% labelled and 90.4%
+covered in a novel sentence, because letters mixed with digits are distinctive in a way a
+digit run is not.
+
+**Two of my own claims here were wrong and are corrected rather than deleted**, because the
+way they were wrong is the useful part. I first recorded the cause as `make_pan` emitting
+unspaced PANs. It does not: it groups in fours, and both makers emit only spaced forms. And
+I attributed the behaviour to the 26-locale retrain when the artifact under the local
+override was the published nine-locale model. Both errors came from generalising a cause
+from one input, `4111 1111 1111 1111`, which is all ones and tokenises like nothing a
+generator produces. A measurement over the generator's own numbers said something different
+in the first minute.
+
+This is the sixth instance of the pattern named below, and the first where the thing
+agreeing with itself was a diagnosis rather than a score.
+
+Two things follow. The library side is done: `detectors/checksummed.py` finds any Luhn-valid
+PAN and any mod-97-valid IBAN with no model at all, at 100% in all four forms, and overrules
+the tag. So the leak is closed today and stays closed whatever a future model does. The
+training side is the generator, and the measurement reorders that work: template diversity
+first, since frame is what the label actually depends on, and slots that vary independently
+so a card is not always preceded by an IBAN. Presentation forms and entity-free sentences
+stay on the list, below those two rather than at the top of it.
 
 This is the fifth instance of the same failure in this project: the vacuous single-label
 F1, a latency budget measured through a tokenizer load, Maltese blamed on the base model,
-`groundedness` scoring its own generator's paraphrase style, and now this. The pattern is
+`groundedness` scoring its own generator's paraphrase style, and this. The sixth is above,
+where the thing that agreed with itself was a diagnosis. The pattern is
 worth naming because it keeps arriving disguised as good news. **A measurement that agrees
 with itself is the default outcome, not the lucky one.** When a number looks better than
 the problem is hard, find what the measurement shares with the thing it measures.
