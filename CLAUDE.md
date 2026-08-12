@@ -536,6 +536,29 @@ unfamiliar digit run to `NATIONAL_ID`, which is why it never misses one and why 
 numbers in a novel sentence are labelled as one. Perfect recall, and precision that the same
 measurement shows is poor. The per-language table owes both numbers, not the first one.
 
+**And that table measures recall only, which is the limit to hold onto.** Every column above
+asks whether a real entity was found and named. None asks whether something that is not an
+entity was left alone, so a type can score 100% there and still be noisy. The 20 mundane
+sentences that caught `nsfw` say what precision looks like: 4 spurious `pii` findings over
+20, two of them redacting text a caller would notice.
+
+| what it tagged | in the sentence | what a caller gets back |
+|---|---|---|
+| `person` = `Friday` | Office hours are Monday to Friday, nine until five. | `Monday to [PERSON], nine until five` |
+| `person` = `Maerz` | Rechnung wurde am zwoelften Maerz ausgestellt. | `am zwoelften [PERSON] ausgestellt` |
+| `person` = `Tuesday` | Your appointment is confirmed for Tuesday at ten. | flagged, not redacted |
+| `national_id` = `1234.56` | The balance was 1234.56 before rounding. | flagged, not redacted |
+
+Weekday and month names go to `PERSON`, and a money amount goes to the fallback class. This
+is the same gap `entity_shapes.py` already records for `PERSON`, which has no shape to check
+and let `nio` through in Swedish, now with two cases that visibly damage output.
+
+**It stays a corpus fix and does not become a stoplist.** A calendar-word list in the library
+would drop a span, and `entity_shapes.py` refuses to drop for a reason that still holds: a
+person really can be called April or June or Mars, and turning a visible over-redaction into
+an invisible hole is the wrong trade in a redactor. The corpus needs entity-free sentences
+and calendar words in prose positions, which is the same fix the held-out harness asked for.
+
 Two things follow. The library side is done: `detectors/checksummed.py` finds any Luhn-valid
 PAN and any mod-97-valid IBAN with no model at all, at 100% in all four forms, and overrules
 the tag. So the leak is closed today and stays closed whatever a future model does. The
