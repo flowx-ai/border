@@ -304,7 +304,9 @@ DECLINED: Final[MappingProxyType[str, Decline]] = MappingProxyType(
             "retrain",
             "ShieldGemma is 2B under the Gemma Terms of Use, which is not Apache-2.0. "
             "Same disposition as llamaguard_7b: the capability is wanted, the weights "
-            "are not usable here.",
+            "are not usable here. Closed on 2026-08-12 as a duplicate of `moderation`, "
+            "which is already catalogued for this capability as a retrain on a small "
+            "Apache-2.0 base. See docs/proposed-detectors.md.",
             gap=True,
         ),
         "similar_to_document": Decline("covered", "`groundedness`."),

@@ -6,23 +6,19 @@ Exists so that migrating is an import change rather than a rewrite. `scan_prompt
 map onto detector ids where a real equivalent exists.
 
 **A scanner with no equivalent raises.** This is the whole design of the file. A shim
-that
-accepted `BanCode` and quietly did nothing would leave a caller believing code was being
-blocked, and they would have no way to find out except by being breached. An exception
-on
-the first call is loud, immediate, and fixable. So the mapping below is exhaustive:
-every
-scanner llm-guard shipped is either mapped or listed as unsupported by name, and
+that accepted `BanCode` and quietly did nothing would leave a caller believing code was
+being blocked, and they would have no way to find out except by being breached. An
+exception on the first call is loud, immediate, and fixable. So the mapping below is
+exhaustive:
+every scanner llm-guard shipped is either mapped or listed as unsupported by name, and
 `docs/migrating-from-llm-guard.md` carries the same table for people who would rather
-read
-than run.
+read than run.
 
 One behavioural difference worth stating, because it cannot be shimmed away. llm-guard
 returns a per-scanner dict of scores and a sanitised string. This library returns a
 Decision carrying an evidence record, and the record is the point of it. The tuple is
 reconstructed for compatibility, and `decision_for` hands back the real object for
-anyone
-ready to use it.
+anyone ready to use it.
 """
 
 from __future__ import annotations
@@ -37,12 +33,18 @@ if TYPE_CHECKING:
     from flowx_border.types import Decision
 
 #: llm-guard scanner name to detector id. Only where the equivalence is real: a mapping
-#  that is approximately right is worse than an absent one, because it reports a check
+# that is approximately right is worse than an absent one, because it reports a check
 # the
 #: caller did not ask for and did not get.
 SUPPORTED: Final[dict[str, str]] = {
     # Input scanners.
     "Anonymize": "pii",
+    # Listed as unsupported until 2026-08-12, with a note saying no detector reported
+    # these characters yet. One had shipped: invisible_text is T0, in CORE, and covers
+    # bidirectional controls, tag characters and zero-width characters. A migration
+    # table that understates what exists sends people away for a capability they already
+    # have.
+    "InvisibleText": "invisible_text",
     "PromptInjection": "injection",
     "Secrets": "secrets",
     "Gibberish": "gibberish",
@@ -70,7 +72,6 @@ SUPPORTED: Final[dict[str, str]] = {
 #: Scanners that map onto a detector whose entire input is data the caller has to
 #: supply. llm-guard took that data as constructor arguments, `BanSubstrings(substrings=
 #: [...])`; here it is policy, and this shim cannot invent it.
-#:
 #: Passing one of these without a `policy=` raises. That is the same rule the file
 #: already applies to an unmapped scanner, for the same reason: `banned_terms` with no
 #: terms reports `terms_not_configured` and finds nothing, so accepting the call would
@@ -84,7 +85,7 @@ NEEDS_POLICY: Final[dict[str, str]] = {
     "JSON": "output_format.options.json: true",
 }
 
-#  Scanners with no equivalent here, and why. Listed rather than omitted so that the
+# Scanners with no equivalent here, and why. Listed rather than omitted so that the
 # error
 #: can say what the gap is instead of only that there is one.
 UNSUPPORTED: Final[dict[str, str]] = {
@@ -93,12 +94,6 @@ UNSUPPORTED: Final[dict[str, str]] = {
         "code in any other language, or about whether prose contains a code block."
     ),
     "Code": "no code detector, as above.",
-    "InvisibleText": (
-        "no detector reports these characters yet. Half the work is done: "
-        "detectors/multilingual.py drops zero-width and format characters before "
-        "matching, so they cannot be used to evade a term. What is missing is a "
-        "detector that reports their presence as a finding in its own right."
-    ),
     "Language": (
         "no language identification detector. The library supports 26 languages in "
         "every detector rather than gating on which one a text is in."
@@ -176,8 +171,7 @@ def _to_tuple(
 
     `results_valid` is False for a detector that found something, matching llm-guard's
     sense of valid. Scores are the highest a detector reported, since llm-guard carried
-    one
-    number per scanner and this library carries one per finding.
+    one number per scanner and this library carries one per finding.
     """
     worst: dict[str, float] = dict.fromkeys(wanted, 0.0)
     for finding in decision.findings:
