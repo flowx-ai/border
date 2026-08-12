@@ -17,207 +17,155 @@
     },
     "bias": {
       "budget_ms": 225.0,
-      "caveats": [
-        "26 of 26 languages have fewer than 10 positive examples: az, bg, cs, da, de, el, en, es, et, fi, fr, ga, hr, hu, it, lt, lv, mt, nl, pl, pt, ro, sk, sl, sv, tr. Their individual scores are indicative rather than measured."
-      ],
+      "caveats": [],
       "in_core": true,
       "metrics": {
         "best": 1.0,
         "languages_evaluated": 26,
         "languages_without_a_count": [],
-        "macro": 0.8691,
-        "median": 0.8889,
+        "macro": 0.9565,
+        "median": 0.9655,
         "metric": "f1",
         "n_means": "positive examples",
         "per_language": {
           "az": {
-            "n": 5,
-            "notes": [
-              "only 5 positive examples, so one case moves this materially"
-            ],
-            "score": 0.8889
+            "n": 16,
+            "n_evaluated": 41,
+            "score": 0.9677
           },
           "bg": {
-            "n": 5,
-            "notes": [
-              "only 5 positive examples, so one case moves this materially"
-            ],
-            "score": 0.8
+            "n": 16,
+            "n_evaluated": 40,
+            "score": 0.875
           },
           "cs": {
-            "n": 5,
-            "notes": [
-              "only 5 positive examples, so one case moves this materially"
-            ],
-            "score": 0.8889
+            "n": 15,
+            "n_evaluated": 40,
+            "score": 0.9286
           },
           "da": {
-            "n": 5,
-            "notes": [
-              "only 5 positive examples, so one case moves this materially"
-            ],
-            "score": 0.9091
+            "n": 15,
+            "n_evaluated": 40,
+            "score": 0.9333
           },
           "de": {
-            "n": 5,
-            "notes": [
-              "only 5 positive examples, so one case moves this materially"
-            ],
+            "n": 15,
+            "n_evaluated": 40,
             "score": 1.0
           },
           "el": {
-            "n": 5,
-            "notes": [
-              "only 5 positive examples, so one case moves this materially"
-            ],
-            "score": 0.8889
+            "n": 15,
+            "n_evaluated": 40,
+            "score": 0.9286
           },
           "en": {
-            "n": 5,
-            "notes": [
-              "only 5 positive examples, so one case moves this materially"
-            ],
-            "score": 0.6667
+            "n": 15,
+            "n_evaluated": 40,
+            "score": 0.9286
           },
           "es": {
-            "n": 5,
-            "notes": [
-              "only 5 positive examples, so one case moves this materially"
-            ],
-            "score": 0.75
+            "n": 15,
+            "n_evaluated": 40,
+            "score": 1.0
           },
           "et": {
-            "n": 5,
-            "notes": [
-              "only 5 positive examples, so one case moves this materially"
-            ],
+            "n": 17,
+            "n_evaluated": 42,
             "score": 1.0
           },
           "fi": {
-            "n": 5,
-            "notes": [
-              "only 5 positive examples, so one case moves this materially"
-            ],
-            "score": 0.75
+            "n": 15,
+            "n_evaluated": 40,
+            "score": 0.9655
           },
           "fr": {
-            "n": 5,
-            "notes": [
-              "only 5 positive examples, so one case moves this materially"
-            ],
-            "score": 1.0
+            "n": 15,
+            "n_evaluated": 40,
+            "score": 0.9655
           },
           "ga": {
-            "n": 5,
-            "notes": [
-              "only 5 positive examples, so one case moves this materially"
-            ],
-            "score": 0.5714
+            "n": 16,
+            "n_evaluated": 42,
+            "score": 0.9375
           },
           "hr": {
-            "n": 5,
-            "notes": [
-              "only 5 positive examples, so one case moves this materially"
-            ],
-            "score": 0.8889
-          },
-          "hu": {
-            "n": 5,
-            "notes": [
-              "only 5 positive examples, so one case moves this materially"
-            ],
-            "score": 0.8889
-          },
-          "it": {
-            "n": 5,
-            "notes": [
-              "only 5 positive examples, so one case moves this materially"
-            ],
-            "score": 0.8889
-          },
-          "lt": {
-            "n": 5,
-            "notes": [
-              "only 5 positive examples, so one case moves this materially"
-            ],
+            "n": 16,
+            "n_evaluated": 41,
             "score": 0.9091
           },
-          "lv": {
-            "n": 5,
-            "notes": [
-              "only 5 positive examples, so one case moves this materially"
-            ],
+          "hu": {
+            "n": 15,
+            "n_evaluated": 40,
             "score": 1.0
+          },
+          "it": {
+            "n": 15,
+            "n_evaluated": 40,
+            "score": 0.9677
+          },
+          "lt": {
+            "n": 15,
+            "n_evaluated": 39,
+            "score": 0.9333
+          },
+          "lv": {
+            "n": 15,
+            "n_evaluated": 40,
+            "score": 0.9655
           },
           "mt": {
-            "n": 5,
+            "n": 15,
+            "n_evaluated": 40,
             "notes": [
-              "only 5 positive examples, so one case moves this materially",
               "absent from the base model's pretraining corpus, which is worth knowing but has not been shown to bound the score: nsfw went from 0.000 to 1.000 here on more examples"
             ],
-            "score": 0.75
+            "score": 0.8667
           },
           "nl": {
-            "n": 5,
-            "notes": [
-              "only 5 positive examples, so one case moves this materially"
-            ],
-            "score": 1.0
+            "n": 15,
+            "n_evaluated": 40,
+            "score": 0.9655
           },
           "pl": {
-            "n": 5,
-            "notes": [
-              "only 5 positive examples, so one case moves this materially"
-            ],
-            "score": 0.8
+            "n": 15,
+            "n_evaluated": 40,
+            "score": 1.0
           },
           "pt": {
-            "n": 5,
-            "notes": [
-              "only 5 positive examples, so one case moves this materially"
-            ],
-            "score": 0.8889
+            "n": 15,
+            "n_evaluated": 40,
+            "score": 0.9655
           },
           "ro": {
-            "n": 5,
-            "notes": [
-              "only 5 positive examples, so one case moves this materially"
-            ],
-            "score": 1.0
+            "n": 15,
+            "n_evaluated": 40,
+            "score": 0.9655
           },
           "sk": {
-            "n": 5,
-            "notes": [
-              "only 5 positive examples, so one case moves this materially"
-            ],
-            "score": 0.8
+            "n": 17,
+            "n_evaluated": 43,
+            "score": 0.9697
           },
           "sl": {
-            "n": 5,
-            "notes": [
-              "only 5 positive examples, so one case moves this materially"
-            ],
-            "score": 1.0
+            "n": 15,
+            "n_evaluated": 40,
+            "score": 0.9655
           },
           "sv": {
-            "n": 5,
-            "notes": [
-              "only 5 positive examples, so one case moves this materially"
-            ],
+            "n": 15,
+            "n_evaluated": 40,
             "score": 1.0
           },
           "tr": {
-            "n": 5,
-            "notes": [
-              "only 5 positive examples, so one case moves this materially"
-            ],
-            "score": 0.6667
+            "n": 15,
+            "n_evaluated": 40,
+            "score": 0.9655
           }
         },
-        "threshold": 0.22,
+        "threshold": 0.84,
         "threshold_chosen_by": "macro_f1",
-        "total_examples": 130,
-        "worst": 0.5714
+        "total_examples": 398,
+        "worst": 0.8667
       },
       "requires": {},
       "sides": [
@@ -544,206 +492,159 @@
     "injection": {
       "budget_ms": 225.0,
       "caveats": [
-        "26 of 26 languages have fewer than 10 positive examples: az, bg, cs, da, de, el, en, es, et, fi, fr, ga, hr, hu, it, lt, lv, mt, nl, pl, pt, ro, sk, sl, sv, tr. Their individual scores are indicative rather than measured."
+        "1 of 26 languages have fewer than 10 positive examples: es. Their individual scores are indicative rather than measured."
       ],
       "in_core": true,
       "metrics": {
         "best": 1.0,
         "languages_evaluated": 26,
         "languages_without_a_count": [],
-        "macro": 0.8885,
-        "median": 0.9231,
+        "macro": 0.9685,
+        "median": 0.9828,
         "metric": "f1",
         "n_means": "positive examples",
         "per_language": {
           "az": {
-            "n": 7,
-            "notes": [
-              "only 7 positive examples, so one case moves this materially"
-            ],
-            "score": 0.9231
+            "n": 14,
+            "n_evaluated": 39,
+            "score": 0.963
           },
           "bg": {
-            "n": 7,
-            "notes": [
-              "only 7 positive examples, so one case moves this materially"
-            ],
+            "n": 13,
+            "n_evaluated": 37,
             "score": 1.0
           },
           "cs": {
-            "n": 7,
-            "notes": [
-              "only 7 positive examples, so one case moves this materially"
-            ],
-            "score": 0.7692
+            "n": 14,
+            "n_evaluated": 38,
+            "score": 0.9231
           },
           "da": {
-            "n": 7,
-            "notes": [
-              "only 7 positive examples, so one case moves this materially"
-            ],
-            "score": 1.0
+            "n": 14,
+            "n_evaluated": 38,
+            "score": 0.963
           },
           "de": {
-            "n": 7,
-            "notes": [
-              "only 7 positive examples, so one case moves this materially"
-            ],
-            "score": 0.9231
+            "n": 14,
+            "n_evaluated": 38,
+            "score": 1.0
           },
           "el": {
-            "n": 7,
-            "notes": [
-              "only 7 positive examples, so one case moves this materially"
-            ],
-            "score": 0.8333
+            "n": 13,
+            "n_evaluated": 39,
+            "score": 0.9167
           },
           "en": {
-            "n": 7,
-            "notes": [
-              "only 7 positive examples, so one case moves this materially"
-            ],
-            "score": 0.8333
+            "n": 14,
+            "n_evaluated": 38,
+            "score": 0.963
           },
           "es": {
-            "n": 7,
+            "n": 9,
+            "n_evaluated": 34,
             "notes": [
-              "only 7 positive examples, so one case moves this materially"
-            ],
-            "score": 0.9231
-          },
-          "et": {
-            "n": 7,
-            "notes": [
-              "only 7 positive examples, so one case moves this materially"
-            ],
-            "score": 0.9231
-          },
-          "fi": {
-            "n": 8,
-            "notes": [
-              "only 8 positive examples, so one case moves this materially"
+              "only 9 positive examples, so one case moves this materially"
             ],
             "score": 1.0
           },
+          "et": {
+            "n": 14,
+            "n_evaluated": 38,
+            "score": 1.0
+          },
+          "fi": {
+            "n": 14,
+            "n_evaluated": 39,
+            "score": 0.9655
+          },
           "fr": {
-            "n": 7,
-            "notes": [
-              "only 7 positive examples, so one case moves this materially"
-            ],
-            "score": 0.8333
+            "n": 14,
+            "n_evaluated": 38,
+            "score": 0.963
           },
           "ga": {
-            "n": 6,
-            "notes": [
-              "only 6 positive examples, so one case moves this materially"
-            ],
-            "score": 0.8
+            "n": 14,
+            "n_evaluated": 41,
+            "score": 0.9231
           },
           "hr": {
-            "n": 7,
-            "notes": [
-              "only 7 positive examples, so one case moves this materially"
-            ],
+            "n": 13,
+            "n_evaluated": 38,
             "score": 1.0
           },
           "hu": {
-            "n": 7,
-            "notes": [
-              "only 7 positive examples, so one case moves this materially"
-            ],
-            "score": 0.8571
+            "n": 14,
+            "n_evaluated": 39,
+            "score": 0.9286
           },
           "it": {
-            "n": 7,
-            "notes": [
-              "only 7 positive examples, so one case moves this materially"
-            ],
-            "score": 0.8333
-          },
-          "lt": {
-            "n": 7,
-            "notes": [
-              "only 7 positive examples, so one case moves this materially"
-            ],
+            "n": 14,
+            "n_evaluated": 39,
             "score": 1.0
           },
+          "lt": {
+            "n": 14,
+            "n_evaluated": 38,
+            "score": 0.88
+          },
           "lv": {
-            "n": 7,
-            "notes": [
-              "only 7 positive examples, so one case moves this materially"
-            ],
+            "n": 13,
+            "n_evaluated": 39,
             "score": 1.0
           },
           "mt": {
-            "n": 7,
+            "n": 14,
+            "n_evaluated": 39,
             "notes": [
-              "only 7 positive examples, so one case moves this materially",
               "absent from the base model's pretraining corpus, which is worth knowing but has not been shown to bound the score: nsfw went from 0.000 to 1.000 here on more examples"
             ],
-            "score": 0.4444
+            "score": 0.8667
           },
           "nl": {
-            "n": 7,
-            "notes": [
-              "only 7 positive examples, so one case moves this materially"
-            ],
-            "score": 0.9231
+            "n": 14,
+            "n_evaluated": 38,
+            "score": 1.0
           },
           "pl": {
-            "n": 7,
-            "notes": [
-              "only 7 positive examples, so one case moves this materially"
-            ],
-            "score": 0.9231
+            "n": 14,
+            "n_evaluated": 38,
+            "score": 1.0
           },
           "pt": {
-            "n": 7,
-            "notes": [
-              "only 7 positive examples, so one case moves this materially"
-            ],
-            "score": 0.8333
+            "n": 14,
+            "n_evaluated": 38,
+            "score": 1.0
           },
           "ro": {
-            "n": 7,
-            "notes": [
-              "only 7 positive examples, so one case moves this materially"
-            ],
-            "score": 0.9231
+            "n": 14,
+            "n_evaluated": 38,
+            "score": 1.0
           },
           "sk": {
-            "n": 7,
-            "notes": [
-              "only 7 positive examples, so one case moves this materially"
-            ],
-            "score": 0.9231
+            "n": 14,
+            "n_evaluated": 38,
+            "score": 1.0
           },
           "sl": {
-            "n": 7,
-            "notes": [
-              "only 7 positive examples, so one case moves this materially"
-            ],
-            "score": 0.9231
+            "n": 14,
+            "n_evaluated": 39,
+            "score": 0.963
           },
           "sv": {
-            "n": 7,
-            "notes": [
-              "only 7 positive examples, so one case moves this materially"
-            ],
-            "score": 0.8333
+            "n": 14,
+            "n_evaluated": 38,
+            "score": 1.0
           },
           "tr": {
-            "n": 7,
-            "notes": [
-              "only 7 positive examples, so one case moves this materially"
-            ],
-            "score": 0.9231
+            "n": 14,
+            "n_evaluated": 38,
+            "score": 0.963
           }
         },
-        "threshold": 0.43,
+        "threshold": 0.26,
         "threshold_chosen_by": "recall_at_fpr",
-        "total_examples": 182,
-        "worst": 0.4444
+        "total_examples": 355,
+        "worst": 0.8667
       },
       "requires": {},
       "sides": [
@@ -1024,207 +925,155 @@
     },
     "politeness": {
       "budget_ms": 225.0,
-      "caveats": [
-        "26 of 26 languages have fewer than 10 positive examples: az, bg, cs, da, de, el, en, es, et, fi, fr, ga, hr, hu, it, lt, lv, mt, nl, pl, pt, ro, sk, sl, sv, tr. Their individual scores are indicative rather than measured."
-      ],
+      "caveats": [],
       "in_core": true,
       "metrics": {
         "best": 1.0,
         "languages_evaluated": 26,
         "languages_without_a_count": [],
-        "macro": 0.887,
-        "median": 1.0,
+        "macro": 0.9619,
+        "median": 0.9677,
         "metric": "f1",
         "n_means": "positive examples",
         "per_language": {
           "az": {
-            "n": 2,
-            "notes": [
-              "only 2 positive examples, so one case moves this materially"
-            ],
-            "score": 0.4
+            "n": 15,
+            "n_evaluated": 40,
+            "score": 0.9677
           },
           "bg": {
-            "n": 3,
-            "notes": [
-              "only 3 positive examples, so one case moves this materially"
-            ],
+            "n": 15,
+            "n_evaluated": 40,
             "score": 1.0
           },
           "cs": {
-            "n": 3,
-            "notes": [
-              "only 3 positive examples, so one case moves this materially"
-            ],
+            "n": 15,
+            "n_evaluated": 40,
             "score": 1.0
           },
           "da": {
-            "n": 3,
-            "notes": [
-              "only 3 positive examples, so one case moves this materially"
-            ],
-            "score": 0.6667
+            "n": 15,
+            "n_evaluated": 40,
+            "score": 0.9677
           },
           "de": {
-            "n": 3,
-            "notes": [
-              "only 3 positive examples, so one case moves this materially"
-            ],
+            "n": 15,
+            "n_evaluated": 40,
             "score": 1.0
           },
           "el": {
-            "n": 3,
-            "notes": [
-              "only 3 positive examples, so one case moves this materially"
-            ],
-            "score": 0.8571
+            "n": 15,
+            "n_evaluated": 40,
+            "score": 0.9677
           },
           "en": {
-            "n": 3,
-            "notes": [
-              "only 3 positive examples, so one case moves this materially"
-            ],
+            "n": 15,
+            "n_evaluated": 40,
             "score": 1.0
           },
           "es": {
-            "n": 3,
-            "notes": [
-              "only 3 positive examples, so one case moves this materially"
-            ],
-            "score": 1.0
+            "n": 15,
+            "n_evaluated": 40,
+            "score": 0.9655
           },
           "et": {
-            "n": 3,
-            "notes": [
-              "only 3 positive examples, so one case moves this materially"
-            ],
-            "score": 0.8
-          },
-          "fi": {
-            "n": 3,
-            "notes": [
-              "only 3 positive examples, so one case moves this materially"
-            ],
-            "score": 0.8
-          },
-          "fr": {
-            "n": 3,
-            "notes": [
-              "only 3 positive examples, so one case moves this materially"
-            ],
-            "score": 0.8
-          },
-          "ga": {
-            "n": 3,
-            "notes": [
-              "only 3 positive examples, so one case moves this materially"
-            ],
-            "score": 0.8571
-          },
-          "hr": {
-            "n": 3,
-            "notes": [
-              "only 3 positive examples, so one case moves this materially"
-            ],
-            "score": 0.8571
-          },
-          "hu": {
-            "n": 3,
-            "notes": [
-              "only 3 positive examples, so one case moves this materially"
-            ],
+            "n": 15,
+            "n_evaluated": 40,
             "score": 1.0
           },
+          "fi": {
+            "n": 15,
+            "n_evaluated": 40,
+            "score": 1.0
+          },
+          "fr": {
+            "n": 15,
+            "n_evaluated": 40,
+            "score": 1.0
+          },
+          "ga": {
+            "n": 15,
+            "n_evaluated": 40,
+            "score": 0.7879
+          },
+          "hr": {
+            "n": 15,
+            "n_evaluated": 40,
+            "score": 0.9091
+          },
+          "hu": {
+            "n": 15,
+            "n_evaluated": 40,
+            "score": 0.9677
+          },
           "it": {
-            "n": 3,
-            "notes": [
-              "only 3 positive examples, so one case moves this materially"
-            ],
+            "n": 15,
+            "n_evaluated": 40,
             "score": 1.0
           },
           "lt": {
-            "n": 3,
-            "notes": [
-              "only 3 positive examples, so one case moves this materially"
-            ],
-            "score": 1.0
+            "n": 16,
+            "n_evaluated": 41,
+            "score": 0.9697
           },
           "lv": {
-            "n": 3,
-            "notes": [
-              "only 3 positive examples, so one case moves this materially"
-            ],
-            "score": 0.6667
+            "n": 15,
+            "n_evaluated": 39,
+            "score": 0.9375
           },
           "mt": {
-            "n": 3,
+            "n": 15,
+            "n_evaluated": 40,
             "notes": [
-              "only 3 positive examples, so one case moves this materially",
               "absent from the base model's pretraining corpus, which is worth knowing but has not been shown to bound the score: nsfw went from 0.000 to 1.000 here on more examples"
             ],
-            "score": 0.5
+            "score": 0.8667
           },
           "nl": {
-            "n": 3,
-            "notes": [
-              "only 3 positive examples, so one case moves this materially"
-            ],
-            "score": 1.0
+            "n": 15,
+            "n_evaluated": 40,
+            "score": 0.9333
           },
           "pl": {
-            "n": 3,
-            "notes": [
-              "only 3 positive examples, so one case moves this materially"
-            ],
-            "score": 0.8571
+            "n": 15,
+            "n_evaluated": 40,
+            "score": 0.9677
           },
           "pt": {
-            "n": 3,
-            "notes": [
-              "only 3 positive examples, so one case moves this materially"
-            ],
-            "score": 1.0
+            "n": 15,
+            "n_evaluated": 40,
+            "score": 0.9333
           },
           "ro": {
-            "n": 3,
-            "notes": [
-              "only 3 positive examples, so one case moves this materially"
-            ],
-            "score": 1.0
+            "n": 16,
+            "n_evaluated": 41,
+            "score": 0.9677
           },
           "sk": {
-            "n": 3,
-            "notes": [
-              "only 3 positive examples, so one case moves this materially"
-            ],
-            "score": 1.0
+            "n": 15,
+            "n_evaluated": 40,
+            "score": 0.9655
           },
           "sl": {
-            "n": 3,
-            "notes": [
-              "only 3 positive examples, so one case moves this materially"
-            ],
-            "score": 1.0
+            "n": 15,
+            "n_evaluated": 40,
+            "score": 0.9677
           },
           "sv": {
-            "n": 3,
-            "notes": [
-              "only 3 positive examples, so one case moves this materially"
-            ],
+            "n": 15,
+            "n_evaluated": 40,
             "score": 1.0
           },
           "tr": {
-            "n": 3,
-            "notes": [
-              "only 3 positive examples, so one case moves this materially"
-            ],
-            "score": 1.0
+            "n": 15,
+            "n_evaluated": 40,
+            "score": 0.9677
           }
         },
-        "threshold": 0.51,
+        "threshold": 0.89,
         "threshold_chosen_by": "macro_f1",
-        "total_examples": 77,
-        "worst": 0.4
+        "total_examples": 392,
+        "worst": 0.7879
       },
       "requires": {},
       "sides": [
@@ -1961,77 +1810,77 @@
   "latency": {
     "per_detector_ms": {
       "banned_terms": {
-        "p95": 0.222
+        "p95": 0.263
       },
       "bias": {
-        "p95": 153.791
+        "p95": 255.204
       },
       "disclosure": {
-        "p95": 0.035
+        "p95": 0.122
       },
       "gibberish": {
-        "p95": 153.599
+        "p95": 331.927
       },
       "groundedness": {
-        "p95": 60.826
+        "p95": 191.13
       },
       "injection": {
-        "p95": 153.043
+        "p95": 368.784
       },
       "internal_domains": {
-        "p95": 0.208
+        "p95": 0.366
       },
       "invisible_text": {
-        "p95": 0.034
+        "p95": 0.051
       },
       "json_schema": {
-        "p95": 0.001
+        "p95": 0.002
       },
       "markup_injection": {
-        "p95": 0.214
+        "p95": 0.324
       },
       "nsfw": {
-        "p95": 153.199
+        "p95": 282.709
       },
       "output_format": {
-        "p95": 0.001
+        "p95": 0.004
       },
       "output_leakage": {
-        "p95": 50.475
+        "p95": 81.642
       },
       "pii": {
-        "p95": 50.67
+        "p95": 70.597
       },
       "politeness": {
-        "p95": 152.974
+        "p95": 278.034
       },
       "postal_code": {
-        "p95": 0.001
+        "p95": 0.002
       },
       "regulated_advice": {
-        "p95": 153.133
+        "p95": 233.682
       },
       "repetition": {
-        "p95": 0.369
+        "p95": 0.547
       },
       "secrets": {
-        "p95": 0.037
+        "p95": 0.053
       },
       "sql_injection": {
-        "p95": 0.202
+        "p95": 0.306
       },
       "system_prompt_leakage": {
         "describes": "the path where the detector reported leakage_unverifiable rather than the path where it does its work, because the reference configuration does not give it what it needs",
-        "p95": 0.245
+        "p95": 0.344
       },
       "topic_scope": {
-        "p95": 212.226
+        "p95": 326.947
       },
       "toxicity": {
-        "p95": 153.175
+        "p95": 259.781
       },
       "url_reachability": {
-        "p95": 0.006
+        "p95": 0.007
       }
     },
     "provider": "CPUExecutionProvider",
