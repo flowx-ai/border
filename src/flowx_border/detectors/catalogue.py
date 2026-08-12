@@ -47,21 +47,18 @@ OUTPUT: Final = "output"
 class Spec(NamedTuple):
     tier: Tier
     sides: frozenset[str]
-    # The p95 ceiling from CLAUDE.md's table, at the reference input named there
-    # and in tests/test_budgets.py: 87 tokens, one thread, CPU, INT8. A budget with no
-    # input
+    # The p95 ceiling from CLAUDE.md's table, at the reference input named there and in
+    # tests/test_budgets.py: 87 tokens, one thread, CPU, INT8. A budget with no input
     # length attached is not a budget, which is why that reference is named everywhere
-    # this number appears.
-    #
-    # Every encoder-backed detector carries the same 75 ms, because each is the same
-    # XLM-RoBERTa base and costs the same at the same length. The T1/T2 split
-    # decides when a detector runs and whether a policy may switch it off, not what it
-    # costs. Measured 2026-08-11: pii 51 ms, output_leakage 51 ms, 0.60 ms per token.
+    # this number appears.  Every encoder-backed detector carries the same 75 ms,
+    # because each is the same XLM-RoBERTa base and costs the same at the same length.
+    # The T1/T2 split decides when a detector runs and whether a policy may switch it
+    # off, not what it costs. Measured 2026-08-11: pii 51 ms, output_leakage 51 ms, 0.60
+    # ms per token.
     budget_ms: float
 
     # What this detector needs from the machine it runs on, beyond a CPU and the base
     # install. Empty for everything in CORE, which is the package that runs anywhere.
-    #
     # Declared here rather than argued in a document, because it is the caller's
     # deployment question and they should get it from the library at the moment they
     # enable the detector, not from a paragraph they may not have read.
@@ -72,11 +69,11 @@ CATALOGUE: Final[MappingProxyType[str, Spec]] = MappingProxyType(
     {
         "secrets": Spec("T0", frozenset({INPUT}), 1.0),
         "disclosure": Spec("T0", frozenset({OUTPUT}), 5.0),
-        # T0 because all 26 supported languages are left to right, so a bidi
-        # override has no typographic purpose in any text this library claims to
-        # support, and tag characters render nowhere at all. The categories that do
-        # have legitimate uses are off by default rather than making the detector
-        # optional. See its module docstring.
+        # T0 because all 26 supported languages are left to right, so a bidi override
+        # has no typographic purpose in any text this library claims to support, and tag
+        # characters render nowhere at all. The categories that do have legitimate uses
+        # are off by default rather than making the detector optional. See its module
+        # docstring.
         "invisible_text": Spec("T0", frozenset({INPUT, OUTPUT}), 5.0),
         "pii": Spec("T1", frozenset({INPUT, OUTPUT}), 225.0),
         "output_leakage": Spec("T1", frozenset({OUTPUT}), 225.0),
@@ -84,45 +81,49 @@ CATALOGUE: Final[MappingProxyType[str, Spec]] = MappingProxyType(
         # Ported from the Guardrails Hub, 2026-08-11. Rules rather than models, so they
         # sit at T1 with a rule-sized budget. T1 rather than T0 because each can be
         # wrong in a way a deployment has to be able to switch off: banned_terms and
-        # internal_domains need a list only the deployer has, and markup_injection
-        # fires on a coding assistant doing its job.
+        # internal_domains need a list only the deployer has, and markup_injection fires
+        # on a coding assistant doing its job.
         "banned_terms": Spec("T1", frozenset({INPUT, OUTPUT}), 5.0),
         "system_prompt_leakage": Spec("T1", frozenset({OUTPUT}), 5.0),
         "markup_injection": Spec("T1", frozenset({INPUT, OUTPUT}), 5.0),
         "internal_domains": Spec("T1", frozenset({OUTPUT}), 5.0),
-        # Shape rather than security, and the only entry here that is. It exists so
-        # that sixteen hub shape validators have one destination instead of sixteen.
+        # Shape rather than security, and the only entry here that is. It exists so that
+        # sixteen hub shape validators have one destination instead of sixteen.
         "output_format": Spec("T1", frozenset({OUTPUT}), 5.0),
-        # The local half of the valid_address validator: shape and published range
-        # rules per country, no network and no vendor. In CORE because the data
-        # ships with the package.
+        # The local half of the valid_address validator: shape and published range rules
+        # per country, no network and no vendor. In CORE because the data ships with the
+        # package.
         "postal_code": Spec("T1", frozenset({OUTPUT}), 5.0),
-        # Ported from the same shape group as output_format, and portable for the
-        # same reason: no model is needed. stdlib difflib replaces the two
-        # dependencies upstream uses, so it stays in CORE.
+        # Ported from the same shape group as output_format, and portable for the same
+        # reason: no model is needed. stdlib difflib replaces the two dependencies
+        # upstream uses, so it stays in CORE.
         "repetition": Spec("T1", frozenset({OUTPUT}), 5.0),
+        # Two llm-guard scanners, BanCode and Code, which a migrating caller lost until
+        # 2026-08-12. A list of shapes rather than one verdict: each fires separately
+        # with its own confidence so a policy can treat a fenced block differently from
+        # a line that merely ends in a brace. The languages it knows are programming
+        # languages and there are a handful, which is a different claim from the 26
+        # human ones the rest of this table is held to.
+        "code_present": Spec("T1", frozenset({INPUT, OUTPUT}), 5.0),
         # Ported from the hub's extracted_summary_sentences_match, which calls OpenAI to
-        # ask
-        # what difflib answers. Measures overlap rather than entailment and says so in
-        # its own
-        # docstring, which matters because `groundedness` is the detector that judges
-        # support
-        # and its model does not yet do it.
+        # ask what difflib answers. Measures overlap rather than entailment and says so
+        # in its own docstring, which matters because `groundedness` is the detector
+        # that judges support and its model does not yet do it.
         "summary_support": Spec("T1", frozenset({OUTPUT}), 5.0),
         # Needs jsonschema, so it is outside CORE alongside sql_injection.
         "json_schema": Spec("T1", frozenset({OUTPUT}), 5.0, frozenset({"dependency"})),
-        # The first entry to leave CORE. It needs the sqlglot parser, which is the
-        # `sql` extra rather than a base dependency, because only a text-to-SQL
-        # product wants it and nobody else should pay the install weight.
+        # The first entry to leave CORE. It needs the sqlglot parser, which is the `sql`
+        # extra rather than a base dependency, because only a text-to-SQL product wants
+        # it and nobody else should pay the install weight.
         "sql_injection": Spec(
             "T1", frozenset({OUTPUT}), 5.0, frozenset({"dependency"})
         ),
-        # The moderation model trained on 2026-08-11: a multi-label hazard
-        # classifier on a Qwen3-0.6B base, replacing what llamaguard_7b and
-        # shieldgemma_2b provide without their weights. 150 ms rather than 75 because
-        # the base is 0.6B where the other classifiers are 278M, and it is a second
-        # architecture rather than a session shared with them. training/ has the
-        # pipeline; no artifact is published yet, so it ships unavailable.
+        # The moderation model trained on 2026-08-11: a multi-label hazard classifier on
+        # a Qwen3-0.6B base, replacing what llamaguard_7b and shieldgemma_2b provide
+        # without their weights. 150 ms rather than 75 because the base is 0.6B where
+        # the other classifiers are 278M, and it is a second architecture rather than a
+        # session shared with them. training/ has the pipeline; no artifact is published
+        # yet, so it ships unavailable.
         "moderation": Spec("T2", frozenset({INPUT, OUTPUT}), 150.0),
         "injection": Spec("T2", frozenset({INPUT}), 225.0),
         "regulated_advice": Spec("T2", frozenset({OUTPUT}), 225.0),
@@ -130,9 +131,9 @@ CATALOGUE: Final[MappingProxyType[str, Spec]] = MappingProxyType(
         "nsfw": Spec("T2", frozenset({INPUT, OUTPUT}), 225.0),
         "bias": Spec("T2", frozenset({OUTPUT}), 225.0),
         "politeness": Spec("T2", frozenset({OUTPUT}), 225.0),
-        # The only detector that leaves the machine, and the only one whose budget
-        # is a deadline it enforces on itself rather than a figure somebody
-        # measured: it depends on a network the library does not control.
+        # The only detector that leaves the machine, and the only one whose budget is a
+        # deadline it enforces on itself rather than a figure somebody measured: it
+        # depends on a network the library does not control.
         "url_reachability": Spec(
             "T3", frozenset({OUTPUT}), 3000.0, frozenset({"network"})
         ),
@@ -141,8 +142,8 @@ CATALOGUE: Final[MappingProxyType[str, Spec]] = MappingProxyType(
     }
 )
 
-#: What a requirement means for whoever is deploying this. One line each, because
-#: these are shown to a caller who selected a detector rather than read a document.
+#: What a requirement means for whoever is deploying this. One line each, because these
+#: are shown to a caller who selected a detector rather than read a document.
 REQUIREMENTS: Final[MappingProxyType[str, str]] = MappingProxyType(
     {
         "network": (
@@ -187,8 +188,8 @@ def requirements_for(detector_ids: Iterable[str]) -> dict[str, tuple[str, ...]]:
 
 TIER_ORDER: Final[tuple[Tier, ...]] = ("T0", "T1", "T2", "T3")
 
-# T0 always runs and cannot be disabled. The policy loader rejects an attempt to
-# disable one rather than quietly honouring it.
+# T0 always runs and cannot be disabled. The policy loader rejects an attempt to disable
+# one rather than quietly honouring it.
 ALWAYS_ON: Final[frozenset[str]] = frozenset(
     detector for detector, spec in CATALOGUE.items() if spec.tier == "T0"
 )

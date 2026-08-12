@@ -120,8 +120,8 @@ way.
 
 **Core** is every detector that needs nothing beyond a CPU and the base install. It runs
 on a laptop with the network interface down, and it is what a caller gets unless they
-enable something else deliberately. As of 2026-08-12 it is twenty-three of the
-twenty-six.
+enable something else deliberately. As of 2026-08-12 it is twenty-four of the
+twenty-seven.
 
 Two are outside it, and between them they exercise the whole mechanism:
 
@@ -168,7 +168,7 @@ than prohibitions.
    an embeddable library that always needs a GPU is one most callers cannot embed.
 3. **A new detector has to earn its place, and there is no cap on how many can.** The
    count gate went on 2026-08-11. It was eight for v1, thirteen on 2026-08-10, and
-   uncapped on 2026-08-11 when the Guardrails Hub port landed. v1 is twenty-six and
+   uncapped on 2026-08-11 when the Guardrails Hub port landed. v1 is twenty-seven and
    nineteen landed on one day. What is left is three things a detector must do:
 
    - Work in all 26 languages, with fixtures for each and, if it is model-backed, a
@@ -238,6 +238,7 @@ length the model was trained on. Budgets are per detector, per scan, at that inp
 | `postal_code` | output | T1 | per-country format + range | 5 ms | 0.02 ms | built |
 | `repetition` | output | T1 | sentence similarity | 5 ms | 0.09 ms | built |
 | `summary_support` | output | T1 | sentence overlap vs source | 5 ms | 0.71 ms | built |
+| `code_present` | input, output | T1 | code shape signals | 5 ms | 0.04 ms | built |
 | `json_schema` | output | T1 | JSON Schema, `schema` extra | 5 ms | 0.02 ms | built |
 | `sql_injection` | output | T1 | SQL parse tree, `sql` extra | 5 ms | 0.31 ms | built |
 | `url_reachability` | output | T3 | HTTP request, needs network | 3000 ms | deadline | built |
@@ -377,6 +378,7 @@ src/flowx_border/
     postal_code.py     # T1, per-country postcode shape and range, 29 countries
     repetition.py      # T1, a sentence said twice
     summary_support.py # T1, a summary sentence with no counterpart in the source
+    code_present.py    # T1, source code where prose was expected
     json_schema.py     # T1, the policy's schema, requires the schema extra
     sql_injection.py   # T1, sqlglot parse tree, requires the sql extra
     url_reachability.py# T3, the only detector that leaves the machine
@@ -424,6 +426,7 @@ repository for this library. `models/registry.py` pins every entry to a commit s
 | `postal_code` | – | per-country formats in a packaged data file |
 | `repetition` | – | stdlib difflib, no weights |
 | `summary_support` | – | stdlib difflib against the caller's sources |
+| `code_present` | – | regex signals over code shapes, no weights |
 | `json_schema` | – | the caller's schema, from the policy |
 | `sql_injection` | – | the sqlglot parse tree, no weights |
 | `url_reachability` | – | an HTTP request, no weights |
@@ -550,7 +553,7 @@ understated rather than as ceilings, and reach for the corpus before the archite
 **Three detectors ship unavailable, and they ship loudly.** The registry entry names
 the intended repo, the detector raises an error naming the missing model, and the
 tests are `xfail` with the repo id in the comment. There is no silent no-op, because
-a silent no-op in a security library is a vulnerability. v1 is 16 of 26 detectors real,
+a silent no-op in a security library is a vulnerability. v1 is 17 of 27 detectors real,
 stated plainly in the README. Nothing on the site or in the docs may imply otherwise.
 
 **`semantic-mapper` does not fit the detector contract as it stands.** It is a 4B

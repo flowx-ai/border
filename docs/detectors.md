@@ -11,12 +11,12 @@ from here. Regenerate with:
 
 | figure | value |
 |---|---|
-| detectors in the catalogue | 26 |
-| implemented in the library | 25 |
-| that run on a fresh install, with no model download | 16 |
+| detectors in the catalogue | 27 |
+| implemented in the library | 26 |
+| that run on a fresh install, with no model download | 17 |
 | implemented but waiting on weights that are not published | 9 |
 | catalogued but not yet implemented | 1 |
-| that need nothing beyond a CPU and the base install | 23 |
+| that need nothing beyond a CPU and the base install | 24 |
 | that need something more, and declare it | 3 |
 | supported languages | 26 |
 
@@ -37,6 +37,7 @@ one on, so a caller finds out when they enable it rather than in production.
 | `invisible_text` | T0 | input, output | built | nothing beyond a CPU | 5 ms | Characters that are in the text but not on the screen: bidirectional controls, tag characters used to smuggle instructions, zero-width characters used to evade filters. |
 | `secrets` | T0 | input | built | nothing beyond a CPU | 1 ms | Credentials in text on its way to the model: named key formats, plus a deliberately conservative entropy rule. |
 | `banned_terms` | T1 | input, output | built | nothing beyond a CPU | 5 ms | Terms the deploying organisation has decided must not appear, matched correctly in 26 languages. The list is policy; none ships. |
+| `code_present` | T1 | input, output | built | nothing beyond a CPU | 5 ms | Source code in text that should be prose, reported as one finding per shape found: a fence, a shebang, a definition, an import, a script tag, a shell invocation. Each carries its own confidence so a policy can act on a fenced block without acting on a line that merely ends in a brace. |
 | `gibberish` | T1 | input | built | nothing beyond a CPU | 225 ms | Input that is not meaningful text. |
 | `internal_domains` | T1 | output | built | nothing beyond a CPU | 5 ms | Internal hostnames appearing in an answer meant for someone outside, in both their Unicode and punycode spellings. |
 | `json_schema` | T1 | output | built | dependency | 5 ms | Output that does not satisfy a JSON Schema the policy carries. Point it at the OpenAPI meta-schema and it validates an OpenAPI document. |

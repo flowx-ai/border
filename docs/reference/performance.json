@@ -174,6 +174,20 @@
       "status": "built",
       "tier": "T2"
     },
+    "code_present": {
+      "budget_ms": 5.0,
+      "caveats": [],
+      "in_core": true,
+      "metrics": null,
+      "metrics_note": "no evaluation artifact was available at collection time. A rules-based detector has none by nature; a model-backed one missing this is a gap.",
+      "requires": {},
+      "sides": [
+        "input",
+        "output"
+      ],
+      "status": "built",
+      "tier": "T1"
+    },
     "disclosure": {
       "budget_ms": 5.0,
       "caveats": [],
@@ -1796,80 +1810,83 @@
   "latency": {
     "per_detector_ms": {
       "banned_terms": {
-        "p95": 0.215
+        "p95": 0.225
       },
       "bias": {
-        "p95": 156.315
+        "p95": 212.552
+      },
+      "code_present": {
+        "p95": 0.014
       },
       "disclosure": {
-        "p95": 0.036
+        "p95": 0.056
       },
       "gibberish": {
-        "p95": 156.48
+        "p95": 236.076
       },
       "groundedness": {
-        "p95": 61.827
+        "p95": 83.17
       },
       "injection": {
-        "p95": 153.783
+        "p95": 218.637
       },
       "internal_domains": {
-        "p95": 0.219
+        "p95": 0.199
       },
       "invisible_text": {
-        "p95": 0.032
+        "p95": 0.033
       },
       "json_schema": {
         "p95": 0.001
       },
       "markup_injection": {
-        "p95": 0.211
+        "p95": 0.214
       },
       "nsfw": {
-        "p95": 153.879
+        "p95": 201.687
       },
       "output_format": {
-        "p95": 0.001
+        "p95": 0.002
       },
       "output_leakage": {
-        "p95": 154.117
+        "p95": 200.06
       },
       "pii": {
-        "p95": 152.986
+        "p95": 181.789
       },
       "politeness": {
-        "p95": 152.853
+        "p95": 178.54
       },
       "postal_code": {
         "p95": 0.002
       },
       "regulated_advice": {
-        "p95": 154.572
+        "p95": 185.042
       },
       "repetition": {
-        "p95": 0.382
+        "p95": 0.419
       },
       "secrets": {
-        "p95": 0.037
+        "p95": 0.042
       },
       "sql_injection": {
-        "p95": 0.201
+        "p95": 0.229
       },
       "summary_support": {
-        "p95": 0.72
+        "p95": 0.785
       },
       "system_prompt_leakage": {
         "describes": "the path where the detector reported leakage_unverifiable rather than the path where it does its work, because the reference configuration does not give it what it needs",
-        "p95": 0.245
+        "p95": 0.292
       },
       "topic_scope": {
-        "p95": 214.432
+        "p95": 292.132
       },
       "toxicity": {
-        "p95": 156.008
+        "p95": 199.052
       },
       "url_reachability": {
-        "p95": 0.006
+        "p95": 0.007
       }
     },
     "provider": "CPUExecutionProvider",

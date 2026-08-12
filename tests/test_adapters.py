@@ -43,14 +43,19 @@ RULES_ONLY = ["Secrets"]
 
 def test_an_unsupported_scanner_raises_rather_than_passing() -> None:
     # The whole reason this file exists.
-    with pytest.raises(UnsupportedScannerError, match="BanCode"):
-        scan_prompt("hello", ["BanCode"])
+    #
+    # The example used to be BanCode, which stopped being unsupported on 2026-08-12 when
+    # code_present landed. Language is the replacement because it is declined on grounds
+    # that will not change: every detector here works in 26 languages rather than gating
+    # on which one a text is in, so identification is not a gap this library has.
+    with pytest.raises(UnsupportedScannerError, match="Language"):
+        scan_prompt("hello", ["Language"])
 
 
 def test_the_error_says_why_the_scanner_is_unsupported() -> None:
-    # "not supported" is not actionable. "no code detector, out of scope for v1" is.
-    with pytest.raises(UnsupportedScannerError, match="no code detector"):
-        scan_prompt("hello", ["BanCode"])
+    # "not supported" is not actionable. Naming the reason is.
+    with pytest.raises(UnsupportedScannerError, match="language identification"):
+        scan_prompt("hello", ["Language"])
 
 
 def test_an_unknown_scanner_name_also_raises() -> None:

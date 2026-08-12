@@ -98,6 +98,12 @@ SUMMARIES: Final[MappingProxyType[str, str]] = MappingProxyType(
             " "
             "and not a groundedness check: it says so in its own docstring."
         ),
+        "code_present": (
+            "Source code in text that should be prose, reported as one finding per "
+            "shape found: a fence, a shebang, a definition, an import, a script tag, "
+            "a shell invocation. Each carries its own confidence so a policy can act "
+            "on a fenced block without acting on a line that merely ends in a brace."
+        ),
         "repetition": (
             "Sentences the answer says twice, compared over folded text so a change of "
             "case or diacritic spelling does not hide a repeat."

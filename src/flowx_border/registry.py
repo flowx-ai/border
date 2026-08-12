@@ -58,6 +58,7 @@ def _build() -> tuple[dict[str, Detector], frozenset[str]]:
     network, which is what lets `loaded_detectors` be called from a scan path.
     """
     from flowx_border.detectors.banned_terms import BannedTermsDetector
+    from flowx_border.detectors.code_present import CodePresentDetector
     from flowx_border.detectors.disclosure import DisclosureDetector
     from flowx_border.detectors.internal_domains import InternalDomainsDetector
     from flowx_border.detectors.invisible_text import InvisibleTextDetector
@@ -91,6 +92,7 @@ def _build() -> tuple[dict[str, Detector], frozenset[str]]:
         "internal_domains": InternalDomainsDetector(),
         "output_format": OutputFormatDetector(),
         "postal_code": PostalCodeDetector(),
+        "code_present": CodePresentDetector(),
         "repetition": RepetitionDetector(),
         "summary_support": SummarySupportDetector(),
         # T1. Both share one piiguard session: constructing them does not load weights,

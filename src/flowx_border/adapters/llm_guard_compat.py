@@ -39,6 +39,11 @@ if TYPE_CHECKING:
 SUPPORTED: Final[dict[str, str]] = {
     # Input scanners.
     "Anonymize": "pii",
+    # Listed as unsupported until 2026-08-12, when code_present landed to close exactly
+    # this gap. Both scanners ask the same question and get the same detector: the
+    # difference upstream is which side it runs on, which is a policy choice here.
+    "BanCode": "code_present",
+    "Code": "code_present",
     # Listed as unsupported until 2026-08-12, with a note saying no detector reported
     # these characters yet. One had shipped: invisible_text is T0, in CORE, and covers
     # bidirectional controls, tag characters and zero-width characters. A migration
@@ -89,11 +94,6 @@ NEEDS_POLICY: Final[dict[str, str]] = {
 # error
 #: can say what the gap is instead of only that there is one.
 UNSUPPORTED: Final[dict[str, str]] = {
-    "BanCode": (
-        "no code detector. sql_injection parses generated SQL and says nothing about "
-        "code in any other language, or about whether prose contains a code block."
-    ),
-    "Code": "no code detector, as above.",
     "Language": (
         "no language identification detector. The library supports 26 languages in "
         "every detector rather than gating on which one a text is in."

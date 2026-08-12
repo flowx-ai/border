@@ -92,6 +92,11 @@ MEASURED_MS = {
     # can cost more than this, and that cost belongs to whoever wrote it.
     "output_format": 0.02,
     "postal_code": 0.02,
+    # Six regex searches over the whole text, all of which fail on the reference input
+    # because it is prose. The cheapest detector in the table, and the reason is that a
+    # failing search over 396 characters is close to free. A text full of code costs the
+    # same: the patterns are anchored and none of them backtracks.
+    "code_present": 0.01,
     # Measured with the reference input as its own source, which is the extractive case
     # the detector is for: every sentence has an exact counterpart, so the comparison
     # runs rather than short circuiting. Twenty times the other rules and still a
@@ -328,6 +333,7 @@ RULE_DETECTORS: list[tuple[str, object, DetectorConfig, Context]] = [
     # `summary_support_unverifiable` and returns, so CTX would time the path that does
     # no work. Using the reference input as its own source is the extractive case,
     # where every sentence matches and the comparison runs to completion.
+    ("code_present", None, CFG, CTX),
     (
         "summary_support",
         None,
@@ -344,6 +350,7 @@ def _rule_detector(detector_id: str) -> object:
     assertions must run on a machine with no weights cached.
     """
     from flowx_border.detectors.banned_terms import BannedTermsDetector
+    from flowx_border.detectors.code_present import CodePresentDetector
     from flowx_border.detectors.internal_domains import InternalDomainsDetector
     from flowx_border.detectors.markup_injection import MarkupInjectionDetector
     from flowx_border.detectors.output_format import OutputFormatDetector
@@ -363,6 +370,7 @@ def _rule_detector(detector_id: str) -> object:
         "postal_code": PostalCodeDetector,
         "sql_injection": SqlInjectionDetector,
         "summary_support": SummarySupportDetector,
+        "code_present": CodePresentDetector,
     }[detector_id]()
 
 
