@@ -496,11 +496,15 @@ Three positions a model can occupy here, and each row above wins a different one
 
 So the shipped detector stays a classification head on a small Apache-2.0 base, which is
 what defaults 4 and 6 want anyway, and the corpus that has been the actual blocker gets
-labelled by a model that runs on the training VM with no API spend and no key. Two things
-to check before relying on that: 20B needs roughly 16 GB resident even as MoE, so confirm
-the VM fits it, and its policy-following is evaluated mainly in English, so the 26-language
-claim is ours to establish. A teacher's errors become our labels either way, so a
-human-checked slice is not optional.
+labelled by a model that runs off the scan path with no API spend and no key.
+
+Two constraints on that, one of them already settled. **The current training VM cannot
+host it.** Checked 2026-08-12: `border-train` has 15,360 MiB of GPU memory, and 20B needs
+roughly 16 GB resident even as MoE, so the labelling pass needs a larger instance or a
+CPU run that will be slow rather than impossible. Do not plan the corpus around the VM
+that exists. Second, its policy-following is evaluated mainly in English, so the
+26-language claim is ours to establish rather than to inherit. A teacher's errors become
+our labels either way, so a human-checked slice is not optional.
 
 Recorded rather than deleted, in the pattern this file uses: the licence objection to
 Llama Guard and ShieldGemma was real and `gpt-oss-safeguard` answers it. It is the other
