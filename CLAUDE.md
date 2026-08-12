@@ -512,6 +512,30 @@ in the first minute.
 This is the sixth instance of the pattern named below, and the first where the thing
 agreeing with itself was a diagnosis rather than a score.
 
+**The good news, and it is the part that decides how much of this matters.** Frame
+dependence is not general. Measured the same way across all seven types, nine locales, one
+novel sentence per locale against the generator's own templates:
+
+| entity | own template, label / span | novel sentence, label / span |
+|---|---|---|
+| `PERSON` | 100% / 100% | 100% / 100% |
+| `EMAIL` | 100% / 100% | 100% / 100% |
+| `PHONE` | 100% / 100% | 100% / 100% |
+| `NATIONAL_ID` | 100% / 100% | 100% / 100% |
+| `DATE` | 100% / 100% | 61.3% / 100% |
+| `IBAN` | 100% / 98.4% | 92.9% / 88.0% |
+| `CARD` | 100% / 100% | 13.3% / 23.6% |
+
+Four types are unaffected, `DATE` loses its label but never its span, and the two that
+collapse are exactly the two that carry a checksum, which `checksummed.py` already takes to
+100%. So the library ships correct behaviour on all seven today, and the generator work is
+about the model rather than about a live leak.
+
+**Do not read `NATIONAL_ID` at 100% as strength.** It is the fallback: the model resolves an
+unfamiliar digit run to `NATIONAL_ID`, which is why it never misses one and why 96% of card
+numbers in a novel sentence are labelled as one. Perfect recall, and precision that the same
+measurement shows is poor. The per-language table owes both numbers, not the first one.
+
 Two things follow. The library side is done: `detectors/checksummed.py` finds any Luhn-valid
 PAN and any mod-97-valid IBAN with no model at all, at 100% in all four forms, and overrules
 the tag. So the leak is closed today and stays closed whatever a future model does. The
