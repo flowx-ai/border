@@ -42,8 +42,8 @@ one on, so a caller finds out when they enable it rather than in production.
 | `json_schema` | T1 | output | built | dependency | 5 ms | Output that does not satisfy a JSON Schema the policy carries. Point it at the OpenAPI meta-schema and it validates an OpenAPI document. |
 | `markup_injection` | T1 | input, output | built | nothing beyond a CPU | 5 ms | Markup in the text that a browser would execute rather than display, found through case folding, entity decoding and compatibility folding. |
 | `output_format` | T1 | output | built | nothing beyond a CPU | 5 ms | Shape assertions a policy states: JSON, HTML, URL presence, length in graphemes, word count, case, choices, ranges, a regex, reading time. |
-| `output_leakage` | T1 | output | built | nothing beyond a CPU | 75 ms | Personal data in the output that the user did not supply, which is the narrower and more useful question than whether any is present. |
-| `pii` | T1 | input, output | built | nothing beyond a CPU | 75 ms | Personal data in input or output, as named entity spans with checksum validation where the identifier has one. |
+| `output_leakage` | T1 | output | built | nothing beyond a CPU | 225 ms | Personal data in the output that the user did not supply, which is the narrower and more useful question than whether any is present. |
+| `pii` | T1 | input, output | built | nothing beyond a CPU | 225 ms | Personal data in input or output, as named entity spans with checksum validation where the identifier has one. |
 | `postal_code` | T1 | output | built | nothing beyond a CPU | 5 ms | Postal codes that cannot exist in the countries the product serves: the wrong shape, or outside a published province or department range. |
 | `repetition` | T1 | output | built | nothing beyond a CPU | 5 ms | Sentences the answer says twice, compared over folded text so a change of case or diacritic spelling does not hide a repeat. |
 | `sql_injection` | T1 | output | built | dependency | 5 ms | Generated SQL that does more than the product asked for: a second statement, a forbidden statement kind, a tautology, an unexpected UNION. |

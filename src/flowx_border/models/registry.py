@@ -259,6 +259,19 @@ def local_root() -> Path | None:
     return root if root.is_dir() else None
 
 
+#: Local specs, keyed by model id, because building one hashes the whole weights file. A
+#: 533 MB sha256 is about 240 ms, and `warm()` asks for the attestation, so two
+#: detectors sharing one model hashed it twice: measured 2026-08-12, output_leakage's
+#: warm took 238 ms after piiguard grew from 266 MB to 533, and a test that exists to
+#: prove the second warm reuses the cached session was measuring the second hash
+#: instead. Safe to cache for the life of the process for the same reason the session
+#: cache is:
+#: the file a model id resolves to cannot change while the process runs, and if it did,
+#: the revision this records would be the honest answer for the file that was actually
+#: loaded.
+_LOCAL_SPECS: dict[tuple[str, str, int, int], ModelSpec | None] = {}
+
+
 def local_spec_for(model_id: str) -> ModelSpec | None:
     """A spec for weights found on this machine, or None.
 
@@ -271,6 +284,30 @@ def local_spec_for(model_id: str) -> ModelSpec | None:
     reader of an evidence record must be able to tell "these were the pinned published
     weights" from "this was a file on a laptop".
     """
+    # Keyed by the file's identity rather than by the model id alone. Caching on the id
+    # made the integrity check order-dependent: a test that corrupts a weights file and
+    # expects the loader to refuse passed or failed depending on whether something
+    # earlier in the process had already hashed it. Size and mtime are not a
+    # cryptographic identity, and they do not need to be: they exist to notice that the
+    # file changed, and the sha256 is what is then recomputed and recorded.
+    folder = local_folder(model_id)
+    if folder is None:
+        return None
+    weights = folder / "onnx" / "model.int8.onnx"
+    try:
+        stat = weights.stat()
+    except OSError:
+        return None
+    key = (model_id, str(weights), stat.st_size, stat.st_mtime_ns)
+    if key in _LOCAL_SPECS:
+        return _LOCAL_SPECS[key]
+    spec = _build_local_spec(model_id)
+    _LOCAL_SPECS[key] = spec
+    return spec
+
+
+def _build_local_spec(model_id: str) -> ModelSpec | None:
+    """The uncached body of `local_spec_for`. Hashes the weights file."""
     root = local_root()
     if root is None:
         return None

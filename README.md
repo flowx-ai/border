@@ -177,9 +177,9 @@ rounds.
 | detector | p95 | budget |
 |---|---|---|
 | the eleven rule detectors | 0.01 to 2.02 ms | 1 to 5 ms |
-| `pii`, `output_leakage` | 50 ms | 75 ms |
 | `groundedness` | 61 ms | 300 ms |
 | the seven classifiers | 151 ms | 225 ms |
+| `pii`, `output_leakage` | 153 ms | 225 ms |
 | `topic_scope` | 214 ms | 300 ms |
 
 Two things about those numbers.
@@ -189,11 +189,18 @@ thread, 29.8 at two, 17.8 at four and 12.4 at eight. The default is one, because
 that quietly takes eight cores from the application it is embedded in is worse than a
 library that is honestly slower. A policy can raise it.
 
-**The classifiers cost three times what `pii` costs on the same base model**, and the
-reason is quantisation rather than the head. Quantising every operator to INT8 moved 51 of
-300 decisions, so those exports quantise the embedding matrix only and leave the transformer
-in fp32: 511 MB rather than 266, and 151 ms rather than 51. A decision-safe export costs
-three times a decision-changing one. Recovering the difference is open work.
+**A decision-safe INT8 export costs three times a decision-changing one, and every model here
+now pays it.** Quantising every operator moved 51 of 300 decisions, so these exports quantise
+the embedding matrix only and leave the transformer in fp32: 511 MB rather than 266, and 151 ms
+rather than 51. Measured on 2026-08-12, the recipes in between are no better: anything touching
+MatMul moves probabilities by a p99 of 0.98, which is a different model rather than a quantised
+one. Static quantisation or quantisation-aware training might recover it; op selection does not.
+
+`pii` and `output_leakage` joined that bill on 2026-08-12. They ran at 51 ms on a 266 MB
+artifact that had never been checked against its own weights, and on 120 texts it lost an entity
+on 13 of them, which is a hole in a redaction the caller cannot see. Re-exported with the same
+recipe as the classifiers it loses none, at 153 ms. A PII redactor that silently misses an
+entity is worse than a slow one.
 
 A full output-side scan with everything enabled is roughly 810 ms at the reference length.
 The tier system exists to keep that off the common path.

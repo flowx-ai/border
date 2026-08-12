@@ -78,8 +78,8 @@ CATALOGUE: Final[MappingProxyType[str, Spec]] = MappingProxyType(
         # have legitimate uses are off by default rather than making the detector
         # optional. See its module docstring.
         "invisible_text": Spec("T0", frozenset({INPUT, OUTPUT}), 5.0),
-        "pii": Spec("T1", frozenset({INPUT, OUTPUT}), 75.0),
-        "output_leakage": Spec("T1", frozenset({OUTPUT}), 75.0),
+        "pii": Spec("T1", frozenset({INPUT, OUTPUT}), 225.0),
+        "output_leakage": Spec("T1", frozenset({OUTPUT}), 225.0),
         "gibberish": Spec("T1", frozenset({INPUT}), 225.0),
         # Ported from the Guardrails Hub, 2026-08-11. Rules rather than models, so they
         # sit at T1 with a rule-sized budget. T1 rather than T0 because each can be

@@ -69,8 +69,15 @@ MEASURED_MS = {
     "secrets": 0.04,
     "disclosure": 0.04,
     "invisible_text": 0.04,
-    "pii": 51.0,
-    "output_leakage": 51.0,
+    # 153 rather than the 51 these two measured until 2026-08-12, and the cause is a
+    # correctness fix rather than a regression. piiguard's published INT8 was 266 MB and
+    # had never been checked against its own weights: measured on 120 texts it lost an
+    # entity on 13 of them, which is a hole in a redaction the caller cannot see.
+    # Re-exported with the Gather-only recipe the classifiers use, it loses none, and it
+    # is 533 MB and three times the latency. A PII redactor that silently misses an
+    # entity is worse than a slow one.
+    "pii": 153.0,
+    "output_leakage": 153.0,
     # The four ported from the Guardrails Hub, measured 2026-08-11 on the same machine
     # and the same reference input. All four are rules over folded text, so they cost
     # roughly what the T0 rules cost rather than what an encoder pass costs. The 5 ms
@@ -91,19 +98,13 @@ MEASURED_MS = {
     "sql_injection": 0.22,
     # The seven sequence classifiers, measured 2026-08-11 on the same machine and input.
     # Three times the cost of pii on the same base model at the same length, and the
-    # reason
-    # is the quantisation recipe rather than the head: INT8 over all ops changed 51 of
-    # 300
-    # decisions, so the export quantises the embedding matrix only and leaves the
-    # encoder in
-    # fp32. That is 511 MB against piiguard's 266 and 151 ms against its 51. Recovering
-    # it
-    # means finding the op subset that quantises without moving a decision, which is
-    # queued
-    # on the training side.
-    #
-    # One figure for all seven because they are the same base at the same length and the
-    # differences between them were inside the noise on a busy machine.
+    # reason is the quantisation recipe rather than the head: INT8 over all ops changed
+    # 51 of 300 decisions, so the export quantises the embedding matrix only and leaves
+    # the encoder in fp32. That is 511 MB against piiguard's 266 and 151 ms against its
+    # 51. Recovering it means finding the op subset that quantises without moving a
+    # decision, which is queued on the training side.  One figure for all seven because
+    # they are the same base at the same length and the differences between them were
+    # inside the noise on a busy machine.
     "injection": 151.0,
     "regulated_advice": 151.0,
     "toxicity": 151.0,
@@ -112,8 +113,8 @@ MEASURED_MS = {
     "gibberish": 151.0,
     "politeness": 151.0,
     # T3. Both at the reference input, which for groundedness is one sentence against
-    # one
-    # source, and for topic_scope is the three-node taxonomy in benchmarks/collect.py.
+    # one source, and for topic_scope is the three-node taxonomy in
+    # benchmarks/collect.py.
     "groundedness": 61.0,
     "topic_scope": 214.0,
 }
@@ -656,8 +657,7 @@ def test_sql_injection_is_within_budget_on_a_statement_it_can_parse() -> None:
 
 
 #: The seven sequence classifiers. Nothing measured any of them until 2026-08-11, which
-#: is
-#: why they sat at a 75 ms budget while costing 151: the suite covered pii, the rule
+#: is why they sat at a 75 ms budget while costing 151: the suite covered pii, the rule
 #: detectors and the tiers, and a detector with no assertion has no budget in practice.
 CLASSIFIER_IDS = (
     "injection",
@@ -683,8 +683,8 @@ def test_a_classifier_is_within_budget(detector_id: str) -> None:
 
     side_cfg = DetectorConfig(on_fail="flag")
     # Outside the measurement, because the tokenizer loads on first use and costs 437
+    # ms. Leaving it inside is exactly the mistake that had the collector publishing 362
     # ms.
-    # Leaving it inside is exactly the mistake that had the collector publishing 362 ms.
     detector.run(REFERENCE_INPUT, side_cfg, CTX)
 
     budget = CATALOGUE[detector_id].budget_ms * SCALE
@@ -702,8 +702,8 @@ def test_a_classifier_is_within_budget(detector_id: str) -> None:
 def test_every_classifier_costs_about_the_same() -> None:
     """A machine-independent invariant, which the absolute ceilings are not.
 
-    All seven are the same base model at the same input length, so a spread between
-    them is evidence about something other than the model: a head read the wrong way, a
+    All seven are the same base model at the same input length, so a spread between them
+    is evidence about something other than the model: a head read the wrong way, a
     tokenizer reloaded, a window count that differs. Compared as a ratio inside one
     process, so it holds on a slow runner too.
     """

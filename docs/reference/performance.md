@@ -54,27 +54,27 @@ At a 396 character reference input, 1 thread, CPUExecutionProvider. Romanian pro
 
 | Detector | p95 ms | Budget ms | note |
 |---|---|---|---|
-| `banned_terms` | 0.299 | 5.0 | – |
-| `bias` | 221.277 | 225.0 | – |
-| `disclosure` | 0.051 | 5.0 | – |
-| `gibberish` | 221.812 | 225.0 | – |
-| `groundedness` | 87.180 | 300.0 | – |
-| `injection` | 220.146 | 225.0 | – |
-| `internal_domains` | 0.289 | 5.0 | – |
-| `invisible_text` | 0.048 | 5.0 | – |
-| `json_schema` | 0.002 | 5.0 | – |
-| `markup_injection` | 0.308 | 5.0 | – |
-| `nsfw` | 220.597 | 225.0 | – |
-| `output_format` | 0.002 | 5.0 | – |
-| `output_leakage` | 72.675 | 75.0 | – |
-| `pii` | 72.293 | 75.0 | – |
-| `politeness` | 220.563 | 225.0 | – |
-| `postal_code` | 0.002 | 5.0 | – |
-| `regulated_advice` | 220.964 | 225.0 | – |
-| `repetition` | 0.625 | 5.0 | – |
-| `secrets` | 0.056 | 1.0 | – |
-| `sql_injection` | 0.308 | 5.0 | – |
-| `system_prompt_leakage` | 0.379 | 5.0 | the unconfigured path |
-| `topic_scope` | 305.801 | 300.0 | – |
-| `toxicity` | 221.511 | 225.0 | – |
-| `url_reachability` | 0.009 | 3000.0 | – |
+| `banned_terms` | 0.229 | 5.0 | – |
+| `bias` | 170.899 | 225.0 | – |
+| `disclosure` | 0.035 | 5.0 | – |
+| `gibberish` | 174.526 | 225.0 | – |
+| `groundedness` | 70.239 | 300.0 | – |
+| `injection` | 167.271 | 225.0 | – |
+| `internal_domains` | 0.212 | 5.0 | – |
+| `invisible_text` | 0.032 | 5.0 | – |
+| `json_schema` | 0.001 | 5.0 | – |
+| `markup_injection` | 0.211 | 5.0 | – |
+| `nsfw` | 165.692 | 225.0 | – |
+| `output_format` | 0.001 | 5.0 | – |
+| `output_leakage` | 169.264 | 225.0 | – |
+| `pii` | 168.627 | 225.0 | – |
+| `politeness` | 169.830 | 225.0 | – |
+| `postal_code` | 0.001 | 5.0 | – |
+| `regulated_advice` | 166.290 | 225.0 | – |
+| `repetition` | 0.390 | 5.0 | – |
+| `secrets` | 0.039 | 1.0 | – |
+| `sql_injection` | 0.209 | 5.0 | – |
+| `system_prompt_leakage` | 0.259 | 5.0 | the unconfigured path |
+| `topic_scope` | 231.910 | 300.0 | – |
+| `toxicity` | 163.024 | 225.0 | – |
+| `url_reachability` | 0.007 | 3000.0 | – |

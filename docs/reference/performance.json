@@ -897,7 +897,7 @@
       "tier": "T1"
     },
     "output_leakage": {
-      "budget_ms": 75.0,
+      "budget_ms": 225.0,
       "caveats": [],
       "in_core": true,
       "metrics": null,
@@ -910,7 +910,7 @@
       "tier": "T1"
     },
     "pii": {
-      "budget_ms": 75.0,
+      "budget_ms": 225.0,
       "caveats": [],
       "in_core": true,
       "metrics": null,
@@ -1810,77 +1810,77 @@
   "latency": {
     "per_detector_ms": {
       "banned_terms": {
-        "p95": 0.299
+        "p95": 0.229
       },
       "bias": {
-        "p95": 221.277
+        "p95": 170.899
       },
       "disclosure": {
-        "p95": 0.051
+        "p95": 0.035
       },
       "gibberish": {
-        "p95": 221.812
+        "p95": 174.526
       },
       "groundedness": {
-        "p95": 87.18
+        "p95": 70.239
       },
       "injection": {
-        "p95": 220.146
+        "p95": 167.271
       },
       "internal_domains": {
-        "p95": 0.289
+        "p95": 0.212
       },
       "invisible_text": {
-        "p95": 0.048
+        "p95": 0.032
       },
       "json_schema": {
-        "p95": 0.002
+        "p95": 0.001
       },
       "markup_injection": {
-        "p95": 0.308
+        "p95": 0.211
       },
       "nsfw": {
-        "p95": 220.597
+        "p95": 165.692
       },
       "output_format": {
-        "p95": 0.002
+        "p95": 0.001
       },
       "output_leakage": {
-        "p95": 72.675
+        "p95": 169.264
       },
       "pii": {
-        "p95": 72.293
+        "p95": 168.627
       },
       "politeness": {
-        "p95": 220.563
+        "p95": 169.83
       },
       "postal_code": {
-        "p95": 0.002
+        "p95": 0.001
       },
       "regulated_advice": {
-        "p95": 220.964
+        "p95": 166.29
       },
       "repetition": {
-        "p95": 0.625
+        "p95": 0.39
       },
       "secrets": {
-        "p95": 0.056
+        "p95": 0.039
       },
       "sql_injection": {
-        "p95": 0.308
+        "p95": 0.209
       },
       "system_prompt_leakage": {
         "describes": "the path where the detector reported leakage_unverifiable rather than the path where it does its work, because the reference configuration does not give it what it needs",
-        "p95": 0.379
+        "p95": 0.259
       },
       "topic_scope": {
-        "p95": 305.801
+        "p95": 231.91
       },
       "toxicity": {
-        "p95": 221.511
+        "p95": 163.024
       },
       "url_reachability": {
-        "p95": 0.009
+        "p95": 0.007
       }
     },
     "provider": "CPUExecutionProvider",

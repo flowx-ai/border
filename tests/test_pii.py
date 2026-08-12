@@ -393,8 +393,19 @@ def test_both_detectors_match_the_catalogue(
 def test_findings_carry_the_model_that_produced_them(pii: PiiDetector) -> None:
     # Without this the evidence record cannot say which weights made the decision.
     for finding in pii.run("Marie Dubois called.", REDACT, Context()):
-        assert finding.model_id == "flowxai/piiguard"
-        assert finding.model_revision == "018e7f0355c0576938007c2bbfdd22d9275edbb9"
+        # Either the published repo or a local override, because the override is how the
+        # weights are used before release and piiguard now ships from one: it was
+        # re-exported on 2026-08-12 after its published INT8 was found to lose entities
+        # its own fp32 weights find. What the record must never say is nothing.
+        assert finding.model_id in ("flowxai/piiguard", "local/piiguard")
+        # A commit sha for the published repo, or `local:` plus the leading hex of the
+        # file's own hash for an override. The pattern in types.py admits exactly those
+        # two and nothing else, so a record cannot claim a pinned revision for a file on
+        # a laptop.
+        assert finding.model_revision is not None
+        assert finding.model_revision == "018e7f0355c0576938007c2bbfdd22d9275edbb9" or (
+            finding.model_revision.startswith("local:")
+        )
 
 
 def test_a_finding_never_carries_the_matched_text(pii: PiiDetector) -> None:
@@ -480,6 +491,12 @@ def test_a_corrupted_weight_file_is_refused(
     fake.write_bytes(b"not a model")
     monkeypatch.setattr(registry, "hf_hub_download", None, raising=False)
     monkeypatch.setattr("huggingface_hub.hf_hub_download", lambda **kwargs: str(fake))
+    # The local override has to be out of the way, or `resolve` takes it and never
+    # reaches the published path this test is about. That became live on 2026-08-12 when
+    # piiguard started shipping from an override, and the test silently stopped checking
+    # anything.
+    monkeypatch.setattr(registry, "local_folder", lambda model_id: None)
+    monkeypatch.setattr(registry, "local_spec_for", lambda model_id: None)
     with pytest.raises(registry.ModelUnavailableError, match="hashes to"):
         registry.resolve("piiguard")
 
