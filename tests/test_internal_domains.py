@@ -21,6 +21,7 @@ from flowx_border.detectors.internal_domains import (
     InternalDomainsDetector,
     idn_variants,
 )
+from flowx_border.detectors.multilingual import LANGUAGES as CLAIMED
 from flowx_border.types import Finding
 
 DETECTOR = InternalDomainsDetector()
@@ -286,35 +287,6 @@ LANGUAGES: dict[str, tuple[str, str, str]] = {
         "Bələdçi bu gün wiki.daxili.numune.az ünvanındadır.",
         "Bələdçi paylaşılan diskdədir.",
     ),
-}
-
-CLAIMED = {
-    "az",
-    "bg",
-    "cs",
-    "da",
-    "de",
-    "el",
-    "en",
-    "es",
-    "et",
-    "fi",
-    "fr",
-    "ga",
-    "hr",
-    "hu",
-    "it",
-    "lt",
-    "lv",
-    "mt",
-    "nl",
-    "pl",
-    "pt",
-    "ro",
-    "sk",
-    "sl",
-    "sv",
-    "tr",
 }
 
 

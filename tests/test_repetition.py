@@ -12,6 +12,7 @@ from __future__ import annotations
 import pytest
 
 from flowx_border.detectors.base import Context, DetectorConfig
+from flowx_border.detectors.multilingual import LANGUAGES as CLAIMED
 from flowx_border.detectors.repetition import RepetitionDetector, RepetitionError
 from flowx_border.types import Finding
 
@@ -226,35 +227,6 @@ REPEATS: dict[str, tuple[str, str]] = {
         "Bu gün qalığınız 412 EUR-dur.",
         "Filial doqquzda açılır.",
     ),
-}
-
-CLAIMED = {
-    "az",
-    "bg",
-    "cs",
-    "da",
-    "de",
-    "el",
-    "en",
-    "es",
-    "et",
-    "fi",
-    "fr",
-    "ga",
-    "hr",
-    "hu",
-    "it",
-    "lt",
-    "lv",
-    "mt",
-    "nl",
-    "pl",
-    "pt",
-    "ro",
-    "sk",
-    "sl",
-    "sv",
-    "tr",
 }
 
 

@@ -19,6 +19,7 @@ import unicodedata
 import pytest
 
 from flowx_border.detectors.base import Context, DetectorConfig
+from flowx_border.detectors.multilingual import LANGUAGES as CLAIMED
 from flowx_border.detectors.output_format import (
     DEFAULT_WORDS_PER_MINUTE,
     OutputFormatDetector,
@@ -264,35 +265,6 @@ LANGUAGES: dict[str, str] = {
     "sv": "Ditt saldo är 412 EUR i morse.",
     "tr": "Bakiyeniz bu sabah itibarıyla 412 EUR.",
     "az": "Bu səhər hesabınızdaki qalıq 412 EUR-dur.",
-}
-
-CLAIMED = {
-    "az",
-    "bg",
-    "cs",
-    "da",
-    "de",
-    "el",
-    "en",
-    "es",
-    "et",
-    "fi",
-    "fr",
-    "ga",
-    "hr",
-    "hu",
-    "it",
-    "lt",
-    "lv",
-    "mt",
-    "nl",
-    "pl",
-    "pt",
-    "ro",
-    "sk",
-    "sl",
-    "sv",
-    "tr",
 }
 
 

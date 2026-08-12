@@ -62,6 +62,47 @@ import unicodedata
 from functools import lru_cache
 from typing import Final, Literal, NamedTuple
 
+#: The 26 languages this project supports: the 24 official languages of the EU, plus
+#: Turkish and Azerbaijani, which are not EU. English is already an EU official
+#: language, so the total is 26 rather than 25.
+#:
+#: Here rather than in a test file because it is a fact about the library and every
+#: detector's fixtures are held to it. It was a literal repeated in nine test files
+#: before 2026-08-12, all nine agreeing, which is nine chances for the tenth to disagree
+#: silently. Nothing in this module branches on the value: the folding and the splitting
+#: are meant to behave alike in all of them, and a detector that needed to know which
+#: language it was reading would be the wrong shape.
+LANGUAGES: Final = frozenset(
+    {
+        "az",
+        "bg",
+        "cs",
+        "da",
+        "de",
+        "el",
+        "en",
+        "es",
+        "et",
+        "fi",
+        "fr",
+        "ga",
+        "hr",
+        "hu",
+        "it",
+        "lt",
+        "lv",
+        "mt",
+        "nl",
+        "pl",
+        "pt",
+        "ro",
+        "sk",
+        "sl",
+        "sv",
+        "tr",
+    }
+)
+
 #: The two normalisation forms this module uses. NFD and NFKD are absent because a
 #: decomposed result would reintroduce the combining marks that cluster folding just
 #: resolved.

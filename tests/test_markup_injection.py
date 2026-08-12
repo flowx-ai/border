@@ -19,6 +19,7 @@ import pytest
 
 from flowx_border.detectors.base import Context, DetectorConfig
 from flowx_border.detectors.markup_injection import MarkupInjectionDetector
+from flowx_border.detectors.multilingual import LANGUAGES as CLAIMED
 from flowx_border.types import Finding
 
 DETECTOR = MarkupInjectionDetector()
@@ -203,35 +204,6 @@ CLEAN: dict[str, str] = {
     "sv": "Försäljning & Support bekräftade att 5 < 6 och 7 > 3 i rapporten.",
     "tr": "Satış & Destek raporda 5 < 6 ve 7 > 3 olduğunu doğruladı.",
     "az": "Satış & Dəstək hesabatda 5 < 6 və 7 > 3 olduğunu təsdiqlədi.",
-}
-
-CLAIMED = {
-    "az",
-    "bg",
-    "cs",
-    "da",
-    "de",
-    "el",
-    "en",
-    "es",
-    "et",
-    "fi",
-    "fr",
-    "ga",
-    "hr",
-    "hu",
-    "it",
-    "lt",
-    "lv",
-    "mt",
-    "nl",
-    "pl",
-    "pt",
-    "ro",
-    "sk",
-    "sl",
-    "sv",
-    "tr",
 }
 
 

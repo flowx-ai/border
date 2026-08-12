@@ -19,6 +19,7 @@ import re
 import pytest
 
 from flowx_border.detectors.base import Context, DetectorConfig
+from flowx_border.detectors.multilingual import LANGUAGES as CLAIMED
 from flowx_border.detectors.sql_injection import (
     SqlInjectionDetector,
     SqlInjectionError,
@@ -184,35 +185,6 @@ CLEAN: dict[str, str] = {
     "mt": "SELECT id FROM ibliet WHERE isem = 'Birżebbuġa'",
     "tr": "SELECT id FROM sehirler WHERE ad = 'Şanlıurfa'",
     "az": "SELECT id FROM sheherler WHERE ad = 'Gəncə'",
-}
-
-CLAIMED = {
-    "az",
-    "bg",
-    "cs",
-    "da",
-    "de",
-    "el",
-    "en",
-    "es",
-    "et",
-    "fi",
-    "fr",
-    "ga",
-    "hr",
-    "hu",
-    "it",
-    "lt",
-    "lv",
-    "mt",
-    "nl",
-    "pl",
-    "pt",
-    "ro",
-    "sk",
-    "sl",
-    "sv",
-    "tr",
 }
 
 

@@ -27,6 +27,7 @@ from flowx_border.detectors.invisible_text import (
     category_of,
     decode_tag_characters,
 )
+from flowx_border.detectors.multilingual import LANGUAGES as CLAIMED
 from flowx_border.types import Finding
 
 DETECTOR = InvisibleTextDetector()
@@ -200,35 +201,6 @@ CLEAN: dict[str, str] = {
     "sv": "Ditt saldo är 412 EUR i morse.",
     "tr": "Bakiyeniz bu sabah itibarıyla 412 EUR.",
     "az": "Bu səhər hesabınızdaki qalıq 412 EUR-dur.",
-}
-
-CLAIMED = {
-    "az",
-    "bg",
-    "cs",
-    "da",
-    "de",
-    "el",
-    "en",
-    "es",
-    "et",
-    "fi",
-    "fr",
-    "ga",
-    "hr",
-    "hu",
-    "it",
-    "lt",
-    "lv",
-    "mt",
-    "nl",
-    "pl",
-    "pt",
-    "ro",
-    "sk",
-    "sl",
-    "sv",
-    "tr",
 }
 
 

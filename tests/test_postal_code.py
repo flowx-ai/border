@@ -22,6 +22,7 @@ from __future__ import annotations
 import pytest
 
 from flowx_border.detectors.base import Context, DetectorConfig
+from flowx_border.detectors.multilingual import LANGUAGES as CLAIMED
 from flowx_border.detectors.postal_code import (
     PostalCodeDataError,
     PostalCodeDetector,
@@ -271,35 +272,6 @@ ADDRESSES: dict[str, tuple[str, str, str]] = {
         "Istiklal Caddesi 5, 99010 Istanbul",
     ),
     "az": ("az", "Nizami küçəsi 10, AZ 1000 Baku", "Nizami küçəsi 10, 10005 Baku"),
-}
-
-CLAIMED = {
-    "az",
-    "bg",
-    "cs",
-    "da",
-    "de",
-    "el",
-    "en",
-    "es",
-    "et",
-    "fi",
-    "fr",
-    "ga",
-    "hr",
-    "hu",
-    "it",
-    "lt",
-    "lv",
-    "mt",
-    "nl",
-    "pl",
-    "pt",
-    "ro",
-    "sk",
-    "sl",
-    "sv",
-    "tr",
 }
 
 

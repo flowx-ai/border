@@ -22,6 +22,7 @@ from typing import Any
 import pytest
 
 from flowx_border.detectors.base import Context, DetectorConfig
+from flowx_border.detectors.multilingual import LANGUAGES as CLAIMED
 from flowx_border.detectors.url_reachability import (
     UrlReachabilityDetector,
     UrlReachabilityError,
@@ -150,35 +151,6 @@ IDN_URLS: dict[str, str] = {
     "it": "https://esempio.example/guida",
     "nl": "https://voorbeeld.example/handleiding",
     "en": "https://example.example/guide",
-}
-
-CLAIMED = {
-    "az",
-    "bg",
-    "cs",
-    "da",
-    "de",
-    "el",
-    "en",
-    "es",
-    "et",
-    "fi",
-    "fr",
-    "ga",
-    "hr",
-    "hu",
-    "it",
-    "lt",
-    "lv",
-    "mt",
-    "nl",
-    "pl",
-    "pt",
-    "ro",
-    "sk",
-    "sl",
-    "sv",
-    "tr",
 }
 
 

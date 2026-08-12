@@ -15,6 +15,7 @@ import pytest
 
 from flowx_border.detectors.banned_terms import BannedTermsDetector, BannedTermsError
 from flowx_border.detectors.base import Context, DetectorConfig
+from flowx_border.detectors.multilingual import LANGUAGES as CLAIMED
 from flowx_border.types import Finding
 
 DETECTOR = BannedTermsDetector()
@@ -287,37 +288,6 @@ LANGUAGES: dict[str, tuple[str, str, str]] = {
         "Rəqib şirkət yeni qiymət elan etdi.",
         "Komandamız yeni qiymət elan etdi.",
     ),
-}
-
-#: The 26 the project claims. Repeated here rather than imported so that a language
-#: silently disappearing from a fixture set fails a test instead of shrinking a sweep.
-CLAIMED = {
-    "az",
-    "bg",
-    "cs",
-    "da",
-    "de",
-    "el",
-    "en",
-    "es",
-    "et",
-    "fi",
-    "fr",
-    "ga",
-    "hr",
-    "hu",
-    "it",
-    "lt",
-    "lv",
-    "mt",
-    "nl",
-    "pl",
-    "pt",
-    "ro",
-    "sk",
-    "sl",
-    "sv",
-    "tr",
 }
 
 
