@@ -1,0 +1,203 @@
+# SPDX-License-Identifier: Apache-2.0
+"""Whether a span the model tagged can be the entity type it was tagged as.
+
+Added 2026-08-12 after a held-out evaluation of piiguard found it tagging number words
+in ordinary prose: `nine` as an EMAIL and `five.` as a DATE in English, `nio` as a
+PERSON and `fem.` as a DATE in Swedish. An email address with no `@` in it is not an
+email address, and that is checkable without a model.
+
+**The direction of failure is the whole design.** This runs inside a redactor. A gate
+that drops a real entity turns a false positive into a hole in a redaction, which the
+caller cannot see and which is strictly worse than the noise it was added to remove. So
+the rule is narrow on purpose:
+
+- **Impossible, so dropped.** An EMAIL with no `@`, a DATE with no digit, a CARD with
+  four digits. Nothing that is genuinely one of these can fail these checks, so dropping
+  costs no recall. This is where three of the four measured false positives die.
+- **Merely wrong, so kept and recorded.** An IBAN that fails mod-97, a card number that
+  fails Luhn. A checksum failure is as likely to mean a typo, a test number, or a span
+  the model got the boundary of, and all three of those are still personal data. Redact
+  them and say the checksum did not pass.
+
+The second half is the one worth defending, because a checksum is the strongest signal
+here and not using it to drop looks like waste. It is not: `4111 1111 1111 1112` fails
+Luhn and is obviously still a card number to redact, and a span that clipped an IBAN's
+last character fails mod-97 while still carrying most of an account number.
+
+**PERSON has no shape and gets no check.** A name is any string. One of the four
+measured false positives was a PERSON and it survives this module, which is stated here
+rather than papered over: closing that one needs the corpus to contain sentences with no
+entities in them, which is a training-side fix.
+
+Nothing here is language-specific. Digits, `@` and letter counts mean the same thing in
+all 26, which is why this module has no per-language table and why its tests sweep
+scripts rather than languages.
+"""
+
+from __future__ import annotations
+
+import re
+import unicodedata
+from typing import Final
+
+#: Reported when a span was dropped, one per rejected span, always at `log`. A drop is a
+#: decision the record has to show. Silently removing a finding would leave an evidence
+#: record that is indistinguishable from one where the model found nothing, which is the
+#: no-op this library treats as a vulnerability.
+REJECTED_PREFIX: Final = "pii_shape_rejected_"
+
+#: Reported when a span was kept despite failing its checksum, one per span, at `log`.
+UNVERIFIED_PREFIX: Final = "pii_checksum_failed_"
+
+_DIGITS: Final = re.compile(r"\d")
+#: An address needs a local part, an `@`, and a dot in the domain after it. Deliberately
+#: not a full RFC 5322 pattern: the question is whether this can be an address at all,
+#: and an over-strict pattern here would drop real addresses, which is the failure
+#: direction this module exists to avoid.
+_EMAIL: Final = re.compile(r"[^@\s]@[^@\s]*\.[^@\s]")
+
+#: Sentence punctuation that can sit against an entity without being part of it. A set
+#: of single characters, spelled out so that it reads as a set rather than as the string
+#: it would look like inside a strip() call.
+_TRAILING: Final = "".join(
+    (
+        ".",
+        ",",
+        ";",
+        ":",
+        "!",
+        "?",
+        '"',
+        "'",
+        "(",
+        ")",
+        "[",
+        "]",
+        "\u00ab",
+        "\u00bb",
+        "\u201c",
+        "\u201d",
+    )
+)
+
+
+def _digit_count(value: str) -> int:
+    return sum(1 for character in value if character.isdigit())
+
+
+def _letter_count(value: str) -> int:
+    return sum(1 for character in value if character.isalpha())
+
+
+def luhn_ok(digits: str) -> bool:
+    """The Luhn check for a card number, over the digits only."""
+    body = [int(character) for character in digits if character.isdigit()]
+    if len(body) < 2:
+        return False
+    total = 0
+    for index, digit in enumerate(reversed(body)):
+        if index % 2:
+            digit *= 2
+            if digit > 9:
+                digit -= 9
+        total += digit
+    return total % 10 == 0
+
+
+def iban_ok(value: str) -> bool:
+    """ISO 13616 mod-97, which is 1 for a well formed IBAN.
+
+    Case folded and stripped of separators first, because a caller's text carries the
+    spaced presentation form and the algorithm is defined over the compact one.
+    """
+    compact = "".join(character for character in value.upper() if character.isalnum())
+    if len(compact) < 15 or not compact[:2].isalpha() or not compact[2:4].isdigit():
+        return False
+    rearranged = compact[4:] + compact[:4]
+    total = 0
+    for character in rearranged:
+        if character.isdigit():
+            total = (total * 10 + int(character)) % 97
+        elif character.isalpha():
+            total = (total * 100 + (ord(character) - 55)) % 97
+        else:
+            return False
+    return total == 1
+
+
+def is_possible(entity: str, value: str) -> bool:
+    """Can this text be this entity type at all?
+
+    False only where the answer is no by construction. Anything uncertain returns True
+    and is left to the checksum layer or to the caller, because this decides whether to
+    redact.
+    """
+    # Upper cased because the model's labels are lower case and this module's names are
+    # not. Without this every comparison below missed and the function returned True for
+    # everything, which is a gate that silently does nothing: found on 2026-08-12 when a
+    # DATE span reading `March` survived a check that requires a digit. The unit tests
+    # did not catch it because they called this function directly with the upper case
+    # name, which is why there is now one that goes through the detector.
+    entity = entity.upper()
+    stripped = value.strip()
+    if not stripped:
+        return False
+    # Trailing sentence punctuation is not part of any of these entities and is what the
+    # model attached to `five.` and `fem.`. Stripped before measuring rather than
+    # treated as a rejection, so that `14 March 2024.` is still a date.
+    core = stripped.strip(_TRAILING)
+    if not core:
+        return False
+
+    if entity == "EMAIL":
+        return _EMAIL.search(core) is not None
+    if entity == "DATE":
+        # Every calendar system in the supported set writes a date with at least one
+        # digit. A month name alone is not a date, and `five.` is not a date.
+        return _DIGITS.search(core) is not None
+    if entity == "PHONE":
+        # Five is the floor rather than a realistic minimum: short codes exist, and the
+        # point is to exclude number words and single figures rather than to validate
+        # dialling plans, which differ per country and are the caller's business.
+        return _digit_count(core) >= 5
+    if entity == "CARD":
+        # No card scheme in use has fewer than twelve digits.
+        return _digit_count(core) >= 12
+    if entity == "IBAN":
+        # Two letters for the country and at least four digits, which is shorter than
+        # any real IBAN and is meant to be: the length check belongs to iban_ok, and a
+        # span that clipped an IBAN should be redacted rather than dropped.
+        return _letter_count(core) >= 2 and _digit_count(core) >= 4
+    if entity == "NATIONAL_ID":
+        # Every scheme in the 26 carries at least four digits, including the two that
+        # carry no checksum. Malta's and Azerbaijan's are format-only, which is why this
+        # is a digit count rather than a checksum: see the model card.
+        return _digit_count(core) >= 4
+    if entity == "PERSON":
+        # A name is any string, so there is nothing to check and this module says so
+        # rather than inventing a heuristic. A capitalisation rule was considered and
+        # rejected: it would be wrong in scripts without case, and a lowercase name is a
+        # style choice rather than an impossibility.
+        return True
+    # An entity type this module has not been taught. Kept rather than dropped, because
+    # a new label in the model should not silently stop being redacted.
+    return True
+
+
+def checksum_state(entity: str, value: str) -> bool | None:
+    """True if a checksum passed, False if it failed, None if there is none to run.
+
+    None is not a failure and the caller must not treat it as one. Most of the seven
+    types have no checksum, and `PERSON` never will.
+    """
+    entity = entity.upper()
+    core = "".join(
+        character
+        for character in unicodedata.normalize("NFKC", value)
+        if character.isalnum()
+    )
+    if entity == "CARD":
+        return luhn_ok(core)
+    if entity == "IBAN":
+        return iban_ok(core)
+    return None

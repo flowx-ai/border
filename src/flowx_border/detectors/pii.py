@@ -15,10 +15,10 @@ measured precision or recall behind them. `UNTESTED_LANGUAGES` is exported so a 
 can say so rather than implying 26.
 
 One specific claim not to make: in the training generator, locale `en` is labelled
-United Kingdom but uses the German Steuer-IdNr algorithm as a generic numeric
-fallback. A real UK NINo carries no checksum so a fallback is defensible, but the
-model learned a German-shaped number as a UK identifier. English national IDs are
-not checksum validated.
+United Kingdom but uses the German Steuer-IdNr algorithm as a generic numeric fallback.
+A real UK NINo carries no checksum so a fallback is defensible, but the model learned a
+German-shaped number as a UK identifier. English national IDs are not checksum
+validated.
 
 Offsets, which are the hard part
 --------------------------------
@@ -39,11 +39,11 @@ model output and that:
 Cost
 ----
 
-Measured on an M-series CPU at one thread, INT8: 0.55 ms per token, so 96 tokens
-costs about 55 ms and 16 tokens about 9 ms. Latency is linear in tokens, and
-windowing makes it linear in text length too. That is the property that matters: a
-long document costs proportionally rather than catastrophically. See
-tests/test_budgets.py for the stated budget.
+Measured on an M-series CPU at one thread, INT8: 0.55 ms per token, so 96 tokens costs
+about 55 ms and 16 tokens about 9 ms. Latency is linear in tokens, and windowing makes
+it linear in text length too. That is the property that matters: a long document costs
+proportionally rather than catastrophically. See tests/test_budgets.py for the stated
+budget.
 """
 
 from __future__ import annotations
@@ -52,6 +52,12 @@ import threading
 from typing import TYPE_CHECKING, Final
 
 from flowx_border.detectors.base import INPUT, OUTPUT, Context, DetectorConfig
+from flowx_border.detectors.entity_shapes import (
+    REJECTED_PREFIX,
+    UNVERIFIED_PREFIX,
+    checksum_state,
+    is_possible,
+)
 from flowx_border.types import Finding
 
 if TYPE_CHECKING:
@@ -137,19 +143,16 @@ def _tokenizer(model_id: str = MODEL_ID) -> Tokenizer:
 
         tokenizer = Tokenizer.from_file(str(companion(model_id, "tokenizer.json")))
 
-        # Truncation off, and this is not optional.
-        #
-        # piiguard's published tokenizer.json carries `truncation: {max_length: 96}`
-        # from training. With it left on, `encode` silently returns the first 96 tokens
-        # of any text: measured on 2026-08-11, a 1701 character document encoded to 96
-        # tokens, so windowing never saw past the first paragraph and the rest of the
-        # document was reported clean. That is the worst shape of bug this library can
-        # have, a confident all-clear on text nobody looked at.
-        #
-        # Windowing is this detector's job, done against the full token sequence, so the
-        # tokenizer must hand over all of it. Disabled here, at the single point where
-        # the tokenizer is constructed, rather than at each call site where one omission
-        # would reintroduce it.
+        # Truncation off, and this is not optional.  piiguard's published tokenizer.json
+        # carries `truncation: {max_length: 96}` from training. With it left on,
+        # `encode` silently returns the first 96 tokens of any text: measured on
+        # 2026-08-11, a 1701 character document encoded to 96 tokens, so windowing never
+        # saw past the first paragraph and the rest of the document was reported clean.
+        # That is the worst shape of bug this library can have, a confident all-clear on
+        # text nobody looked at.  Windowing is this detector's job, done against the
+        # full token sequence, so the tokenizer must hand over all of it. Disabled here,
+        # at the single point where the tokenizer is constructed, rather than at each
+        # call site where one omission would reintroduce it.
         tokenizer.no_truncation()
         tokenizer.no_padding()
 
@@ -205,6 +208,48 @@ def _windows(count: int, size: int, overlap: int) -> list[tuple[int, int]]:
     return spans
 
 
+def _join_adjacent(
+    text: str,
+    spans: dict[tuple[int, int], tuple[str, float]],
+) -> dict[tuple[int, int], tuple[str, float]]:
+    """Merge runs of the same entity type separated only by whitespace.
+
+    Added 2026-08-12. The tagger emits `14 March 2024` as three DATE spans rather than
+    one, and until now every one of the three was redacted, so the output happened to be
+    safe. It stopped being safe the moment the shape gate arrived: `March` carries no
+    digit and the gate correctly rejected it, leaving a redaction that read `[DATE]
+    March [DATE]`. The month leaked and the record said the check had run.
+
+    So the fix belongs here rather than in the gate. Joining first means the gate sees
+    `14 March 2024`, which is a date and passes, and a caller redacting on the result
+    covers the whole thing.
+
+    Only whitespace bridges a gap. A comma or the word `and` between two spans means two
+    entities, and merging across those would produce one span covering both, which
+    over-redacts a sentence rather than an entity. The score of a merged span is the
+    lowest of its parts, because a run is only as certain as its weakest token.
+    """
+    out: dict[tuple[int, int], tuple[str, float]] = {}
+    pending: tuple[int, int] | None = None
+    kind = ""
+    score = 1.0
+    for (start, end), (entity, value) in sorted(spans.items()):
+        if (
+            pending is not None
+            and entity == kind
+            and text[pending[1] : start].strip() == ""
+        ):
+            pending = (pending[0], end)
+            score = min(score, value)
+            continue
+        if pending is not None:
+            out[pending] = (kind, score)
+        pending, kind, score = (start, end), entity, value
+    if pending is not None:
+        out[pending] = (kind, score)
+    return out
+
+
 class PiiDetector:
     """NER over ONNX, windowed, with spans that index the caller's string."""
 
@@ -257,8 +302,8 @@ class PiiDetector:
         that was duplicated work for an identical answer.
 
         The cache key is the text and the window geometry, and deliberately not the
-        threshold or the entity list: those filter a result rather than change it.
-        Two entries, which covers the input and output side of one exchange; a scan of a
+        threshold or the entity list: those filter a result rather than change it. Two
+        entries, which covers the input and output side of one exchange; a scan of a
         third text evicts the oldest.
 
         Correctness rests on constraint 6: the same text through the same weights gives
@@ -326,9 +371,9 @@ class PiiDetector:
         """Drop the inference cache.
 
         For measurement, and only for measurement. tests/test_budgets.py calls it
-        between timed iterations. Repeating one text would otherwise turn every
-        reading after the first into a cache hit, and a budget suite that measures
-        cache hits measures nothing while still passing green.
+        between timed iterations. Repeating one text would otherwise turn every reading
+        after the first into a cache hit, and a budget suite that measures cache hits
+        measures nothing while still passing green.
         """
         with self._cache_lock:
             self._cache.clear()
@@ -359,20 +404,53 @@ class PiiDetector:
             ).items()
             if value[0] in wanted
         }
-        return [
-            Finding(
-                detector_id=self.id,
-                tier=self.tier,
-                label=entity,
-                score=round(score, 6),
-                span=span,
-                action=cfg.on_fail,
-                model_id=self.model_id,
-                model_revision=self.model_revision,
+        merged = _join_adjacent(text, merged)
+        validate = bool(cfg.options.get("validate_shapes", True))
+        out: list[Finding] = []
+        for span, (entity, score) in sorted(merged.items()):
+            if score < cfg.threshold:
+                continue
+            value = text[span[0] : span[1]]
+            if validate and not is_possible(entity, value):
+                # Dropped, and recorded. A silently removed finding leaves a record
+                # indistinguishable from one where the model found nothing.
+                out.append(self._noted(f"{REJECTED_PREFIX}{entity.lower()}", span))
+                continue
+            if validate and checksum_state(entity, value) is False:
+                # Kept. A checksum failure is as likely to be a typo, a test number or a
+                # span whose boundary moved, and all three are still personal data. See
+                # detectors/entity_shapes.py for why this does not drop.
+                out.append(self._noted(f"{UNVERIFIED_PREFIX}{entity.lower()}", span))
+            out.append(
+                Finding(
+                    detector_id=self.id,
+                    tier=self.tier,
+                    label=entity,
+                    score=round(score, 6),
+                    span=span,
+                    action=cfg.on_fail,
+                    model_id=self.model_id,
+                    model_revision=self.model_revision,
+                )
             )
-            for span, (entity, score) in sorted(merged.items())
-            if score >= cfg.threshold
-        ]
+        return out
+
+    def _noted(self, label: str, span: tuple[int, int]) -> Finding:
+        """A shape decision, always at `log` and never at the policy's action.
+
+        The caller is told what the gate did without the gate itself being able to block
+        a response. Score 1.0 because it is a fact rather than a confidence.
+        """
+        return Finding(
+            detector_id=self.id,
+            tier=self.tier,
+            label=label,
+            score=1.0,
+            span=span,
+            action="log",
+            model_id=self.model_id,
+            model_revision=self.model_revision,
+        )
 
     # ------------------------------------------------------------------ internals
 
