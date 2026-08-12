@@ -445,6 +445,27 @@ source of truth is `configs/cross/pii_multi.yaml` in the OpenNER training repo, 
 the hub tags need fixing to match. Trained at `max_length: 96`, which is the number to
 quote when anyone asks what input the latency figures describe.
 
+**A 26-locale retrain exists and its score cannot be published.** Finished 2026-08-12 on
+60,000 train and 6,000 test examples, three epochs, and it reported test precision,
+recall, F1 and accuracy of exactly 1.0 at a loss of 1.09e-05. That is not a perfect PII
+tagger, it is a test set the generator wrote. Both splits are drawn from the same fixed
+`LANG_TEMPLATES` with entities slotted in, so "the entity sits at position N of template
+T" is a sufficient rule, and the loss says that is the rule it learned. Human annotators
+do not agree with each other at 1.0 on this task.
+
+So the remaining work on the 26 locales is an evaluation the generator cannot ace, and
+that is the work rather than the training, which is done and whose weights are fetched.
+Either a template set held out of training, or real text. Until one exists, the run has
+no per-language table at all and none of its numbers may reach the model card, because a
+published 1.0 would be a claim about template memorisation.
+
+This is the fifth instance of the same failure in this project: the vacuous single-label
+F1, a latency budget measured through a tokenizer load, Maltese blamed on the base model,
+`groundedness` scoring its own generator's paraphrase style, and now this. The pattern is
+worth naming because it keeps arriving disguised as good news. **A measurement that agrees
+with itself is the default outcome, not the lucky one.** When a number looks better than
+the problem is hard, find what the measurement shares with the thing it measures.
+
 One thing to know before making per-language claims: in the generator, locale `en` is
 labelled United Kingdom but uses the German Steuer-IdNr algorithm as a generic numeric
 fallback. A real UK NINo carries no checksum, so a fallback is defensible, but the
