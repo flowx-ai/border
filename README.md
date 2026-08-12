@@ -288,12 +288,23 @@ The honest list, in rough order of how likely each is to matter to you.
    did until their corpora were rebuilt, which moved them by 0.13 to 0.16 macro F1 without
    touching the models, so treat the remaining four as understated rather than as measured
    ceilings.
-2. **`groundedness` has a model that cannot do its task.** The detector is implemented and
-   correct; the trained model scores string similarity rather than entailment. A verbatim
-   copy of a source reads supported at 0.9998, a paraphrase of the same fact reads
-   contradicted at 0.9988, and so does a strictly weaker claim the source fully supports.
-   An LLM answer paraphrases its sources by definition. The model is therefore not
-   published, the failure is pinned by tests, and the fix is corpus-side.
+2. **`groundedness`'s model reads the sentence, not the source.** The detector is
+   implemented and correct. The model reports 0.882 exact-match accuracy on its own test
+   split, and that number does not mean what it appears to. Swapping a candidate sentence's
+   source for an unrelated passage in another language leaves the verdict unchanged for four
+   of its eight example types: one real paraphrase scores 0.9999 supported against its own
+   source and 0.9999 against a Romanian passage about travel expenses. The corpus leaks its
+   label through the candidate sentence's style, because every generation request asked for
+   ten examples of one type with the type named in the prompt, so each class came out
+   stylistically uniform and the model learned the style.
+
+   What follows is that it handles paraphrases written in that generator's voice and rejects
+   paraphrases written in any other, which is the case that matters, since an LLM paraphrases
+   its sources in its own voice. It also needs near-exact wording: dropping two words from a
+   supported restatement flips it from 0.9999 supported to 0.0002. The model is therefore not
+   published, the behaviour is pinned by four tests, and the fix is a corpus where the same
+   sentence appears against both a source that supports it and one that does not, so style
+   cannot predict the label by construction.
 3. **`piiguard` covers 9 of 26 languages** and was exported before the decision-flip gate
    existed, so its latency and quality numbers come from a file held to a weaker standard
    than the nine trained later.

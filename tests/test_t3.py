@@ -270,27 +270,75 @@ def test_the_label_map_is_checked_against_what_this_detector_means(
     }
 
 
+#: A source of the length the model was trained on, 163 to 1019 characters with a median
+#: of 340. The earlier version of these tests used a single sentence, which is outside
+#: that range, and conflated "the model cannot do this" with "the model has never seen
+#: an input shaped like this". Both turned out to be happening, and they needed
+#: separating.
+PROBE_SOURCE = (
+    "Section 4.2 sets out the terms applicable to the savings account. The account pays"
+    " 3.1 percent annual interest, calculated daily and credited on the last business "
+    "day of each month. Withdrawals made within the first twelve months of opening "
+    "incur a handling fee of 5 EUR per transaction. After twelve months have elapsed, "
+    "withdrawals are free of charge and may be made without notice. The bank reserves "
+    "the right to vary the interest rate with thirty days written notice to the account"
+    " holder."
+)
+
+
+@pytest.mark.parametrize(
+    ("case", "sentence", "expected"),
+    [
+        (
+            "restatement",
+            "After twelve months have elapsed, withdrawals are free of charge.",
+            "supported",
+        ),
+        ("invention", "The account includes free travel insurance.", "unsupported"),
+        (
+            "contradiction",
+            "Withdrawals are free from the day the account opens.",
+            "contradicted",
+        ),
+    ],
+)
+def test_the_cases_the_model_does_get_right(
+    grounded: GroundednessDetector, case: str, sentence: str, expected: str
+) -> None:
+    """Pinned so that fixing the paraphrase failure cannot quietly break these.
+
+    Measured 2026-08-12 against a source of the trained length: a near-verbatim
+    restatement reads supported at 0.9999, an invention reads unsupported, and a real
+    contradiction reads contradicted. Whatever the corpus becomes, it has to keep these.
+    """
+    scored = grounded.judge(PROBE_SOURCE, sentence, 1)
+    assert max(scored, key=lambda label: scored[label]) == expected, (
+        f"{case}: { ({k: round(v, 4) for k, v in scored.items()}) }"
+    )
+
+
 @pytest.mark.xfail(
     reason=(
-        "The trained groundedness model scores string similarity rather than "
-        "entailment. Measured 2026-08-11: a verbatim copy reads supported at 0.9998 "
-        "and a paraphrase of the same fact reads contradicted at 0.9988, as does a "
-        "strictly weaker claim that the source fully supports. An LLM answer "
-        "paraphrases its sources by definition, so this model would flag nearly every "
-        "grounded answer. Its 0.882 exact-match accuracy is real but measures copy "
-        "detection, because the test split shares the corpus flaw: the supported class"
-        " was generated as near-copies. The fix is corpus-side, generating supported "
-        "examples as paraphrases. This is xfail rather than deleted so that "
-        "regenerating the corpus turns it into a signal."
+        "The model generalises inside its generator's style and not outside it, and its"
+        " own test split cannot detect that because the split came from the same "
+        "generator. Measured 2026-08-12: it scores 0.864 on the paraphrase register of "
+        "its test set, whose examples share only 0.165 of their content words with "
+        "their source, so it is demonstrably not counting words. Against a hand-written"
+        " paraphrase of a stated fact, at the same source length, it reads contradicted"
+        " at 0.0013. An LLM answer paraphrases its sources in its own way rather than "
+        "in this generator's way, which is the case that matters. Two earlier readings "
+        "of this were wrong: that the model scores string similarity, disproved by the "
+        "paraphrase and lexical_overlap registers, and that the supported class was "
+        "generated as near-copies, disproved by measuring the overlap. The fix is a "
+        "corpus with stylistic variety plus an evaluation set produced some other way, "
+        "and this xfail is the signal for when that lands."
     ),
     strict=True,
 )
-def test_a_paraphrase_of_the_source_is_supported(
-    grounded: GroundednessDetector,
-) -> None:
+def test_a_hand_written_paraphrase_is_supported(grounded: GroundednessDetector) -> None:
     scored = grounded.judge(
-        "Withdrawals are free after twelve months.",
-        "You can withdraw at no cost once a year has passed.",
+        PROBE_SOURCE,
+        "You can take money out at no cost once a year has gone by.",
         1,
     )
     assert max(scored, key=lambda label: scored[label]) == "supported"
@@ -298,19 +346,62 @@ def test_a_paraphrase_of_the_source_is_supported(
 
 @pytest.mark.xfail(
     reason=(
-        "Same root cause as the paraphrase failure: a claim the source fully supports, "
-        "stated more weakly, reads as contradicted. Kept separate because it is the "
-        "case an operator would hit most often, a summary shorter than its source."
+        "Same root cause as the paraphrase failure and the case an operator meets most "
+        "often, a summary that says less than its source. The source states that early "
+        "withdrawals incur a handling fee; a sentence asserting only that a fee exists "
+        "reads contradicted."
     ),
     strict=True,
 )
-def test_a_weaker_claim_than_the_source_is_supported(
+def test_a_claim_weaker_than_the_source_is_supported(
     grounded: GroundednessDetector,
 ) -> None:
     scored = grounded.judge(
-        "The fee is 5 EUR and applies monthly.", "The fee is 5 EUR.", 1
+        PROBE_SOURCE, "There is a handling fee for early withdrawals.", 1
     )
     assert max(scored, key=lambda label: scored[label]) == "supported"
+
+
+@pytest.mark.xfail(
+    reason=(
+        "Dropping two words flips the verdict. 'After twelve months have elapsed, "
+        "withdrawals are free of charge' reads supported at 0.9999; the same claim as "
+        "'Withdrawals are free of charge after twelve months' reads contradicted at "
+        "0.0002. Same source, same meaning, two fewer words. It is the same root cause "
+        "as the paraphrase failure, in its smallest form."
+    ),
+    strict=True,
+)
+def test_a_restatement_survives_losing_two_words(
+    grounded: GroundednessDetector,
+) -> None:
+    scored = grounded.judge(
+        PROBE_SOURCE, "Withdrawals are free of charge after twelve months.", 1
+    )
+    assert max(scored, key=lambda label: scored[label]) == "supported"
+
+
+def test_a_source_far_shorter_than_the_trained_range_is_a_different_question(
+    grounded: GroundednessDetector,
+) -> None:
+    """Source length matters, separately from style, and this records by how much.
+
+    Measured 2026-08-12: the near-verbatim restatement reads supported at 0.9999 against
+    a 500 character source and contradicted at 0.0001 against a single sentence. The
+    model was trained on 163 to 1019 characters. So a caller passing one retrieved
+    sentence as a source is outside the distribution, and that is worth knowing
+    separately from the style problem, because it is fixable by the caller.
+    """
+    sentence = "After twelve months have elapsed, withdrawals are free of charge."
+    long_source = grounded.judge(PROBE_SOURCE, sentence, 1)
+    short_source = grounded.judge(
+        "Withdrawals are free after twelve months.", sentence, 1
+    )
+    assert max(long_source, key=lambda k: long_source[k]) == "supported"
+    assert max(short_source, key=lambda k: short_source[k]) != "supported", (
+        "a one-sentence source now works, so this limitation has been fixed and the "
+        "note in models/registry.py should be updated"
+    )
 
 
 # -------------------------------------------------------------------- escalation
@@ -476,3 +567,98 @@ def test_the_escalation_record_does_not_read_as_a_detection() -> None:
         default=0.0,
     )
     assert worst == 0.0
+
+
+def test_the_verdict_depends_on_the_source_it_was_given(
+    grounded: GroundednessDetector,
+) -> None:
+    """The measurement that found what is actually wrong with this corpus.
+
+    A groundedness verdict must depend on the source. If swapping the source for an
+    unrelated passage leaves the verdict unchanged, the model is reading the sentence
+    and nothing else, and the accuracy it reports is style classification wearing the
+    name of entailment.
+
+    Measured 2026-08-12 over the test split, fourteen examples per register, each judged
+    against its true source and against a source from a different register in a
+    different language:
+
+        register                 label          right source   unrelated source
+        numeric_contradiction    contradicted           0.93               0.00
+        negation_contradiction   contradicted           0.79               0.00
+        verbatim_support         supported              0.93               0.36
+        lexical_overlap          unsupported            0.93               0.50
+        multi_sentence_support   supported              0.64               0.71
+        unstated_detail          unsupported            0.93               0.79
+        paraphrase               supported              0.86               0.86
+        plausible_invention      unsupported            1.00               0.86
+
+    Four of the eight barely move. `paraphrase` is identical, and
+    `multi_sentence_support` does better with the wrong source than the right one. The
+    corpus leaks its label through the candidate sentence's style, because every request
+    asked for ten items of one register with the register named in the prompt, so each
+    class came out stylistically uniform.
+
+    This asserts the property for the two registers where the model does compare, so the
+    fix cannot regress them, and leaves the leak itself as the xfail below.
+    """
+    supporting = PROBE_SOURCE
+    unrelated = (
+        "Anexa 3 descrie procedura de rambursare a cheltuielilor de deplasare. Cererile"
+        " se depun in termen de treizeci de zile de la incheierea deplasarii, insotite "
+        "de documente justificative. Sumele aprobate se achita prin virament bancar in "
+        "cel mult cincisprezece zile lucratoare de la aprobare."
+    )
+    contradiction = "Withdrawals are free from the day the account opens."
+    assert (
+        max(
+            (scored := grounded.judge(supporting, contradiction, 1)),
+            key=lambda label: scored[label],
+        )
+        == "contradicted"
+    )
+    swapped = grounded.judge(unrelated, contradiction, 1)
+    assert max(swapped, key=lambda label: swapped[label]) != "contradicted", (
+        "a contradiction verdict survived swapping the source, so even the registers "
+        "that did compare have stopped comparing"
+    )
+
+
+@pytest.mark.xfail(
+    reason=(
+        "The leak itself, quantified in the docstring above. A supported verdict for a "
+        "paraphrase survives swapping the source for an unrelated passage in another "
+        "language, which means it was never a judgement about the source. The corpus "
+        "needs the same candidate sentence to appear against both a source that "
+        "supports it and one that does not, so that style cannot predict the label by "
+        "construction. That also needs two changes to the harness: Corpus.add rejects "
+        "the same sentence twice as a label_conflict, which is right for a single-text "
+        "task and backwards for a relational one, and Corpus.write strata by language "
+        "and register, which would put the two halves of such a pair in different "
+        "splits."
+    ),
+    strict=True,
+)
+def test_a_supported_verdict_does_not_survive_an_unrelated_source(
+    grounded: GroundednessDetector,
+) -> None:
+    unrelated = (
+        "Anexa 3 descrie procedura de rambursare a cheltuielilor de deplasare. Cererile"
+        " se depun in termen de treizeci de zile de la incheierea deplasarii, insotite "
+        "de documente justificative."
+    )
+    # A real paraphrase-register sentence from the test split. Against its own source it
+    # scores 0.9999 supported, and against this unrelated Romanian passage about travel
+    # expense reimbursement it also scores 0.9999. Same sentence, same confidence,
+    # nothing in common. Hand-written paraphrases cannot show this because the model
+    # rejects those outright; the leak is specific to sentences written in the
+    # generator's own style.
+    from_the_corpus = (
+        "Sales increased to nearly \u00a32.85 billion in 2023, up from the "
+        "previous year, with operating costs of approximately \u00a31.92 billion "
+        "generating an operating surplus of roughly \u00a3920 million."
+    )
+    scored = grounded.judge(unrelated, from_the_corpus, 1)
+    assert max(scored, key=lambda label: scored[label]) != "supported", (
+        f"p(supported)={scored['supported']:.4f} against an unrelated source"
+    )
