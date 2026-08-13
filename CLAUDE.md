@@ -201,7 +201,7 @@ than prohibitions.
    ShieldGemma are the proof the category is useful. Two things to get right rather than
    to avoid: pin greedy decoding and a seed, or entry 6 breaks and the evidence record
    with it; and give it a budget it can actually meet, since a 1.6B generative pass on
-   CPU is far past the 300 ms T3 ceiling when the 278M encoders cost 51 ms. A
+   CPU is far past the 300 ms T3 ceiling when the 278M encoders cost 151 ms. A
    classification head on a small base answers most of the same questions without
    either problem, so prefer it and say why when you do not.
 5. **Policy is data, not code.** Not a default, a requirement. `policy_hash` pins
@@ -237,8 +237,8 @@ length the model was trained on. Budgets are per detector, per scan, at that inp
 | `secrets` | input | T0 | regex + entropy | 1 ms | 0.04 ms | built |
 | `disclosure` | output | T0 | rule + template match | 5 ms | 0.04 ms | built |
 | `invisible_text` | input, output | T0 | rule | 5 ms | 0.04 ms | built |
-| `pii` | input, output | T1 | NER, XLM-R base ONNX | 75 ms | 51 ms | built |
-| `output_leakage` | output | T1 | NER, reuses `pii` weights | 75 ms | 51 ms | built |
+| `pii` | input, output | T1 | NER, XLM-R base ONNX | 225 ms | 153 ms | built |
+| `output_leakage` | output | T1 | NER, reuses `pii` weights | 225 ms | 153 ms | built |
 | `gibberish` | input | T1 | classifier | 225 ms | 151 ms | built |
 | `banned_terms` | input, output | T1 | policy term list | 5 ms | 0.23 ms | built |
 | `system_prompt_leakage` | output | T1 | containment + phrases | 5 ms | 0.36 ms | built |
@@ -278,22 +278,31 @@ difference means finding the op subset that quantises without moving a decision,
 queued on the training side rather than assumed to exist. Until then the honest statement
 is that a decision-safe export costs three times a decision-changing one.
 
-`piiguard` itself predates the flip gate and was never measured against it, so its 51 ms and
-its quality numbers both come from a file held to a weaker standard than the other nine.
-Running the gate on it is queued.
+**`piiguard`'s 51 ms was withdrawn on 2026-08-12 and this file kept quoting it until
+2026-08-13.** That figure belonged to the published 266 MB INT8 artifact, which was then
+measured against its own fp32 weights for the first time and found to lose an entity
+entirely on 13 of 120 texts and to disagree on 32. A lost entity is a hole in a redaction
+the caller cannot see, in the model behind the two model-backed detectors that run by
+default, so it was re-exported with the Gather-only recipe: 533 MB, zero missed, zero
+invented, and **153 ms**. The budget went to 225 with the same 1.5x headroom the rest of
+the table uses. See commit 5447507, which carries the measurement.
+
+Three places in this file still said 51 afterwards, including the detector table and the
+per-scan total below, and the landing page's hero stat said it too. The lesson is narrow
+and worth stating: a withdrawn number does not leave the document it was written into. When
+a measurement is superseded, grep for it.
 
 **The tier ceilings are not per-scan totals.** A full output-side scan with everything
 wired is one rule check plus six encoder passes: `pii` and `output_leakage` share a single
-pass at 51 ms, and each of the five output-side T2 classifiers is a different model needing
-its own at 151 ms. That is roughly 810 ms at the reference length, not the 310 ms this
-paragraph claimed while the classifiers were unwired and assumed to cost what `pii` costs. The tier system is what keeps that
-off the common path, T2 being disableable and T3 running only on escalation, which is a
-scheduling property rather than a cost one.
+pass at 153 ms, and each of the five output-side T2 classifiers is a different model
+needing its own at 151 ms. That is roughly 910 ms at the reference length, not the 310 ms
+this paragraph claimed while the classifiers were unwired and assumed to cost what `pii`
+costs. The tier system is what keeps that off the common path, T2 being disableable and T3
+running only on escalation, which is a scheduling property rather than a cost one.
 
-Measured today, with `disclosure`, `pii` and `output_leakage` wired: 51.9 ms for the
-output side. It was 116 ms until `output_leakage` stopped repeating `pii`'s encoder pass
-over the same text for the same answer. Sharing the session saved memory; sharing the
-inference saved the time.
+Sharing the inference is still what makes the pair cheap: `output_leakage` reusing `pii`'s
+encoder pass over the same text is one 153 ms pass rather than two. Sharing the session
+saved memory; sharing the inference saved the time.
 
 **Threads buy the old numbers back, and the library will not take them.** Measured at 96
 tokens: 54.7 ms at one thread, 29.8 at two, 17.8 at four, 12.4 at eight. So a 15 ms T1

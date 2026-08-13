@@ -31,36 +31,36 @@ one on, so a caller finds out when they enable it rather than in production.
 
 ## The detectors
 
-| detector | tier | side | status | needs | budget | what it does |
-|---|---|---|---|---|---|---|
-| `disclosure` | T0 | output | built | nothing beyond a CPU | 5 ms | Reports whether an AI disclosure is present in the output, in 26 languages, and records the affirmative as well as the absence. |
-| `invisible_text` | T0 | input, output | built | nothing beyond a CPU | 5 ms | Characters that are in the text but not on the screen: bidirectional controls, tag characters used to smuggle instructions, zero-width characters used to evade filters. |
-| `secrets` | T0 | input | built | nothing beyond a CPU | 1 ms | Credentials in text on its way to the model: named key formats, plus a deliberately conservative entropy rule. |
-| `banned_terms` | T1 | input, output | built | nothing beyond a CPU | 5 ms | Terms the deploying organisation has decided must not appear, matched correctly in 26 languages. The list is policy; none ships. |
-| `code_present` | T1 | input, output | built | nothing beyond a CPU | 5 ms | Source code in text that should be prose, reported as one finding per shape found: a fence, a shebang, a definition, an import, a script tag, a shell invocation. Each carries its own confidence so a policy can act on a fenced block without acting on a line that merely ends in a brace. |
-| `gibberish` | T1 | input | built | nothing beyond a CPU | 225 ms | Input that is not meaningful text. |
-| `internal_domains` | T1 | output | built | nothing beyond a CPU | 5 ms | Internal hostnames appearing in an answer meant for someone outside, in both their Unicode and punycode spellings. |
-| `json_schema` | T1 | output | built | dependency | 5 ms | Output that does not satisfy a JSON Schema the policy carries. Point it at the OpenAPI meta-schema and it validates an OpenAPI document. |
-| `markup_injection` | T1 | input, output | built | nothing beyond a CPU | 5 ms | Markup in the text that a browser would execute rather than display, found through case folding, entity decoding and compatibility folding. |
-| `output_format` | T1 | output | built | nothing beyond a CPU | 5 ms | Shape assertions a policy states: JSON, HTML, URL presence, length in graphemes, word count, case, choices, ranges, a regex, reading time. |
-| `output_leakage` | T1 | output | built | nothing beyond a CPU | 225 ms | Personal data in the output that the user did not supply, which is the narrower and more useful question than whether any is present. |
-| `pii` | T1 | input, output | built | nothing beyond a CPU | 225 ms | Personal data in input or output, as named entity spans with checksum validation where the identifier has one. |
-| `postal_code` | T1 | output | built | nothing beyond a CPU | 5 ms | Postal codes that cannot exist in the countries the product serves: the wrong shape, or outside a published province or department range. |
-| `repetition` | T1 | output | built | nothing beyond a CPU | 5 ms | Sentences the answer says twice, compared over folded text so a change of case or diacritic spelling does not hide a repeat. |
-| `sql_injection` | T1 | output | built | dependency | 5 ms | Generated SQL that does more than the product asked for: a second statement, a forbidden statement kind, a tautology, an unexpected UNION. |
-| `summary_support` | T1 | output | built | nothing beyond a CPU | 5 ms | Whether each sentence of a summary appears in the source it summarises, by string overlap rather than by judgement. Useful for an extractive summary, and not a groundedness check: it says so in its own docstring. |
-| `system_prompt_leakage` | T1 | output | built | nothing beyond a CPU | 5 ms | Whether the answer gave away the instructions the model was operating under, by containment against the system prompt and by phrase match in 26 languages. |
-| `token_limit` | T1 | input, output | built | nothing beyond a CPU | 5 ms | Text longer than the token budget of the model it is going to, counted with a tokenizer the policy names and pins: a local file, whose hash is reported as the revision, or an id already carrying a commit. A bare repo id is refused, because an unpinned count cannot be reproduced. |
-| `bias` | T2 | output | built | nothing beyond a CPU | 225 ms | Output carrying bias related to a protected characteristic. |
-| `injection` | T2 | input | built | nothing beyond a CPU | 225 ms | Attempts to talk the model out of its instructions. |
-| `moderation` | T2 | input, output | trained, but on a seed corpus rather than a training set | nothing beyond a CPU | 150 ms | Thirteen hazard categories in one pass, from violent crime to election misinformation. Replaces the capability Llama Guard and ShieldGemma provide, with weights this project can ship. |
-| `nsfw` | T2 | input, output | built | nothing beyond a CPU | 225 ms | Sexual or otherwise not-safe-for-work content. |
-| `politeness` | T2 | output | built | nothing beyond a CPU | 225 ms | Whether the tone of an answer is acceptable. |
-| `regulated_advice` | T2 | output | built | nothing beyond a CPU | 225 ms | Output that reads as regulated financial, legal or medical advice. |
-| `toxicity` | T2 | input, output | built | nothing beyond a CPU | 225 ms | Abusive or hateful language, in input or output. |
-| `groundedness` | T3 | output | built | nothing beyond a CPU | 300 ms | Whether the claims in an answer are supported by the sources it was given. |
-| `topic_scope` | T3 | input | built | nothing beyond a CPU | 300 ms | Whether a request is inside the subject matter the product covers. |
-| `url_reachability` | T3 | output | built | network | 3000 ms | Whether links in the answer resolve to something that answers, with a deadline and a refusal to request private addresses. |
+| detector | tier | side | status | needs | backing | budget | what it does |
+|---|---|---|---|---|---|---|---|
+| `disclosure` | T0 | output | built | nothing beyond a CPU | rule | 5 ms | Reports whether an AI disclosure is present in the output, in 26 languages, and records the affirmative as well as the absence. |
+| `invisible_text` | T0 | input, output | built | nothing beyond a CPU | rule | 5 ms | Characters that are in the text but not on the screen: bidirectional controls, tag characters used to smuggle instructions, zero-width characters used to evade filters. |
+| `secrets` | T0 | input | built | nothing beyond a CPU | rule | 1 ms | Credentials in text on its way to the model: named key formats, plus a deliberately conservative entropy rule. |
+| `banned_terms` | T1 | input, output | built | nothing beyond a CPU | rule | 5 ms | Terms the deploying organisation has decided must not appear, matched correctly in 26 languages. The list is policy; none ships. |
+| `code_present` | T1 | input, output | built | nothing beyond a CPU | rule | 5 ms | Source code in text that should be prose, reported as one finding per shape found: a fence, a shebang, a definition, an import, a script tag, a shell invocation. Each carries its own confidence so a policy can act on a fenced block without acting on a line that merely ends in a brace. |
+| `gibberish` | T1 | input | built | nothing beyond a CPU | classifier | 225 ms | Input that is not meaningful text. |
+| `internal_domains` | T1 | output | built | nothing beyond a CPU | rule | 5 ms | Internal hostnames appearing in an answer meant for someone outside, in both their Unicode and punycode spellings. |
+| `json_schema` | T1 | output | built | dependency | rule | 5 ms | Output that does not satisfy a JSON Schema the policy carries. Point it at the OpenAPI meta-schema and it validates an OpenAPI document. |
+| `markup_injection` | T1 | input, output | built | nothing beyond a CPU | rule | 5 ms | Markup in the text that a browser would execute rather than display, found through case folding, entity decoding and compatibility folding. |
+| `output_format` | T1 | output | built | nothing beyond a CPU | rule | 5 ms | Shape assertions a policy states: JSON, HTML, URL presence, length in graphemes, word count, case, choices, ranges, a regex, reading time. |
+| `output_leakage` | T1 | output | built | nothing beyond a CPU | ner | 225 ms | Personal data in the output that the user did not supply, which is the narrower and more useful question than whether any is present. |
+| `pii` | T1 | input, output | built | nothing beyond a CPU | ner | 225 ms | Personal data in input or output, as named entity spans with checksum validation where the identifier has one. |
+| `postal_code` | T1 | output | built | nothing beyond a CPU | rule | 5 ms | Postal codes that cannot exist in the countries the product serves: the wrong shape, or outside a published province or department range. |
+| `repetition` | T1 | output | built | nothing beyond a CPU | rule | 5 ms | Sentences the answer says twice, compared over folded text so a change of case or diacritic spelling does not hide a repeat. |
+| `sql_injection` | T1 | output | built | dependency | rule | 5 ms | Generated SQL that does more than the product asked for: a second statement, a forbidden statement kind, a tautology, an unexpected UNION. |
+| `summary_support` | T1 | output | built | nothing beyond a CPU | rule | 5 ms | Whether each sentence of a summary appears in the source it summarises, by string overlap rather than by judgement. Useful for an extractive summary, and not a groundedness check: it says so in its own docstring. |
+| `system_prompt_leakage` | T1 | output | built | nothing beyond a CPU | rule | 5 ms | Whether the answer gave away the instructions the model was operating under, by containment against the system prompt and by phrase match in 26 languages. |
+| `token_limit` | T1 | input, output | built | nothing beyond a CPU | rule | 5 ms | Text longer than the token budget of the model it is going to, counted with a tokenizer the policy names and pins: a local file, whose hash is reported as the revision, or an id already carrying a commit. A bare repo id is refused, because an unpinned count cannot be reproduced. |
+| `bias` | T2 | output | built | nothing beyond a CPU | classifier | 225 ms | Output carrying bias related to a protected characteristic. |
+| `injection` | T2 | input | built | nothing beyond a CPU | classifier | 225 ms | Attempts to talk the model out of its instructions. |
+| `moderation` | T2 | input, output | trained, but on a seed corpus rather than a training set | nothing beyond a CPU | classifier | 150 ms | Thirteen hazard categories in one pass, from violent crime to election misinformation. Replaces the capability Llama Guard and ShieldGemma provide, with weights this project can ship. |
+| `nsfw` | T2 | input, output | built | nothing beyond a CPU | classifier | 225 ms | Sexual or otherwise not-safe-for-work content. |
+| `politeness` | T2 | output | built | nothing beyond a CPU | classifier | 225 ms | Whether the tone of an answer is acceptable. |
+| `regulated_advice` | T2 | output | built | nothing beyond a CPU | classifier | 225 ms | Output that reads as regulated financial, legal or medical advice. |
+| `toxicity` | T2 | input, output | built | nothing beyond a CPU | classifier | 225 ms | Abusive or hateful language, in input or output. |
+| `groundedness` | T3 | output | built | nothing beyond a CPU | classifier | 300 ms | Whether the claims in an answer are supported by the sources it was given. |
+| `topic_scope` | T3 | input | built | nothing beyond a CPU | classifier | 300 ms | Whether a request is inside the subject matter the product covers. |
+| `url_reachability` | T3 | output | built | network | rule | 3000 ms | Whether links in the answer resolve to something that answers, with a deadline and a refusal to request private addresses. |
 
 ## What the non-core detectors ask for
 

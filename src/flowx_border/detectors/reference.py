@@ -24,6 +24,43 @@ from typing import Final, NamedTuple
 
 from flowx_border.detectors.catalogue import CATALOGUE, CORE, REQUIREMENTS
 
+#: What produces a detector's verdict, at the granularity that decides which quality
+#: metric even applies.
+#:
+#: Three values, and the distinction is not cosmetic. `rule` has no operating point,
+#: so a mean F1 is not a property it has. `classifier` has one score per label and a
+#: mean per-language F1 is the right summary. `ner` emits spans, so its quality is per
+#: entity type: span recall, token coverage and how often a span is labelled correctly,
+#: and averaging those into one F1 would be a number no report contains.
+#:
+#: The landing page rendered all three as an empty cell, which understated sixteen
+#: rule detectors, mislabelled `pii` as unmeasured when it is the most heavily measured
+#: model in the set, and let `moderation` sit in the same visual state as both.
+#:
+#: Listed rather than derived, for the reason `_implemented` gives for not calling
+#: `loaded_detectors`: this document is read by outsiders and has to say the same thing
+#: on every machine, and deriving it from which models resolve would make it depend on a
+#: local cache. `test_reference.py` checks the set against the registry.
+BACKING: Final[MappingProxyType[str, str]] = MappingProxyType(
+    {
+        # piiguard, and output_leakage reuses the very same session.
+        "pii": "ner",
+        "output_leakage": "ner",
+        # The seven sequence-classification heads.
+        "toxicity": "classifier",
+        "nsfw": "classifier",
+        "bias": "classifier",
+        "gibberish": "classifier",
+        "politeness": "classifier",
+        "injection": "classifier",
+        "regulated_advice": "classifier",
+        # T3 and the one still without a corpus.
+        "groundedness": "classifier",
+        "topic_scope": "classifier",
+        "moderation": "classifier",
+    }
+)
+
 #: Why a catalogued detector is not loaded. Absent means it is.
 #: These are the states CLAUDE.md's table records, kept here in the vocabulary an
 #: outside reader needs rather than the one the build plan uses.
@@ -159,6 +196,15 @@ class Row(NamedTuple):
     needs: str
     budget_ms: float
     summary: str
+    #: `rule`, `classifier` or `ner`. Which quality metric applies, if any. See BACKING.
+    #:
+    #: Added 2026-08-13 because the landing page rendered an empty accuracy cell for
+    #: nineteen detectors, which reads as "we did not measure this" for seventeen where
+    #: the truth is "a mean F1 is not a property a regex has". `secrets` either matches
+    #: key format or it does not; there is no operating point to score. Conflating that
+    #: with `moderation`, which genuinely has no number yet, understated seventeen
+    #: detectors and overstated the completeness of one.
+    backing: str
 
 
 def _implemented() -> frozenset[str]:
@@ -207,6 +253,7 @@ def rows() -> tuple[Row, ...]:
                 needs=needs,
                 budget_ms=spec.budget_ms,
                 summary=SUMMARIES[detector_id],
+                backing=BACKING.get(detector_id, "rule"),
             )
         )
     return tuple(out)
@@ -242,14 +289,14 @@ def counts() -> dict[str, int]:
 def render_table() -> str:
     """The detector table."""
     lines = [
-        "| detector | tier | side | status | needs | budget | what it does |",
-        "|---|---|---|---|---|---|---|",
+        "| detector | tier | side | status | needs | backing | budget | what it does |",
+        "|---|---|---|---|---|---|---|---|",
     ]
     for row in rows():
         budget = f"{row.budget_ms:g} ms"
         lines.append(
             f"| `{row.detector_id}` | {row.tier} | {row.sides} | {row.status} | "
-            f"{row.needs} | {budget} | {row.summary} |"
+            f"{row.needs} | {row.backing} | {budget} | {row.summary} |"
         )
     return "\n".join(lines)
 

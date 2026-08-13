@@ -171,3 +171,42 @@ def test_the_document_contains_no_forbidden_claim_of_its_own() -> None:
         assert forbidden not in text[:boundary], (
             f"{forbidden!r} appears before the section that forbids it"
         )
+
+
+def test_backing_covers_every_model_backed_detector() -> None:
+    """A new model-backed detector must not silently render as a rule.
+
+    `BACKING` is a hand-maintained map, for the reason its own comment gives: this
+    document is read by outsiders and must say the same thing on every machine, so it
+    cannot be derived from which weights happen to resolve locally. The cost of that
+    choice is that it can fall behind the code, and the thing it would fall behind on is
+    invisible: a model-backed detector missing from the map renders as `rule`, and
+    `rule` is what the landing page uses to print "not a classifier" in that column.
+
+    So the map is checked against the registry rather than trusted. Anything that loads
+    a model has to appear.
+    """
+    from flowx_border.detectors.reference import BACKING
+
+    # The detector ids that resolve a model, named the way the registry names them. Read
+    # from the registry's own model table rather than repeated, so adding a model-backed
+    # detector there is what makes this fail.
+    from flowx_border.models.registry import MODELS, UNPUBLISHED
+
+    model_ids = set(MODELS) | set(UNPUBLISHED)
+    # Detector ids equal model ids for the classifiers and the two T3 detectors. The two
+    # NER detectors share `piiguard`, which is why they are named explicitly.
+    expected = {d for d in CATALOGUE if d in model_ids} | {"pii", "output_leakage"}
+
+    missing = sorted(expected - set(BACKING))
+    assert not missing, (
+        f"{', '.join(missing)} load a model but are absent from BACKING, so they\n"
+        "render as rules and the site prints 'not a classifier'. Add them."
+    )
+
+    stray = sorted(set(BACKING) - set(CATALOGUE))
+    assert not stray, f"BACKING names detectors that are not catalogued: {stray}"
+
+    allowed = {"rule", "classifier", "ner"}
+    wrong = {d: v for d, v in BACKING.items() if v not in allowed}
+    assert not wrong, f"BACKING carries values outside {sorted(allowed)}: {wrong}"
