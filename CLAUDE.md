@@ -587,11 +587,42 @@ harness, same frames:
 | `DATE` | 0.0000 | 0.0000 |
 
 Mislabelled CARD spans fall from 351 to 106 and IBAN from 99 to 56, token coverage stays
-1.0000, and it adds 17 languages. **One caveat before acting on it:** the published model
-was scored through its INT8 graph and the retrain through its safetensors checkpoint, so
-part of the gap could be quantisation rather than training. Export the retrain and re-score
-before adopting. `NATIONAL_ID` and `DATE` are unfixed in both and are the generator's
-remaining work.
+1.0000, and it adds 17 languages.
+
+**The quantisation caveat is settled: it was not quantisation.** Those numbers first came
+from the published model's INT8 graph against the retrain's safetensors checkpoint, which is
+not a fair comparison. The retrain was exported with the Gather-only recipe, passed the span
+gate 120 of 120, and re-scored. Both as INT8, same 1794 rows, the table above is what
+holds, and by axis:
+
+| axis | published | retrain |
+|---|---|---|
+| `neighbour` | 0.286 | 0.563 |
+| `surface_form` | 0.000 | 0.250 |
+| `shape` | 0.971 | 1.000 |
+| `count` | 0.988 | 0.955 |
+
+So **adopt the 26-locale retrain.** Better on CARD, IBAN and PHONE, twice as good on the
+axis that isolates frame dependence, 17 more languages, and zero leaked tokens either way.
+`count` regresses slightly and is the one thing to watch. `NATIONAL_ID` and `DATE` are
+unfixed in both and are the generator's remaining work.
+
+**The export gate had the same flaw as the harness, and finding it mattered.** It first
+refused the export over one text of 120, where fp32 tagged a bare `1111` inside `4111 1111
+1111 1111` as `NATIONAL_ID` and INT8 did not. Over ten Luhn-valid PANs in the same frame
+INT8 matched fp32 on nine, so a twenty-pattern gate was decided by one degenerate
+tokenisation, and the all-ones number is now on its third misleading conclusion here. The
+deeper fault: the gate compared tagger spans while its own docstring committed to comparing
+"the way the library reads spans", and `checksummed.py` is part of that and was missing from
+both sides. It now applies the checksum overrule, and the library is a path dependency of
+the training repo so it can.
+
+**A related finding worth keeping: the tagger covers some PANs very poorly and the library
+does not care.** On `4917 6100 0000 0000` the model covers 4 of 19 characters, on the
+all-ones number 8 of 19, fp32 and INT8 alike, because runs of repeated digits tokenise
+badly. All ten test PANs still come back `[CARD]` fully redacted end to end through
+`scan_output`, because `checksummed.py` finds any Luhn-valid PAN with no model at all. That
+is the design working: the model is the recall net and the checksum is the guarantee.
 
 **And that table measures recall only, which is the limit to hold onto.** Every column above
 asks whether a real entity was found and named. None asks whether something that is not an
