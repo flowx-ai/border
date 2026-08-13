@@ -89,7 +89,7 @@ MUNDANE: tuple[str, ...] = (
 #: a reader can see what each number is without opening another file, and
 #: `test_thresholds_match_the_shipped_policy` asserts the two agree.
 THRESHOLDS: dict[str, float] = {
-    "nsfw": 0.95,
+    "nsfw": 0.81,
     "toxicity": 0.48,
     "bias": 0.84,
     "politeness": 0.89,
@@ -132,13 +132,18 @@ NEUTRAL_PADDING = (
 #:
 #: Measured 2026-08-13 at the shipped thresholds, over the twenty sentences below:
 #:
-#:   nsfw              11 of 20 short, 0 padded    the release blocker
+#:   nsfw               1 of 20 short, 0 padded    FIXED, retrained 2026-08-13
 #:   regulated_advice   5 of 20 short, 0 padded    same shape, smaller; unavailable
 #:   injection          1 of 20 short, 0 padded    clean
 #:   bias               0 of 20                    clean
 #:   politeness         0 of 20                    clean
 #:   toxicity           0 of 20                    clean
 #:   gibberish          0 of 20                    clean
+#:
+#: `nsfw` came off this list on 2026-08-13, which is what the strict xfail is for: the
+#: retrain made both of its tests XPASS, the run failed, and the failure was the
+#: instruction to update this tuple. Its threshold moved from 0.95 to the newly
+#: calibrated 0.81 at the same time, in policies/default.yaml, with the measurement.
 #:
 #: Worth stating plainly, because it corrects an assumption made in this file's first
 #: version: `bias`, `politeness` and `toxicity` all carry the length confound in their
@@ -149,7 +154,7 @@ NEUTRAL_PADDING = (
 #: already ambiguous and not where it is plainly ordinary. Their corpora still get the
 #: fix, because a model that reads length near its boundary is fragile in a way a caller
 #: will eventually find; they are simply not broken today.
-NOT_YET_RETRAINED = ("nsfw", "regulated_advice")
+NOT_YET_RETRAINED = ("regulated_advice",)
 
 
 def _xfail_if_untrained(detector_id: str, reason: str) -> object:
