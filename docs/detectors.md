@@ -53,7 +53,7 @@ one on, so a caller finds out when they enable it rather than in production.
 | `token_limit` | T1 | input, output | built | nothing beyond a CPU | rule | 5 ms | Text longer than the token budget of the model it is going to, counted with a tokenizer the policy names and pins: a local file, whose hash is reported as the revision, or an id already carrying a commit. A bare repo id is refused, because an unpinned count cannot be reproduced. |
 | `bias` | T2 | output | built | nothing beyond a CPU | classifier | 225 ms | Output carrying bias related to a protected characteristic. |
 | `injection` | T2 | input | built | nothing beyond a CPU | classifier | 225 ms | Attempts to talk the model out of its instructions. |
-| `moderation` | T2 | input, output | trained, but on a seed corpus rather than a training set | nothing beyond a CPU | classifier | 150 ms | Thirteen hazard categories in one pass, from violent crime to election misinformation. Replaces the capability Llama Guard and ShieldGemma provide, with weights this project can ship. |
+| `moderation` | T2 | input, output | trained | nothing beyond a CPU | classifier | 150 ms | Thirteen hazard categories in one pass, from violent crime to election misinformation. Replaces the capability Llama Guard and ShieldGemma provide, with weights this project can ship. |
 | `nsfw` | T2 | input, output | built | nothing beyond a CPU | classifier | 225 ms | Sexual or otherwise not-safe-for-work content. |
 | `politeness` | T2 | output | built | nothing beyond a CPU | classifier | 225 ms | Whether the tone of an answer is acceptable. |
 | `regulated_advice` | T2 | output | built | nothing beyond a CPU | classifier | 225 ms | Output that reads as regulated financial, legal or medical advice. |
