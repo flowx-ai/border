@@ -494,11 +494,14 @@ a disclosure where a wrong label is a wrong sentence in a record:
 | hyphenated | 100% | 0.0% | 100% |
 | dotted | 100% | 0.0% | 100% |
 
-So the spaced form, which is the only form the generator has ever emitted, is the one where
-the span breaks: the model tags each group separately and with different labels, and the
-groups either side of a space cannot be joined. IBANs do better, 92.9% labelled and 90.4%
-covered in a novel sentence, because letters mixed with digits are distinctive in a way a
-digit run is not.
+**The conclusion drawn from that table was wrong, and the table itself was measured inside a
+frame that still contained an IBAN.** It said the spaced form is where the span breaks,
+because the model tags each group separately and the groups either side of a space cannot be
+joined. Re-measured on 2026-08-13 in a frame with no IBAN in it, all four notations score
+identically: typed F1 0.0000 and token coverage 1.0000, spaced included. So notation
+explains none of it and the neighbour explains all of it. See the superseded-table section
+below, and note that this is the *seventh* instance of the pattern rather than the sixth,
+because a measurement that varies one thing inside a fixed frame agrees with the frame.
 
 **Two of my own claims here were wrong and are corrected rather than deleted**, because the
 way they were wrong is the useful part. I first recorded the cause as `make_pan` emitting
@@ -512,9 +515,8 @@ in the first minute.
 This is the sixth instance of the pattern named below, and the first where the thing
 agreeing with itself was a diagnosis rather than a score.
 
-**The good news, and it is the part that decides how much of this matters.** Frame
-dependence is not general. Measured the same way across all seven types, nine locales, one
-novel sentence per locale against the generator's own templates:
+**Superseded 2026-08-13 by a wider measurement. The table below is kept because the way it
+was too narrow is the useful part.** It read:
 
 | entity | own template, label / span | novel sentence, label / span |
 |---|---|---|
@@ -526,15 +528,70 @@ novel sentence per locale against the generator's own templates:
 | `IBAN` | 100% / 98.4% | 92.9% / 88.0% |
 | `CARD` | 100% / 100% | 13.3% / 23.6% |
 
-Four types are unaffected, `DATE` loses its label but never its span, and the two that
-collapse are exactly the two that carry a checksum, which `checksummed.py` already takes to
-100%. So the library ships correct behaviour on all seven today, and the generator work is
-about the model rather than about a live leak.
+and concluded "frame dependence is not general, four types are unaffected". Both halves of
+that were artifacts of using one novel sentence per locale. With frames that deliberately
+remove each type's habitual predecessor, run through `border_train.heldout_ner_eval` over
+1794 rows in 26 languages against the INT8 graph that actually ships:
 
-**Do not read `NATIONAL_ID` at 100% as strength.** It is the fallback: the model resolves an
-unfamiliar digit run to `NATIONAL_ID`, which is why it never misses one and why 96% of card
-numbers in a novel sentence are labelled as one. Perfect recall, and precision that the same
-measurement shows is poor. The per-language table owes both numbers, not the first one.
+| entity | typed F1 | exact span | token coverage | mislabelled | leaked tokens |
+|---|---|---|---|---|---|
+| `PERSON` | 0.9995 | 1.0000 | 1.0000 | 0 | 0 |
+| `EMAIL` | 0.9952 | 1.0000 | 1.0000 | 0 | 0 |
+| `PHONE` | 0.9765 | 1.0000 | 1.0000 | 0 | 0 |
+| `IBAN` | 0.5913 | 0.9928 | 1.0000 | 99 | 0 |
+| `CARD` | 0.2539 | 0.8462 | 1.0000 | 351 | 0 |
+| `NATIONAL_ID` | 0.0591 | 1.0000 | 1.0000 | 188 | 0 |
+| `DATE` | 0.0000 | 0.0000 | 1.0000 | 0 | 0 |
+
+**The headline is the last column, and it is zero everywhere.** Not one sensitive token, out
+of thousands across every held-out frame, reaches a caller unredacted. Every gold span is
+fully covered by some predicted span. So the whole of this problem is that the model calls
+things by the wrong name, and none of it is a disclosure. That is the sentence to keep.
+
+Three corrections to the old reading:
+
+- **Frame dependence is general, not CARD-specific.** `PERSON` in a non-initial position
+  scores typed F1 0.5180 with 99 mislabelled spans. It read 100% before because the
+  generator puts `PERSON` first in every template and the old measurement did too, so
+  "unaffected" meant "never asked".
+- **Notation is irrelevant; the frame is everything.** `card_spaced`, `card_compact`,
+  `card_hyphenated` and `card_dotted` all score exactly 0.0000 typed and 1.0000 coverage in
+  a frame with no IBAN. The earlier claim that the spaced form is where the span breaks
+  (41.2% against 100%) was measured inside a frame that still had the IBAN, so it attributed
+  to notation what belongs to the neighbour.
+- **`DATE` is the reverse of what was written here.** Not "loses its label but never its
+  span": exact-offset recall is 0.0000 and coverage is 1.0000, which means the model tags
+  `14`, `March` and `2024` as three separate spans instead of one. A redactor covers the
+  whole date; an evidence record gets three findings where it should have one. `DATE` also
+  produces 624 spurious spans against 208 gold, which is the precision problem, not a recall
+  one.
+
+**Do not read `NATIONAL_ID` at 100% as strength, and the reason is worse than first
+recorded.** Its old 100% came from a harness where no frame ever asked for a national ID, so
+its recall was computed over zero examples while its spurious spans still counted. Asked
+properly it is 0.0962 recall with 449 spurious spans: it is not the class with perfect
+recall and poor precision, it is poor at both, and it is where the model puts any digit run
+it does not recognise.
+
+**The 26-locale retrain is better on every type that matters and should be adopted.** Same
+harness, same frames:
+
+| entity | published nine-locale | 26-locale retrain |
+|---|---|---|
+| `CARD` | 0.2539 | 0.7005 |
+| `IBAN` | 0.5913 | 0.9278 |
+| `PHONE` | 0.9765 | 1.0000 |
+| `EMAIL` | 0.9952 | 0.9988 |
+| `PERSON` | 0.9995 | 0.9995 |
+| `NATIONAL_ID` | 0.0591 | 0.0970 |
+| `DATE` | 0.0000 | 0.0000 |
+
+Mislabelled CARD spans fall from 351 to 106 and IBAN from 99 to 56, token coverage stays
+1.0000, and it adds 17 languages. **One caveat before acting on it:** the published model
+was scored through its INT8 graph and the retrain through its safetensors checkpoint, so
+part of the gap could be quantisation rather than training. Export the retrain and re-score
+before adopting. `NATIONAL_ID` and `DATE` are unfixed in both and are the generator's
+remaining work.
 
 **And that table measures recall only, which is the limit to hold onto.** Every column above
 asks whether a real entity was found and named. None asks whether something that is not an
