@@ -356,22 +356,40 @@ def test_the_checksum_pass_corrects_a_label_the_model_gets_wrong(
     assert found.get("DE89370400440532013000") == "iban"
 
 
-def test_the_model_itself_still_mislabels_and_that_is_the_measurement(
+def test_the_model_labels_an_iban_the_checksum_cannot_vouch_for(
     pii: PiiDetector,
 ) -> None:
-    """The other half: change one digit and the old wrong label is back.
+    """The other half: change one digit so arithmetic cannot help, and read the raw tag.
 
-    `DE89370400440532013001` fails mod-97, so the checksum pass declines it and what
-    reaches the caller is the raw tag. It is still `national_id`, measured 2026-08-12,
-    which is what proves the correction above comes from arithmetic rather than from the
-    model having improved. The day this fails, the model learned IBANs and the note in
-    the detector's docstring needs rewriting.
+    **This test used to assert the opposite, and the day it failed was the point of it.**
+    It read `== "national_id"` and its docstring said "the day this fails, the model
+    learned IBANs". That day was 2026-08-13, when the 26-locale retrain was adopted:
+    held-out IBAN F1 goes 0.5913 to 0.9278, and this text is one of the cases that moved.
 
-    The number is still covered by a span, so this is a wrong label rather than a leak.
+    So the pairing with the test above is inverted from what it was. It was written to
+    prove the correction came from arithmetic rather than from the model, by showing the
+    model still got it wrong wherever mod-97 declined to speak. Now the model gets it
+    right unaided, and what the pair demonstrates instead is that the two mechanisms
+    agree: `checksummed.py` overrules a valid IBAN's tag, and the tag it would have
+    overruled is already correct.
+
+    That is a weaker test than it was, and deliberately kept rather than deleted. The
+    checksum pass is still the guarantee and the model is still only the recall net, so
+    the assertion that matters is `test_the_checksum_pass_corrects_a_label_the_model_gets_wrong`
+    above, which does not depend on the model being right about anything.
+
+    The finding also survives: mod-97 fails, so the detector says so rather than passing
+    a bad number through as a clean IBAN.
     """
     text = "Herr Müller, IBAN DE89370400440532013001."
     found = {value: label for label, value in labels_and_text(pii, text)}
-    assert found.get("DE89370400440532013001") == "national_id"
+    assert found.get("DE89370400440532013001") == "iban"
+
+    # The checksum failure is reported, not swallowed. Without this the test would pass
+    # on a detector that had stopped checking, which is the failure mode the whole
+    # checksum pass exists to prevent.
+    labels = {label for label, _ in labels_and_text(pii, text)}
+    assert "pii_checksum_failed_iban" in labels
 
 
 def test_a_spaced_card_number_is_covered_end_to_end(pii: PiiDetector) -> None:
