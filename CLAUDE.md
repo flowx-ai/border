@@ -120,14 +120,24 @@ way.
 
 **Core** is every detector that needs nothing beyond a CPU and the base install. It runs
 on a laptop with the network interface down, and it is what a caller gets unless they
-enable something else deliberately. As of 2026-08-12 it is twenty-six of the
-twenty-eight.
+enable something else deliberately. **It is twenty-five of the twenty-eight**, corrected
+on 2026-08-13 from a hand-written twenty-six that named only two exceptions and forgot
+`json_schema`.
 
-Two are outside it, and between them they exercise the whole mechanism:
+Worth noting how that was caught, because it is the chain working as designed. The
+landing page generates its detector table from `docs/detectors.md`, which is rendered from
+`detectors/reference.py`, which reads the catalogue. So the site said twenty-five while
+this file said twenty-six, and the code settled it. Do not restate this count by hand;
+read it off `CATALOGUE` the way `deployment_notes` does.
+
+Three are outside it, and between them they exercise the whole mechanism:
 
 - `sql_injection` needs the sqlglot parser, so it declares `requires={"dependency"}`,
   ships in the `sql` extra, and is absent from the registry rather than degraded to a
   pass when that extra is not installed.
+- `json_schema` needs `jsonschema` for the same reason and behaves the same way, in the
+  `schema` extra. It is the one this file kept losing, presumably because validating a
+  caller's own schema feels like it should be free.
 - `url_reachability` makes an HTTP request, so it declares `requires={"network"}`. It is
   T3, it is disabled in both shipped policies, and `tests/test_offline.py` excludes it
   by definition: the claim that a scan works with the interface down is a claim about
