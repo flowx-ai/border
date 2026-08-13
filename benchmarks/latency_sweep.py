@@ -32,7 +32,10 @@ import argparse
 import json
 import os
 import platform
+import re
+import subprocess
 import sys
+import time
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -74,35 +77,114 @@ def _text_of_length(tokens: int, tokenizer: Tokenizer) -> str:
     return text
 
 
-#: Refuse to measure above this one-minute load average per core.
+#: Refuse to measure below this share of idle CPU.
 #:
 #: The first run of this script produced 912 ms at 16 tokens, then 146 at 32, 226 at 64
 #: and 424 at 96: a negative slope, and a 16-token reading six times the cost of a
-#: 96-token one. Nothing was wrong with the code. The machine was at a load average of
-#: 19 on 16 cores, running a 20B labelling job and a VM, and the sweep measured that.
+#: 96-token one. Nothing was wrong with the code, and something else on the machine was
+#: taking the cores.
 #:
 #: `p95` takes the best of several rounds precisely to step over contention, and it was
 #: not enough, because under sustained load every round is contended and the minimum is
-#: inflated too. A best-of-rounds estimator hides a spike; it cannot hide a busy
-#: machine. So the guard is here rather than in the estimator.
+# : inflated too. A best-of-rounds estimator hides a spike; it cannot hide a busy
+# machine.
+#: So the guard is here rather than in the estimator.
 #:
-#: This is the same failure this project keeps writing down, in its cheapest form: the
-#: numbers were internally consistent enough to look like data, and the only thing that
-#: said otherwise was checking what else the machine was doing.
-MAX_LOAD_PER_CORE = 0.4
+#: **Idle CPU, not load average, and the first version of this guard got that wrong.**
+#: It gated on `getloadavg()[0] / cpu_count` above 0.4, which sounds equivalent and is
+# : not. Measured on the machine that motivated the guard: load average 105 over 16
+# cores,
+#: which the old rule scored at 6.6 per core, against a CPU that `top` reported as 76
+# : percent idle with 3 threads running and 1150 sleeping. macOS counts threads blocked
+# in
+#: uninterruptible I/O toward load, so a machine can carry a load average of 100 while
+#: having most of its cores free. The old rule would have refused to measure forever on
+# : exactly the machine it was written for, which is the failure mode where a safety
+# check
+#: becomes a thing people pass --anyway to.
+#:
+#: What made those first numbers bad was cores being taken, so ask about cores directly.
+# : This is the same lesson as everything else in this file: a number that sounds like
+# the
+#: quantity you want is not the quantity you want. Load average sounds like busyness.
+MIN_IDLE_CPU = 0.70
+
+
+#: Read from the platform's own reporter rather than a dependency. `psutil` would be one
+#: package for one number in a script that is not part of the library, and CLAUDE.md is
+#: explicit that a new dependency has to buy something. This buys a subprocess instead.
+def _idle_fraction() -> float | None:
+    """Share of CPU currently idle, or None if this platform cannot be asked.
+
+    `sys.platform` goes through a variable because mypy narrows the literal and then
+    calls whichever branch does not match the checking host dead code.
+    """
+    system = sys.platform
+    if system == "darwin":
+        # `top -l 1` prints one sample; -n 0 suppresses the process list. The first
+        # sample of `top` is cumulative since boot, so -l 2 and the second sample would
+        # be the textbook read, but -l 1 with -n 0 reports the current tick on macOS and
+        # costs a fifth of the time.
+        out = subprocess.run(
+            ["/usr/bin/top", "-l", "1", "-n", "0"],
+            capture_output=True,
+            text=True,
+            timeout=20,
+            check=False,
+        ).stdout
+        match = re.search(r"CPU usage:.*?([\d.]+)%\s+idle", out)
+        return float(match.group(1)) / 100.0 if match else None
+
+    if system.startswith("linux"):
+        # /proc/stat, sampled twice and differenced. The cumulative-since-boot figure is
+        # useless here for the same reason `top`'s first sample is.
+        def _snapshot() -> tuple[int, int]:
+            fields = [
+                int(v)
+                for v in Path("/proc/stat").read_text().split("\n")[0].split()[1:]
+            ]
+            return sum(fields), fields[3] + (fields[4] if len(fields) > 4 else 0)
+
+        total_a, idle_a = _snapshot()
+        time.sleep(IDLE_SAMPLE_SECONDS)
+        total_b, idle_b = _snapshot()
+        spent = total_b - total_a
+        return (idle_b - idle_a) / spent if spent else None
+
+    return None
+
+
+#: How long to sample CPU state on Linux. One instantaneous reading is a coin toss on a
+#: machine with bursty background work.
+IDLE_SAMPLE_SECONDS = 2.0
 
 
 def _refuse_if_busy() -> str | None:
-    """The reason this machine cannot produce a latency figure, or None."""
-    load = os.getloadavg()[0]
-    cores = os.cpu_count() or 1
-    per_core = load / cores
-    if per_core > MAX_LOAD_PER_CORE:
+    """The reason this machine cannot produce a latency figure, or None.
+
+    Falls back to load average where idle CPU cannot be read, and names the measure it
+    used: a refusal nobody can argue with is a refusal they pass --anyway to.
+    """
+    idle = _idle_fraction()
+    if idle is None:
+        load = os.getloadavg()[0]
+        cores = os.cpu_count() or 1
+        # Deliberately loose. This path cannot tell I/O wait from CPU demand, so it
+        # catches only the egregious case rather than pretending to the precision above.
+        if load / cores > 4.0:
+            return (
+                f"load average {load:.1f} over {cores} cores, and idle CPU cannot "
+                f"be read on {sys.platform}. Load counts threads blocked on I/O, so "
+                "this is a weak check. Pass --anyway if the machine is in fact quiet."
+            )
+        return None
+
+    if idle < MIN_IDLE_CPU:
         return (
-            f"load average {load:.1f} over {cores} cores is {per_core:.2f} per core, "
-            f"above {MAX_LOAD_PER_CORE}. A sweep on a busy machine measures the other "
-            "work. Close what is running, or pass --anyway to record a figure that "
-            "must not be published."
+            f"{idle * 100:.0f} percent of CPU is idle, below the "
+            f"{MIN_IDLE_CPU * 100:.0f} percent this needs. Something else is taking "
+            "the cores, and a sweep taken now measures that. Close what is running, "
+            "or pass --anyway to record a figure that must not be published."
         )
     return None
 
