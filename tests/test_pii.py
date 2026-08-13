@@ -361,10 +361,11 @@ def test_the_model_labels_an_iban_the_checksum_cannot_vouch_for(
 ) -> None:
     """The other half: change one digit so arithmetic cannot help, and read the raw tag.
 
-    **This test used to assert the opposite, and the day it failed was the point of it.**
+    **This test used to assert the opposite, and the day it failed was its point.**
     It read `== "national_id"` and its docstring said "the day this fails, the model
     learned IBANs". That day was 2026-08-13, when the 26-locale retrain was adopted:
-    held-out IBAN F1 goes 0.5913 to 0.9278, and this text is one of the cases that moved.
+    held-out IBAN F1 goes 0.5913 to 0.9278, and this text is one of the cases that
+    moved.
 
     So the pairing with the test above is inverted from what it was. It was written to
     prove the correction came from arithmetic rather than from the model, by showing the
@@ -375,7 +376,8 @@ def test_the_model_labels_an_iban_the_checksum_cannot_vouch_for(
 
     That is a weaker test than it was, and deliberately kept rather than deleted. The
     checksum pass is still the guarantee and the model is still only the recall net, so
-    the assertion that matters is `test_the_checksum_pass_corrects_a_label_the_model_gets_wrong`
+    the assertion that matters is
+    `test_the_checksum_pass_corrects_a_label_the_model_gets_wrong`
     above, which does not depend on the model being right about anything.
 
     The finding also survives: mod-97 fails, so the detector says so rather than passing
@@ -432,15 +434,59 @@ def test_a_long_document_is_not_silently_truncated(pii: PiiDetector) -> None:
     assert tokens > 96, f"tokenizer truncated {len(text)} characters to {tokens} tokens"
 
 
-def test_the_untested_languages_are_named_rather_than_implied(pii: PiiDetector) -> None:
-    # 26 supported languages is not 26 tested languages, and the detector has to be able
-    # to say which is which.
-    from flowx_border.detectors.pii import TRAINED_LANGUAGES, UNTESTED_LANGUAGES
+def test_language_coverage_comes_from_the_weights_not_a_constant(
+    pii: PiiDetector,
+) -> None:
+    """26 supported languages is not 26 tested, and the answer is per artifact.
 
-    assert len(TRAINED_LANGUAGES) == 9
-    assert len(UNTESTED_LANGUAGES) == 17
-    assert not TRAINED_LANGUAGES & set(UNTESTED_LANGUAGES)
-    assert len(TRAINED_LANGUAGES | set(UNTESTED_LANGUAGES)) == 26
+    This previously asserted `len(TRAINED_LANGUAGES) == 9` against module constants.
+    Adopting the 26-locale retrain on 2026-08-13 made those constants false without
+    touching them, and the test kept passing, because it compared two hardcoded lists to
+    each other rather than either to the weights. So it is now about the mechanism: a
+    coverage claim is read off the resolved spec, and the unknown case refuses to claim.
+    """
+    from flowx_border.detectors.multilingual import LANGUAGES
+    from flowx_border.detectors.pii import (
+        coverage_note,
+        trained_languages,
+        untested_languages,
+    )
+
+    trained = trained_languages()
+    if trained is None:
+        # A local override. The library cannot establish coverage for a directory of
+        # weights, and the note has to say that rather than borrow the published
+        # artifact's answer.
+        assert untested_languages() is None
+        assert "not recorded" in coverage_note()
+        return
+
+    # The published artifact. Trained and untested must partition the supported set, and
+    # untested is derived rather than listed so this cannot drift the way the pair did.
+    untested = untested_languages()
+    assert untested is not None
+    assert not trained & untested
+    assert trained | untested == LANGUAGES
+    assert str(len(trained)) in coverage_note()
+
+
+def test_the_coverage_note_never_implies_more_than_it_measured(
+    pii: PiiDetector,
+) -> None:
+    """The note must not read as a claim over all 26 unless it is one.
+
+    The failure this guards is the one the site hit twice: writing "26 languages" by a
+    model trained on nine, because the supported count is the number to hand.
+    """
+    from flowx_border.detectors.multilingual import LANGUAGES
+    from flowx_border.detectors.pii import coverage_note, trained_languages
+
+    note = coverage_note()
+    trained = trained_languages()
+    if trained is not None and trained != LANGUAGES:
+        assert "unmeasured" in note
+        # The bare supported count must not appear as the trained count.
+        assert f"trained on {len(LANGUAGES)} of" not in note
 
 
 # ------------------------------------------------------------------------- contract

@@ -67,6 +67,20 @@ class ModelSpec:
     # The token length the model was trained at. Windowing uses it, and the latency
     # figures quoted anywhere have to say which length they describe.
     trained_max_length: int = 96
+    # Languages these particular weights were trained on, or None when that cannot be
+    # established. A property of the artifact, exactly as `trained_max_length` is.
+    #
+    # It lives here rather than as a constant in the detector because the detector's
+    # constant was a claim about one artifact, and it stopped being true the moment
+    # another was loaded. Published `piiguard` covers 9 of the 26; the retrain taken
+    # 2026-08-13 covers all 26. One frozenset cannot be right about both, and it was
+    # silently wrong about whichever was not in front of it.
+    #
+    # None is not "unknown, so assume the best". It means the library cannot say, and
+    # `coverage_note` renders it as a refusal to claim. A weights directory carries no
+    # metadata proving what trained it, and inventing an answer is the forgery that
+    # `local:<sha>` already exists to prevent for revisions.
+    trained_languages: frozenset[str] | None = None
     notes: str = ""
 
     def __post_init__(self) -> None:
@@ -109,6 +123,12 @@ MODELS: Final[dict[str, ModelSpec]] = {
         sha256="d59a4ece4ac6ea69cb97188eb7b1e88d5c87fd97c6d7cb1aa1d57daef830ab5a",
         extra_files=("tokenizer.json", "config.json"),
         trained_max_length=96,
+        # The 9 locales in configs/cross/pii_multi.yaml in the OpenNER training repo,
+        # not the hub tags, which advertise two. The remaining 17 of the supported 26
+        # are untested rather than covered, which is what lets a caller be told which.
+        trained_languages=frozenset(
+            {"en", "ro", "bg", "hu", "sl", "hr", "de", "it", "fr"}
+        ),
         notes=(
             "XLM-RoBERTa base, BIO tagging over 7 entity types (CARD, DATE, "
             "EMAIL, IBAN, NATIONAL_ID, PERSON, PHONE). Trained on 9 locales: "

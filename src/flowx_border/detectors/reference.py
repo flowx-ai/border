@@ -76,7 +76,7 @@ NOT_BUILT: Final[MappingProxyType[str, str]] = MappingProxyType(
         # "trained", not "trained, but on a seed corpus rather than a training set".
         # These strings render as a chip in a table cell on the landing page, and a
         # subordinate clause in a chip is a sentence pretending to be a label. The
-        # reason is not lost: registry.py's UNPUBLISHED entry carries it in full, down to
+        # reason is not lost: registry.py's UNPUBLISHED entry carries it in full, to
         # the 1240 templated English rows and the macro-F1 of 0.472 they produced.
         "moderation": "trained",
     }

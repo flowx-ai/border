@@ -8,11 +8,19 @@ followed by zero or more `I-` tokens of the same type.
 What this detector is honest about
 ----------------------------------
 
-piiguard was trained on 9 of the 26 languages the library supports: en, ro, bg, hu, sl,
-hr, de, it, fr. The other 17 are **untested, not covered**. It will return findings for
-text in them, because the base model is multilingual, and those findings have no
-measured precision or recall behind them. `UNTESTED_LANGUAGES` is exported so a caller
-can say so rather than implying 26.
+Language coverage is a property of the loaded weights, not of this module, and asking is
+`coverage_note()`. The published `piiguard` covers 9 of the 26 the library supports; the
+retrain adopted on 2026-08-13 covers all 26; a local override covers whatever it covers
+and cannot prove it, so the answer there is that no per-language claim can be made.
+
+This used to be two constants here asserting 9 trained and 17 untested, and the retrain
+falsified them without touching them. That is the failure worth remembering: a fact
+about
+an artifact stored where an artifact swap does not reach will go on being stated after
+it
+stops being true. It will return findings in any supported language either way, because
+the base model is multilingual, and an unmeasured finding is unmeasured rather than
+absent.
 
 One specific claim not to make: in the training generator, locale `en` is labelled
 United Kingdom but uses the German Steuer-IdNr algorithm as a generic numeric fallback.
@@ -39,11 +47,17 @@ model output and that:
 Cost
 ----
 
-Measured on an M-series CPU at one thread, INT8: 0.55 ms per token, so 96 tokens costs
-about 55 ms and 16 tokens about 9 ms. Latency is linear in tokens, and windowing makes
-it linear in text length too. That is the property that matters: a long document costs
-proportionally rather than catastrophically. See tests/test_budgets.py for the stated
-budget.
+Measured on an M-series CPU at one thread, INT8: 153 ms at the 87-token reference input,
+against a 225 ms budget. Latency is linear in tokens, and windowing makes it linear in
+text length too. That is the property that matters: a long document costs proportionally
+rather than catastrophically. See tests/test_budgets.py for the reference input, without
+which none of these figures means anything.
+
+Not 0.55 ms per token, which is what this said. That rate belonged to the published
+266 MB INT8 export, withdrawn on 2026-08-12 for losing an entity entirely on 13 of 120
+texts. The Gather-only re-export the library loads is about three times the cost, and
+this
+docstring was the fifth place the withdrawn figure had to be chased out of.
 """
 
 from __future__ import annotations
@@ -59,6 +73,8 @@ from flowx_border.detectors.entity_shapes import (
     checksum_state,
     is_possible,
 )
+from flowx_border.detectors.multilingual import LANGUAGES
+from flowx_border.models.registry import spec_for
 from flowx_border.types import Finding
 
 if TYPE_CHECKING:
@@ -79,36 +95,66 @@ ENTITY_TYPES: Final[tuple[str, ...]] = (
     "phone",
 )
 
-#: The 9 locales piiguard was trained on, from configs/cross/pii_multi.yaml in the
-#: training repo. Not the hub tags, which advertise two.
-TRAINED_LANGUAGES: Final[frozenset[str]] = frozenset(
-    {"en", "ro", "bg", "hu", "sl", "hr", "de", "it", "fr"}
-)
 
-#: The other 17 of the 26. Findings in these are unmeasured, not absent.
-UNTESTED_LANGUAGES: Final[tuple[str, ...]] = tuple(
-    sorted(
-        {
-            "cs",
-            "da",
-            "nl",
-            "el",
-            "es",
-            "et",
-            "fi",
-            "ga",
-            "lv",
-            "lt",
-            "mt",
-            "pl",
-            "pt",
-            "sk",
-            "sv",
-            "tr",
-            "az",
-        }
+def trained_languages(model_id: str = MODEL_ID) -> frozenset[str] | None:
+    """Languages the loaded weights were trained on, or None if that cannot be known.
+
+    A function reading the resolved spec, where this used to be two module constants
+    asserting 9 trained and 17 untested. Those were a claim about one artifact, and the
+    26-locale retrain adopted on 2026-08-13 falsified them without touching them: the
+    constants kept saying 17 languages were untested while the weights in front of them
+    covered all 26. A fact about an artifact cannot live somewhere an artifact swap does
+    not reach.
+
+    None where the spec does not say, which is every local override, because a directory
+    of weights carries no metadata establishing what trained it. That is a refusal
+    rather
+    than a gap: see `coverage_note`.
+    """
+    return spec_for(model_id).trained_languages
+
+
+def untested_languages(model_id: str = MODEL_ID) -> frozenset[str] | None:
+    """Supported languages these weights were not trained on, or None if unknown.
+
+    Derived from `multilingual.LANGUAGES` rather than listed. The list it replaces was a
+    hand-maintained complement of a hand-maintained set, so the two could disagree and
+    only a test comparing their sizes would notice. There is one canonical set of
+    supported languages and this is now arithmetic over it.
+    """
+    trained = trained_languages(model_id)
+    return None if trained is None else LANGUAGES - trained
+
+
+def coverage_note(model_id: str = MODEL_ID) -> str:
+    """One line a caller can print about what these weights cover.
+
+    Exists because "26 supported languages" and "26 tested languages" are different
+    claims and this library is the thing that knows the difference. The unknown case
+    says
+    so in as many words rather than falling back to the published artifact's coverage,
+    which would be the library asserting something about a file it cannot inspect.
+    """
+    trained = trained_languages(model_id)
+    if trained is None:
+        return (
+            f"{model_id}: language coverage is not recorded for these weights, so no "
+            "per-language claim can be made about them. Findings are produced in any "
+            "supported language and none of them is measured."
+        )
+    untested = LANGUAGES - trained
+    if not untested:
+        return (
+            f"{model_id}: trained on all {len(LANGUAGES)} supported languages "
+            f"({', '.join(sorted(trained))})."
+        )
+    return (
+        f"{model_id}: trained on {len(trained)} of {len(LANGUAGES)} supported "
+        "languages "
+        f"({', '.join(sorted(trained))}). Findings in the other {len(untested)} "
+        f"({', '.join(sorted(untested))}) are unmeasured, not absent."
     )
-)
+
 
 #: How many inference results to keep. Two covers the input and the output side of one
 #: exchange, which is the case that matters: `output_leakage` scans the same text `pii`
