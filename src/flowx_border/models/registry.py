@@ -260,7 +260,8 @@ def offline() -> bool:
 
 
 #: Where to look for unreleased weights. A directory holding one folder per model, in
-#: the layout the training repo produces: `<root>/<model>-full/onnx/model.int8.onnx`.
+#: the layout the training repo produces: `<root>/<model>-full/onnx/model.int8.onnx`, or
+#: `model.fp16.onnx` where int8 was not tolerable. See WEIGHT_NAMES.
 LOCAL_DIR_ENV: Final = "FLOWX_BORDER_MODEL_DIR"
 
 #: Specs that `resolve` actually used, keyed by model id. `attestation_for` reads this
@@ -395,7 +396,7 @@ def local_folder(model_id: str) -> Path | None:
     if root is None:
         return None
     for folder in (f"{model_id}-full", model_id, model_id.replace("_", "") + "-full"):
-        if (root / folder / "onnx" / "model.int8.onnx").exists():
+        if _weights_in(root / folder / "onnx") is not None:
             return root / folder
     return None
 
@@ -446,7 +447,7 @@ def available(model_id: str) -> bool:
     if root is None:
         return False
     return any(
-        (root / folder / "onnx" / "model.int8.onnx").exists()
+        _weights_in(root / folder / "onnx") is not None
         for folder in (
             f"{model_id}-full",
             model_id,

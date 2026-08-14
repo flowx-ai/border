@@ -750,8 +750,49 @@ decline are in `docs/porting-guardrails-validators.md`, rendered from
 hand: read them off `PORTED` and `DECLINED`, which is how the numbers in this paragraph
 were found to have drifted from seven and 57.
 
-**`groundedness`, 2026-08-14: the corpus grew five times, pair accuracy went 0.6814 to 0.740,
-and the INT8 export was refused. It stays unavailable in v1.**
+**`groundedness`, 2026-08-15: the corpus grew five times, pair accuracy went 0.6814 to 0.740,
+fp16 solved the export, and the model is still not adopted. The reason is one probe.**
+
+The export problem is solved and worth keeping separately from the decision. int8 was refused
+at a p99 probability drift of 0.07591 against a 0.05 ceiling. fp16 changes 0 decisions of 300
+at a p99 of 0.01288, measures 62.44 ms p95 against a 300 ms T3 budget, and writes a manifest.
+`WEIGHT_NAMES` in `models/registry.py` now accepts either name and refuses a directory holding
+both, since choosing silently would put a file nobody chose into `weights_sha256`.
+
+**What stopped the adoption is `tests/test_t3.py::test_the_cases_the_model_does_get_right`.**
+Against `PROBE_SOURCE`, which says withdrawals incur a 5 EUR fee for twelve months and are
+free only after, the candidate "Withdrawals are free from the day the account opens" scores
+`supported` 0.9906. A clear temporal contradiction, called grounded at 0.99, on a case the
+shipped model gets right.
+
+For this detector that is the worst failure available, and it is worse than what it trades
+against. `contradicted` over-fires at 0.7425 precision and `unsupported` under-recalls at
+0.7512, but both mean "not grounded" and cost a caller caution rather than a missed
+contradiction. `contradicted` recall is 0.9022, so roughly one contradiction in ten is missed
+and this probe is one of them.
+
+The aggregate genuinely is better, and three limitations pinned as strict xfails in
+`test_t3.py` now XPASS: a claim weaker than its source reading contradicted, a restatement
+flipping when two words are dropped, and a one-sentence source being unusable. Read as a
+binary grounded or not, it is also stronger than the three-way figure suggests: 823 supported
+rows at 0.8967 recall give 738 true positives, 738 / 0.9535 precision implies 774 predicted,
+so 36 ungrounded rows were called grounded, 4.4 percent, near 0.926 binary against 0.8615
+three-way.
+
+Kept in `artifacts_local/groundedness-fp16-2026-08-15-not-adopted` with a WHY_NOT_ADOPTED.md,
+and the suggestion recorded there is more epochs or a class weight on `contradicted` before
+assuming the corpus needs more work: `numeric_conflict` and `negation_conflict` hold 3,972 and
+4,066 rows at 0.8787 and 0.9034 register accuracy, so the signal is in the data.
+
+**And I mislabelled the shipping artifact while doing this.** The swap renamed the currently
+adopted model to `groundedness-int8-refused-2026-08-14`, which was false: its manifest reads a
+max logit drift of 0.4391, the adopted export, while the refused one was the 0.2646 built
+today. Caught by reading the manifests rather than the names, which is the same lesson as
+`nsfw-full-preretrain` holding the higher score, in the same directory, on the same day it was
+written down.
+
+The previous entry follows, and its conclusion that the INT8 refusal left groundedness with no
+route was wrong: fp16 is the route, and the blocker is now the model rather than the export.
 
 The corpus is 16,196 examples over 26 languages, 8,098 pairs, every one exactly two rows, at
 60 to 64 examples per language against the 14 to 18 it had. So the per-language numbers are

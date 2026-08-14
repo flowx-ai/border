@@ -1787,10 +1787,10 @@
   "latency": {
     "per_detector_ms": {
       "banned_terms": {
-        "p95": 0.209
+        "p95": 0.215
       },
       "bias": {
-        "p95": 150.82
+        "p95": 150.184
       },
       "code_present": {
         "p95": 0.009
@@ -1799,76 +1799,76 @@
         "p95": 0.035
       },
       "gibberish": {
-        "p95": 151.028
+        "p95": 149.76
       },
       "groundedness": {
-        "p95": 59.627
+        "p95": 59.443
       },
       "injection": {
-        "p95": 150.195
+        "p95": 149.923
       },
       "internal_domains": {
-        "p95": 0.198
+        "p95": 0.199
       },
       "invisible_text": {
         "p95": 0.031
       },
       "json_schema": {
-        "p95": 0.002
+        "p95": 0.001
       },
       "markup_injection": {
-        "p95": 0.205
+        "p95": 0.203
       },
       "nsfw": {
-        "p95": 152.893
+        "p95": 150.161
       },
       "output_format": {
         "p95": 0.001
       },
       "output_leakage": {
-        "p95": 151.052
+        "p95": 151.114
       },
       "pii": {
-        "p95": 151.348
+        "p95": 150.326
       },
       "politeness": {
-        "p95": 150.863
+        "p95": 150.058
       },
       "postal_code": {
         "p95": 0.001
       },
       "regulated_advice": {
-        "p95": 151.576
+        "p95": 150.266
       },
       "repetition": {
-        "p95": 0.378
+        "p95": 0.394
       },
       "secrets": {
-        "p95": 0.036
+        "p95": 0.037
       },
       "sql_injection": {
-        "p95": 0.211
+        "p95": 0.202
       },
       "summary_support": {
-        "p95": 0.699
+        "p95": 0.702
       },
       "system_prompt_leakage": {
         "describes": "the path where the detector reported leakage_unverifiable rather than the path where it does its work, because the reference configuration does not give it what it needs",
-        "p95": 0.236
+        "p95": 0.238
       },
       "token_limit": {
         "describes": "the path where the detector reported token_limit_unconfigured rather than the path where it does its work, because the reference configuration does not give it what it needs",
         "p95": 0.001
       },
       "topic_scope": {
-        "p95": 215.423
+        "p95": 213.3
       },
       "toxicity": {
-        "p95": 152.949
+        "p95": 150.225
       },
       "url_reachability": {
         "describes": "the path where there was nothing to fetch. The reference input contains no URLs, and the suite blocks outbound connections, so this figure excludes the request that is the whole cost of the detector. Its budget is a deadline it enforces on itself rather than a measurement, because it depends on a network the library does not control",
-        "p95": 0.007
+        "p95": 0.006
       }
     },
     "provider": "CPUExecutionProvider",

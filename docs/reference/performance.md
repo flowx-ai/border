@@ -58,30 +58,30 @@ At a 396 character reference input, 1 thread, CPUExecutionProvider. Romanian pro
 
 | Detector | p95 ms | Budget ms | note |
 |---|---|---|---|
-| `banned_terms` | 0.209 | 5.0 | – |
-| `bias` | 150.820 | 225.0 | – |
+| `banned_terms` | 0.215 | 5.0 | – |
+| `bias` | 150.184 | 225.0 | – |
 | `code_present` | 0.009 | 5.0 | – |
 | `disclosure` | 0.035 | 5.0 | – |
-| `gibberish` | 151.028 | 225.0 | – |
-| `groundedness` | 59.627 | 300.0 | – |
-| `injection` | 150.195 | 225.0 | – |
-| `internal_domains` | 0.198 | 5.0 | – |
+| `gibberish` | 149.760 | 225.0 | – |
+| `groundedness` | 59.443 | 300.0 | – |
+| `injection` | 149.923 | 225.0 | – |
+| `internal_domains` | 0.199 | 5.0 | – |
 | `invisible_text` | 0.031 | 5.0 | – |
-| `json_schema` | 0.002 | 5.0 | – |
-| `markup_injection` | 0.205 | 5.0 | – |
-| `nsfw` | 152.893 | 225.0 | – |
+| `json_schema` | 0.001 | 5.0 | – |
+| `markup_injection` | 0.203 | 5.0 | – |
+| `nsfw` | 150.161 | 225.0 | – |
 | `output_format` | 0.001 | 5.0 | – |
-| `output_leakage` | 151.052 | 225.0 | – |
-| `pii` | 151.348 | 225.0 | – |
-| `politeness` | 150.863 | 225.0 | – |
+| `output_leakage` | 151.114 | 225.0 | – |
+| `pii` | 150.326 | 225.0 | – |
+| `politeness` | 150.058 | 225.0 | – |
 | `postal_code` | 0.001 | 5.0 | – |
-| `regulated_advice` | 151.576 | 225.0 | – |
-| `repetition` | 0.378 | 5.0 | – |
-| `secrets` | 0.036 | 1.0 | – |
-| `sql_injection` | 0.211 | 5.0 | – |
-| `summary_support` | 0.699 | 5.0 | – |
-| `system_prompt_leakage` | 0.236 | 5.0 | the unconfigured path |
+| `regulated_advice` | 150.266 | 225.0 | – |
+| `repetition` | 0.394 | 5.0 | – |
+| `secrets` | 0.037 | 1.0 | – |
+| `sql_injection` | 0.202 | 5.0 | – |
+| `summary_support` | 0.702 | 5.0 | – |
+| `system_prompt_leakage` | 0.238 | 5.0 | the unconfigured path |
 | `token_limit` | 0.001 | 5.0 | the unconfigured path |
-| `topic_scope` | 215.423 | 300.0 | – |
-| `toxicity` | 152.949 | 225.0 | – |
-| `url_reachability` | 0.007 | 3000.0 | the unconfigured path |
+| `topic_scope` | 213.300 | 300.0 | – |
+| `toxicity` | 150.225 | 225.0 | – |
+| `url_reachability` | 0.006 | 3000.0 | the unconfigured path |
