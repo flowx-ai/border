@@ -837,7 +837,7 @@ worse rather than better.
 
 **Resolved 2026-08-13 by the retrain, and re-verified 2026-08-14. Read the finding below as
 history, not as the current state.** `nsfw` fires on **1 of the 20 mundane sentences**, not 11,
-and the 55 percent below belonged to the artifact now in `artifacts_local/nsfw-full-preretrain`.
+and the 55 percent below belonged to the artifact now in `artifacts_local/nsfw-full-rebuild-superseded`.
 The adopted retrain in `nsfw-full` is the fix, and it cost macro F1: 0.918 against the
 rebuild's 0.976, at a calibrated 0.81 against 0.95. That trade is the right way round for a
 guardrail and is the reason the shipped score is the lower one.
@@ -960,7 +960,7 @@ language, nothing about either model or its training changed, and:
 | `gibberish` | 78 to 276 | 0.834 to 0.966 | 0.400 to 0.870 |
 
 **`nsfw`'s 0.976 was superseded on 2026-08-13 and the shipped figure is 0.918.** The rebuild
-that scored 0.976 now sits in `artifacts_local/nsfw-full-preretrain`, and the adopted retrain in
+that scored 0.976 now sits in `artifacts_local/nsfw-full-rebuild-superseded`, and the adopted retrain in
 `nsfw-full` scores 0.918 with a worst language of 0.588 in Maltese, on 220 positives at
 threshold 0.81. The row above is kept because the paragraph is about what corpus size bought,
 and that is still what it bought.
@@ -973,6 +973,18 @@ it, and the eight unchanged detectors are what made the one change trustworthy.
 
 `policies/default.yaml` was already correct at 0.81 with the measurement beside it, so the
 library's behaviour never lagged. Only the published numbers did.
+
+**Two things changed so it cannot happen the same way twice.**
+`tests/test_performance.py::test_the_published_scores_still_match_the_reports_they_came_from`
+recomputes every published macro from the reports in `artifacts_read_from`, which the file
+records about itself, so a swapped artifact fails in the suite. It skips where the artifacts
+are absent, which is CI, so it guards the machine where collection happens and therefore
+where the drift is introduced. And the directory was renamed from `nsfw-full-preretrain`,
+which held the *higher* score while sounding like the older model, to
+`nsfw-full-rebuild-superseded`, matching the `-superseded` suffix already on `bias-full`,
+`injection-full` and `politeness-full`. **A suffix in that directory says whether an artifact
+was superseded, never merely when it was trained**, because "before the retrain" is a fact
+about chronology and gives a reader nothing to act on.
 
 Maltese went from 0.000 to 1.000 in `nsfw`, which is the number that disproved this file's own
 claim that the pretraining gap bounded it. Four detectors still sit on single-digit
