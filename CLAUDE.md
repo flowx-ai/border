@@ -812,6 +812,36 @@ Seventh instance of the pattern, and the one that would have shipped. The fix is
 negatives in the corpus and a retrain, not a threshold: at the calibrated 0.95 it still
 fires on 11 of 20.
 
+**The corpus half of that fix landed on 2026-08-14. The model half has not, so the detector
+is still broken.** Say it that way round, because a regenerated corpus reads like a fixed
+detector and is not one. What exists now is `data/nsfw_{train,val,test}.jsonl`, 9,969
+examples over 26 languages, and it addresses both faults the diagnosis named:
+
+| what was wrong | what the corpus holds now |
+|---|---|
+| every negative a hard negative, mundane text absent | three `mundane_*` registers, 2,180 rows, 30% of negatives |
+| positives systematically shorter than negatives | `length_separation` 0.510 / 0.489, against 0.964 before |
+| one burst of failures starved one language | positives per language min 94, median 104, max 106 |
+
+The mundane registers are shared in `simple_label.py` rather than written per detector, so
+`toxicity`, `bias`, `politeness` and `gibberish` each get the same 2,184 mundane examples and
+the same four length bands across 26 languages. That is deliberate: the same mundane sentence
+is a negative for all five, and one shared set is what stops the next corpus from repeating
+this detector's mistake.
+
+**The held-out test was checked for contamination before being trusted, and that check is the
+point.** The post-retrain measurement is the same 20 mundane sentences in
+`tests/test_classifier_robustness.py`. A corpus that now deliberately contains mundane prose
+is exactly a corpus that could contain those sentences, and then the retrain would score its
+own training data and report the fix regardless of whether it worked. Measured: no exact
+match, and the highest 4-gram containment of any test sentence in any corpus row is 0.25, on
+a parcel-delivery sentence that shares the domain and not the wording. So the test still
+tests something.
+
+That check found nothing, which is the outcome to expect and not the reason to skip it. This
+file's own pattern is that a measurement agreeing with itself is the default outcome; the 20
+sentences would have agreed with a contaminated corpus just as readily.
+
 **A separate finding from the same run: the shipped policies ignored the calibration.**
 `toxicity`, `nsfw`, `bias` and `politeness` all carried hand-picked thresholds in
 `policies/default.yaml` well below the value each model's `calibration.json` chose on its
