@@ -317,3 +317,67 @@ def test_every_built_detector_has_a_latency_figure(performance: dict[str, Any]) 
     # weights available from the machine that generated the file.
     built = {n for n, e in performance["detectors"].items() if e["status"] == "built"}
     assert built <= measured or not loaded_detectors(), sorted(built - measured)
+
+
+def test_the_published_scores_still_match_the_reports_they_came_from(
+    performance: dict[str, Any],
+) -> None:
+    """The file must not describe an artifact that has since been replaced.
+
+    Every other test here checks `performance.json` against itself: that a score
+    carries its sample size, that a zero explains itself, that the markdown agrees
+    with the JSON. All of those pass on a file that is internally perfect and
+    describes a model nobody ships, which is what happened.
+
+    `nsfw` was collected at macro 0.9755, the artifact under `nsfw-full` was then
+    replaced by a retrain scoring 0.9179, and this file kept publishing the old
+    figure. The README quoted it from here, so a stale number reached a document
+    whose whole claim is that its figures are generated. Nothing failed, because
+    nothing compared the file to its source.
+
+    So this reads `artifacts_read_from`, which the file records about itself, and
+    asks the generator to recompute from the reports on disk. A swapped artifact
+    fails here rather than in a README review.
+
+    Skips when the artifacts are absent, which is the normal case in CI and on a
+    machine that has not fetched them. That is a real limit: it catches the drift
+    on the machine that can see both, not on the one that cannot. It is still the
+    only place the comparison is possible, because the reports are not in this
+    repository.
+    """
+    recorded = performance.get("artifacts_read_from")
+    if not recorded:
+        pytest.skip("the file names no artifacts directory, so nothing to check")
+    artifacts = Path(recorded)
+    if not artifacts.is_dir():
+        pytest.skip(f"{artifacts} is not present on this machine")
+
+    import sys
+
+    sys.path.insert(0, str(REPO / "benchmarks"))
+    from collect import quality_for  # type: ignore[import-not-found]
+
+    drifted = []
+    for name, entry in sorted(performance["detectors"].items()):
+        published = entry.get("metrics")
+        if not published:
+            continue
+        fresh = quality_for(artifacts, name)
+        if fresh is None:
+            drifted.append(
+                f"{name}: published {published['macro']}, now no report at all"
+            )
+            continue
+        if fresh.get("macro") != published.get("macro"):
+            drifted.append(
+                f"{name}: published {published['macro']}, "
+                f"the report on disk now gives {fresh.get('macro')}"
+            )
+
+    assert not drifted, (
+        "docs/reference/performance.json disagrees with the eval reports it was "
+        "generated from, so a published score describes a superseded artifact:\n  "
+        + "\n  ".join(drifted)
+        + "\nRe-run `uv run python benchmarks/collect.py --artifacts "
+        f"{artifacts}` and update whatever quotes the changed figure."
+    )
