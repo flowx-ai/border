@@ -224,8 +224,8 @@ column.**
 | `injection` | F1 | 0.969 | 0.867 | 355 positives |
 | `gibberish` | F1 | 0.966 | 0.870 | 276 positives |
 | `politeness` | F1 | 0.962 | 0.788 | 392 positives |
-| `toxicity` | F1 | 0.960 | 0.400 | 104 positives |
-| `bias` | F1 | 0.957 | 0.867 | 398 positives |
+| `toxicity` | F1 | 0.992 | 0.950 | 518 positives |
+| `bias` | F1 | 0.977 | 0.824 | 264 positives |
 | `groundedness` | exact match | 0.882 | 0.636 | 479 evaluated |
 | `topic_scope` | top-1 accuracy | 0.865 | 0.375 | 175 evaluated |
 
@@ -248,10 +248,32 @@ support stayed at two to seven examples. `toxicity` is the useful case to read c
 macro did not move, because 0.960 was already close to right; what moved is the tail, and the
 old figure was an estimate on four positives per language rather than a measurement.
 
-`toxicity`'s row above still shows the old numbers, and deliberately. Its rebuilt model exists
-but its INT8 export was refused by the decision-flip gate at a margin of 0.0687 against a 0.02
-band, so the previously verified model is the one that ships. A better number that cannot be
-exported safely is not a number this library will publish.
+**`toxicity` is resolved, and it took a third attempt.** Its row above said 0.960 for a long
+time because the rebuilt model existed and its INT8 export was refused by the decision-flip
+gate at a margin of 0.0687 against a 0.02 band, so the previously verified model kept
+shipping: a better number that cannot be exported safely is not a number this library will
+publish.
+
+The corpus was regenerated on 2026-08-14 with the shared mundane registers and length bands,
+and the model retrained on it exports cleanly at 0/300 decisions changed. So this row moved
+for the reason the whole exercise predicted, which is worth stating because it was an open
+question rather than a foregone one:
+
+| | before | after |
+|---|---|---|
+| mean per-language F1 | 0.960 | 0.992 |
+| worst language | 0.400 | 0.950 (`sv`) |
+| positives per language | about 4 | 197 to 209 |
+| INT8 flip gate | refused at 0.0687 | passed, 0/300, max drift 0.0432 |
+
+The support column is the one to read. At four positives per language a score is an estimate
+that moves by a quarter when one example changes; at two hundred it is a measurement. That is
+why this detector was described here as understated rather than as a ceiling, and it is why it
+is no longer on that list.
+
+`bias` moved the same way on the same day, 0.957 to 0.977, and needed only a retrain: its
+corpus already carried the bands and the mundane registers from 2026-08-13, so the corpus was
+fixed and nothing had been trained on it.
 
 **`nsfw`'s 0.976 in the table above is the rebuild, and it is not what ships.** It was
 superseded twice: by a retrain on 2026-08-13 scoring 0.918, and by another on 2026-08-14

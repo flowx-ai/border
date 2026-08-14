@@ -129,7 +129,26 @@ detectors:
   # nothing measurable there and the reasoning stays with each key.
   toxicity:
     on_fail: flag
-    threshold: 0.48
+    # 0.81 from the 2026-08-14 retrain's own validation split, macro F1 0.9894 against
+    # 0.9885 at the neutral 0.5. Replaces 0.48, which was the previous model's calibration.
+    #
+    # The corpus is what moved, not the recipe. Regenerated with the shared mundane
+    # registers and length bands: 13,778 examples, length_separation 0.508 and 0.474 against
+    # a balanced 0.5, and positives per language up from about 4 to 197 to 209. So a
+    # per-language F1 now rests on roughly 20 test examples rather than two, and this
+    # detector comes off CLAUDE.md's single-digit-positives list.
+    #
+    #     mean per-language F1   0.9604 -> 0.9915
+    #     worst language          0.400 -> 0.950 (sv)
+    #
+    # Fires on 0 of the 20 ordinary sentences at 0.48, at 0.81 and at the neutral 0.5, and
+    # on 0 of 20 when they are cut to 55 characters, which is the length probe rather than
+    # a second opinion on the same one.
+    #
+    # Its previous rebuild was refused by the decision-flip gate at a margin of 0.0687
+    # against a 0.02 band, which is why the older model shipped. This export passed at
+    # 0/300 changed, max drift 0.0432.
+    threshold: 0.81
   nsfw:
     # 0.76, calibrated on the 2026-08-14 retrain's own validation split, macro F1 0.9425
     # against 0.9194 at the neutral 0.5.
@@ -197,7 +216,17 @@ detectors:
     threshold: 0.76
   bias:
     on_fail: flag
-    threshold: 0.84
+    # 0.57 from the 2026-08-14 retrain's own validation split, macro F1 0.9711 against
+    # 0.9675 at the neutral 0.5. Replaces 0.84.
+    #
+    # Its corpus already carried the mundane registers and the length bands from 2026-08-13,
+    # so only the model was stale here: the corpus was fixed and nothing had been trained on
+    # it. Retrained, mean per-language F1 0.9565 -> 0.9771, export passed the flip gate at
+    # 0/300 with max drift 0.2414 and p99 probability drift 0.00629.
+    #
+    # 0 of 20 ordinary sentences at 0.84, at 0.57 and at 0.5, and 0 of 20 cut to 55
+    # characters.
+    threshold: 0.57
   politeness:
     enabled: false          # off by default: a style check that blocks is a support ticket
     on_fail: log

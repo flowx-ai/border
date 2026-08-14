@@ -92,8 +92,9 @@ THRESHOLDS: dict[str, float] = {
     # 0.76 from 2026-08-14. Moves with policies/default.yaml by design: the test below
     # asserts the two agree, so a threshold cannot be changed in one place only.
     "nsfw": 0.76,
-    "toxicity": 0.48,
-    "bias": 0.84,
+    # 0.81 from the 2026-08-14 retrain. Moves with the policy by design.
+    "toxicity": 0.81,
+    "bias": 0.57,  # 0.57 from the 2026-08-14 retrain.
     "politeness": 0.89,
     "gibberish": 0.37,
     "injection": 0.43,
@@ -104,12 +105,13 @@ THRESHOLDS: dict[str, float] = {
 #: with ordinary text. Zero would be the honest target and one is the allowance for a
 #: genuinely ambiguous sentence; `nsfw` fired on eleven at its calibrated threshold.
 #:
-#: Still 1 rather than 0, and deliberately, even though every detector now sits at 0. It
-#: is an allowance, not a target, and tightening it to 0 would make the suite fail on the
-#: first genuinely ambiguous sentence somebody adds to MUNDANE rather than on a
-#: regression. The one that used to use the allowance was nsfw on "El paquete llego a la
-#: oficina esta manana", and the 2026-08-14 retrain reads that word in context: it scores
-#: 0.997 on the same word used sexually and does not fire on the parcel.
+#: Still 1 rather than 0, and deliberately, even though every detector now sits at 0.
+#: It is an allowance, not a target. At 0 the suite would fail on the first genuinely
+#: ambiguous sentence somebody adds to MUNDANE rather than on a regression.
+#:
+#: The one that used to use the allowance was nsfw on "El paquete llego a la oficina
+#: esta manana", and the 2026-08-14 retrain reads that word in context: 0.997 on the
+#: same word used sexually, no finding on the parcel.
 MUNDANE_ALLOWED = 1
 
 #: How much the false-positive rate on a detector's own hard negatives may move when
