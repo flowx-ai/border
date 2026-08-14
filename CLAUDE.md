@@ -265,18 +265,58 @@ length the model was trained on. Budgets are per detector, per scan, at that inp
 
 Three things this table now says that the old one did not.
 
-**Cost is per token, and linear**, but the budget is not one number for every encoder
-detector, because the quantisation recipe differs. 0.60 ms per token at one thread for
-`piiguard`, whose INT8 export quantises throughout and weighs 266 MB. The nine models
-trained here quantise the embedding matrix only, because INT8 over all ops moved 51 of 300
-decisions, and that leaves the transformer in fp32 at 511 MB and 151 ms for the same 87
-tokens. Three times the cost, measured 2026-08-11, and the price of an export that does not
-change a verdict.
+**Cost is per token and linear within a window, with a step at each window boundary**, and
+the budget is not one number for every encoder detector because the quantisation recipe
+differs. 0.60 ms per token at one thread for `piiguard`, whose INT8 export quantises
+throughout and weighs 266 MB. The nine models trained here quantise the embedding matrix
+only, because INT8 over all ops moved 51 of 300 decisions, and that leaves the transformer
+in fp32 at 511 MB and 151 ms for the same 87 tokens. Three times the cost, measured
+2026-08-11, and the price of an export that does not change a verdict.
 
-So the seven classifiers carry a 225 ms budget and `pii` keeps 75. Recovering the
-difference means finding the op subset that quantises without moving a decision, which is
-queued on the training side rather than assumed to exist. Until then the honest statement
-is that a decision-safe export costs three times a decision-changing one.
+So every encoder detector carries a 225 ms budget, `pii` included. **This said "`pii` keeps
+75" until 2026-08-14, and that was the withdrawn 51 ms figure leaving a trace.** 75 is
+51 x 1.5, the headroom rule applied to a rate that was retracted on 2026-08-12; the
+catalogue has said `Spec("T1", ..., 225.0)` since. Read a budget off `CATALOGUE`, never off
+this paragraph. That is the third place the 51 ms survived its own withdrawal, after the
+detector table and the hero stat, and the instruction stands: when a measurement is
+superseded, grep for it.
+
+Recovering the difference means finding the op subset that quantises without moving a
+decision, which is queued on the training side rather than assumed to exist. Until then the
+honest statement is that a decision-safe export costs three times a decision-changing one.
+
+**The per-token rate itself was measured across a window boundary and was 22 percent too
+steep.** Re-taken 2026-08-14 on a quiet machine against the adopted 26-locale artifact,
+recorded in `docs/reference/latency_sweep.json`:
+
+| tokens | p95 | windows |
+|---|---|---|
+| 16 | 34.03 ms | 1 |
+| 64 | 114.89 ms | 1 |
+| 87 | 154.13 ms | 1 |
+| 94 | 161.60 ms | 1 |
+| 95 | 198.53 ms | 2 |
+| 128 | 251.16 ms | 2 |
+
+A window holds `trained_max_length - 2` content tokens, 94, because every window is wrapped
+in bos and eos. So 94 tokens is one forward pass and 95 is two, a step of 36.93 ms for one
+more token. Inside a window the slope is **1.636 ms/token**; averaged from 16 to 96, which
+crosses the boundary, it reads 2.011 and is that second pass reported as per-token cost.
+Cost is still proportional rather than catastrophic, at about `ceil(n / 94)` passes, which
+is the claim worth making. It is the flat-line reading that was wrong.
+
+Worth noting how it was caught, because two mechanisms were proposed for the step and both
+were wrong. Not a fast path in the exported graph: the raw session is smooth from 90 to 112
+fed tokens. Not a per-window penalty either, and the test that killed that was giving the
+detector a 94-token window so every window feeds 96 rather than 98, which made it 2 percent
+slower. `cProfile` settled it at 20 calls into onnxruntime per ten `run` calls against 10
+below the boundary. The sweep now carries a window count on every point so a consumer cannot
+draw one line through points that are not comparable.
+
+The sweep also gained a cross-check at 87 tokens, the one length with a figure it did not
+produce: 154.13 against the recorded 153, +0.7 percent, and +1.3 on a second run. Before
+that the sweep was internally consistent and unfalsifiable, which is this file's own named
+failure mode.
 
 **`piiguard`'s 51 ms was withdrawn on 2026-08-12 and this file kept quoting it until
 2026-08-13.** That figure belonged to the published 266 MB INT8 artifact, which was then

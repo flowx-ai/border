@@ -16,17 +16,23 @@ test that fails there tells you about the runner rather than the code. Three res
 in decreasing order of how much they are worth:
 
 **Structural assertions, always on.** T0 must be orders of magnitude cheaper than a
-model pass; cost must be linear in tokens rather than quadratic; tier order must hold.
+model pass; cost must be linear in the window count rather than quadratic; tier order
+must hold.
 These compare measurements taken in the same process on the same machine, so they are
 machine-independent and they catch the regressions that actually matter: an accidentally
 quadratic windowing loop, a model loaded on the scan path, a T0 rule with catastrophic
 backtracking.
 
-**Absolute ceilings with headroom, always on.** 75 ms against a measured 51 ms is 1.5
-times, which survives a moderately slower runner and still catches a detector that got
-twice as slow. `FLOWX_BUDGET_SCALE` multiplies every ceiling for a runner known to be
-slower, so the honest response to slow hardware is a documented environment variable
-rather than a quietly loosened number.
+**Absolute ceilings with headroom, always on.** 225 ms against a measured 153 ms is
+about 1.5 times, which survives a moderately slower runner and still catches a detector
+that got twice as slow. `FLOWX_BUDGET_SCALE` multiplies every ceiling for a runner known
+to be slower, so the honest response to slow hardware is a documented environment
+variable rather than a quietly loosened number.
+
+That example read "75 ms against a measured 51 ms" until 2026-08-14. Both numbers were
+withdrawn on 2026-08-12 with the published INT8 export, and the ratio they illustrate is
+unchanged, which is exactly why nobody noticed: an example whose point survives its own
+figures going stale is the last place anyone greps.
 
 **Nothing is skipped by default.** CLAUDE.md says a change that blows a budget fails CI,
 so these run in the default suite. They skip only when the weights are absent, which is

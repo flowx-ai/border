@@ -48,10 +48,25 @@ Cost
 ----
 
 Measured on an M-series CPU at one thread, INT8: 153 ms at the 87-token reference input,
-against a 225 ms budget. Latency is linear in tokens, and windowing makes it linear in
-text length too. That is the property that matters: a long document costs proportionally
-rather than catastrophically. See tests/test_budgets.py for the reference input, without
-which none of these figures means anything.
+against a 225 ms budget. That is the property that matters: a long document costs
+proportionally rather than catastrophically. See tests/test_budgets.py for the reference
+input, without which none of these figures means anything.
+
+Linear in tokens *within a window*, and a step at each window boundary. This said
+"linear in tokens" flat, which reads as one line through the whole range and is not
+what the cost does. A window holds `trained_max_length - 2` content tokens, 94 here,
+because every window is wrapped in bos and eos. So 94 tokens is one forward pass at
+161.60 ms and 95 is two at 198.53: a step of 36.93 ms for one more token, measured
+2026-08-14 and reproducible. Inside a window the slope is 1.636 ms/token; averaged
+across the boundary it reads 2.011, which is that second pass reported as per-token
+cost.
+
+Proportional-not-catastrophic still holds and is the useful claim: the step is one
+extra pass per window, so a document of n tokens costs about ceil(n / 94) passes. It
+is the flat-line reading that was wrong, and a caller sizing an input against a
+single averaged slope is wrong in the direction of buying too little. See
+benchmarks/latency_sweep.py, which carries a window count on every point so a
+consumer cannot draw one line through points that are not comparable.
 
 Not 0.55 ms per token, which is what this said. That rate belonged to the published
 266 MB INT8 export, withdrawn on 2026-08-12 for losing an entity entirely on 13 of 120
