@@ -44,9 +44,51 @@ if TYPE_CHECKING:
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "tests"))
 
-#: The token lengths the old sweep used, kept so the two are comparable point for point
-#: rather than only in aggregate.
-TOKEN_LENGTHS = (16, 32, 64, 96)
+#: The token lengths the old sweep used, kept so the two are comparable point for
+#: point rather than only in aggregate, plus 87, plus the pair either side of the
+#: window boundary.
+#:
+#: 87 is here because it is the only length in the range that already has a figure
+#: measured independently of this script: it is `REFERENCE_INPUT`, and CLAUDE.md's
+#: detector table records `pii` at 153 ms there. So the sweep has one point that can
+#: be checked against something rather than only believed, and a sweep that disagrees
+#: with the reference figure at the reference length is reporting on the machine it
+#: ran on rather than on the model.
+#:
+#: Without it the sweep is internally consistent and unfalsifiable, which is the
+#: failure this whole file exists to undo. Comparing 96 tokens against an 87-token
+#: reference by interpolating the slope would be arithmetic dressed as a measurement.
+#:
+#: **94 and 95 are here because the cost is not one line, and the old sweep's top
+#: point sat on the far side of the break.** A window holds `trained_max_length - 2`
+#: content tokens, so 94, because `entities` reserves the two positions it spends on
+#: bos and eos. 94 tokens is one forward pass and 95 is two, so the pair measures
+#: that step directly instead of letting it contaminate a slope.
+#:
+#: Measured 2026-08-14: 94 tokens costs 159.7 ms and 95 costs 198.0, tight over five
+#: independent estimates each, and `cProfile` settles the cause as 20 calls into
+#: onnxruntime per ten `run` calls rather than 10. It is a second forward pass, not a
+#: per-token increment and not a property of the graph: the raw session is smooth
+#: across the same range, and giving the detector a 94-token window so every window
+#: feeds 96 rather than 98 made it slightly slower, not faster.
+#:
+#: The old sweep ran 16 to 96 and divided, which crosses the boundary and reports
+#: that second pass as though it were per-token cost: 2.011 ms/token against the
+#: 1.652 the single-window points give, about 22 percent too steep. That error was
+#: independent of which artifact ran, so it survived the withdrawal that prompted
+#: this file.
+TOKEN_LENGTHS = (16, 32, 48, 64, 80, 87, 94, 95, 128)
+
+#: The independently recorded p95 at 87 tokens, and the tolerance the cross-check
+#: allows.
+#:
+#: Not a pass/fail gate. The texts differ (this sweep uses entity-free Romanian
+#: filler, `REFERENCE_INPUT` is a different 87-token prose string), so exact
+#: agreement is not the expectation and a small gap is not evidence of anything. A
+#: large one is.
+REFERENCE_TOKENS = 87
+REFERENCE_P95_MS = 153.0
+REFERENCE_TOLERANCE = 0.10
 
 #: Romanian, as the old sweep was, and prose rather than entities: this measures the
 #: encoder pass, and a text full of PII would also measure the checksum pass.
@@ -222,11 +264,21 @@ def main() -> int:
         print(f"cannot measure, weights unavailable: {error}", file=sys.stderr)
         return 1
 
-    from flowx_border.detectors.pii import MODEL_ID, _tokenizer
+    from flowx_border.detectors.pii import (
+        DEFAULT_OVERLAP,
+        MODEL_ID,
+        _tokenizer,
+        _windows,
+    )
     from flowx_border.models.registry import spec_for
 
     spec = spec_for(MODEL_ID)
     tokenizer = _tokenizer()
+
+    # The detector's own geometry, read from the same places `entities` reads it, so the
+    # sweep cannot describe a window layout the library does not use. The minus two is
+    # the bos and eos that every window is wrapped in.
+    window_content = (spec.trained_max_length or 0) - 2
 
     points = []
     for tokens in TOKEN_LENGTHS:
@@ -236,23 +288,97 @@ def main() -> int:
             args.runs,
             before=detector.forget,
         )
+        windows = len(_windows(tokens, max(1, window_content), DEFAULT_OVERLAP))
         per_token = measured / tokens
         points.append(
             {
                 "tokens": tokens,
                 "p95": round(measured, 2),
                 "ms_per_token": round(per_token, 3),
+                # Carried per point because it is what decides whether two points are
+                # comparable. A consumer that plots p95 against tokens and draws one
+                # line through points with different window counts is redrawing the
+                # old sweep's mistake in a new chart.
+                "windows": windows,
             }
         )
-        print(f"  {tokens:3d} tokens {measured:7.2f} ms {per_token:5.3f} ms/token")
+        print(
+            f"  {tokens:3d} tokens {measured:7.2f} ms {per_token:5.3f} ms/token "
+            f"{windows} window{'s' if windows != 1 else ''}"
+        )
 
-    # The slope over the whole range rather than the mean of the per-point ratios: the
-    # per-point ratio carries the fixed per-call overhead, which does not scale.
-    first, last = points[0], points[-1]
+    # The slope across single-window points only. The per-point ratio would carry the
+    # fixed per-call overhead, which does not scale, and a slope taken across the
+    # window boundary would carry a whole second forward pass, which is not per-token
+    # cost either. Neither mistake flatters us: both make the model look more
+    # expensive per token than it is, and a caller sizing an input against the number
+    # is then wrong in the direction of buying too little.
+    single = [p for p in points if p["windows"] == 1]
+    if len(single) < 2:
+        print("not enough single-window points to take a slope", file=sys.stderr)
+        return 1
+    first, last = single[0], single[-1]
     slope = (last["p95"] - first["p95"]) / (last["tokens"] - first["tokens"])
 
+    # The cost of crossing into a second window, measured rather than modelled, from
+    # the closest pair that straddles the boundary. This is the quantity the old sweep
+    # spread across its slope instead of reporting.
+    below = [p for p in points if p["windows"] == 1]
+    above = [p for p in points if p["windows"] > 1]
+    window_step = None
+    if below and above:
+        edge, over = below[-1], above[0]
+        window_step = {
+            "from_tokens": edge["tokens"],
+            "to_tokens": over["tokens"],
+            "ms": round(over["p95"] - edge["p95"], 2),
+            "note": (
+                f"a window holds {window_content} content tokens, so text longer than "
+                f"that is a second forward pass. The step is most of a pass, not a "
+                f"per-token increment: it costs about as much as "
+                f"{round((over['p95'] - edge['p95']) / slope)} tokens would inside a "
+                "window."
+            ),
+        }
+        print(
+            f"\nwindow boundary at {window_content} content tokens: "
+            f"{edge['tokens']} to {over['tokens']} tokens costs "
+            f"{over['p95'] - edge['p95']:+.2f} ms for one more token"
+        )
+
+    # The cross-check against the one figure this script did not produce. Reported
+    # rather than enforced: this is a benchmark, and a benchmark that refuses to write
+    # its output is one nobody runs twice. The consumer decides what a gap means.
+    at_reference = next(
+        (p for p in points if p["tokens"] == REFERENCE_TOKENS),
+        None,
+    )
+    cross_check = None
+    if at_reference is not None:
+        drift = (at_reference["p95"] - REFERENCE_P95_MS) / REFERENCE_P95_MS
+        cross_check = {
+            "tokens": REFERENCE_TOKENS,
+            "recorded_p95": REFERENCE_P95_MS,
+            "measured_p95": at_reference["p95"],
+            "drift": round(drift, 3),
+            "agrees": abs(drift) <= REFERENCE_TOLERANCE,
+        }
+        verdict = "agrees with" if cross_check["agrees"] else "DISAGREES with"
+        print(
+            f"\ncross-check at {REFERENCE_TOKENS} tokens: {at_reference['p95']:.2f} ms "
+            f"{verdict} the recorded {REFERENCE_P95_MS:.0f} ms "
+            f"({drift * 100:+.1f} percent)"
+        )
+
     payload = {
-        "artifact": f"{spec.repo}, {spec.filename}",
+        # Under a local override `spec.repo` and `spec.filename` are absolute paths on
+        # whoever ran this, so record the basenames. This file is committed and the
+        # repository is going public: a developer's home directory in it is not a
+        # credential, but it is nobody's business and it makes the record look like it
+        # describes a machine rather than an artifact. The revision already says
+        # `local:<sha>` when the weights came from a directory rather than a release,
+        # which is the part a reader needs in order to distrust the figure.
+        "artifact": f"{Path(spec.repo).name}, {Path(spec.filename).name}",
         "revision": spec.revision,
         "threads": 1,
         "iterations": args.runs,
@@ -262,16 +388,25 @@ def main() -> int:
             "platform": platform.platform(),
         },
         "points": points,
+        "window_content_tokens": window_content,
+        **({"window_step": window_step} if window_step else {}),
+        **({"cross_check": cross_check} if cross_check else {}),
         # Present and true only when the figures were taken on a machine that was too
         # busy to trust. A consumer that renders this file must check it: the point of
         # recording a bad run is to make it unusable, not to make it invisible.
         **({"unpublishable": busy} if busy else {}),
         "ms_per_token": round(slope, 3),
+        "ms_per_token_scope": (
+            f"slope across single-window points only, {first['tokens']} to "
+            f"{last['tokens']} tokens. Do not apply it across the window boundary."
+        ),
         "note": (
             "Measured on the Gather-only INT8 re-export, which is the artifact the "
             "library loads. It replaces a sweep taken on the withdrawn published "
             "export, which was about three times cheaper and lost an entity on 13 of "
-            "120 texts."
+            "120 texts. Cost is linear in tokens within a window and steps at each "
+            "window boundary, so a single slope describes the range up to "
+            f"{window_content} tokens and nothing above it."
         ),
     }
     args.out.parent.mkdir(parents=True, exist_ok=True)
