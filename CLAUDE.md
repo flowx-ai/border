@@ -959,11 +959,38 @@ language, nothing about either model or its training changed, and:
 | `nsfw` | 52 to 262 | 0.817 to 0.976 | 0.000 to 0.870 |
 | `gibberish` | 78 to 276 | 0.834 to 0.966 | 0.400 to 0.870 |
 
-**`nsfw`'s 0.976 was superseded on 2026-08-13 and the shipped figure is 0.918.** The rebuild
-that scored 0.976 now sits in `artifacts_local/nsfw-full-rebuild-superseded`, and the adopted retrain in
-`nsfw-full` scores 0.918 with a worst language of 0.588 in Maltese, on 220 positives at
-threshold 0.81. The row above is kept because the paragraph is about what corpus size bought,
-and that is still what it bought.
+**`nsfw`'s 0.976 was superseded twice, and the shipped figure is 0.934.** The rebuild that
+scored 0.976 sits in `artifacts_local/nsfw-full-rebuild-superseded`; a retrain on 2026-08-13
+scored 0.918; and the adopted retrain of 2026-08-14 scores 0.934 at threshold 0.76. The row
+above is kept because the paragraph is about what corpus size bought, and that is still what
+it bought.
+
+**Three detectors were retrained on 2026-08-14 and all three shipped.** Same architecture,
+same hyperparameters; only the corpora moved.
+
+| detector | mean per-language F1 | worst language | threshold | flip gate |
+|---|---|---|---|---|
+| `nsfw` | 0.9179 to 0.9337 | 0.588 to 0.600 | 0.81 to 0.76 | 0/300 |
+| `toxicity` | 0.9604 to 0.9915 | 0.400 to 0.950 | 0.48 to 0.81 | 0/300 |
+| `bias` | 0.9565 to 0.9771 | 0.867 to 0.824 | 0.84 to 0.57 | 0/300 |
+
+`toxicity` is the one to read. Its previous rebuild was refused by the decision-flip gate at a
+margin of 0.0687 against a 0.02 band, so the older model kept shipping, and it took a third
+attempt. Positives per language went from about 4 to between 197 and 209, so a per-language F1
+now rests on roughly 20 test examples rather than two. That is why it was described here as
+understated rather than as a ceiling, and why it is off the single-digit list.
+
+`bias` needed only a retrain: its corpus already carried the bands and the mundane registers
+from 2026-08-13, so the corpus was fixed and nothing had been trained on it.
+
+All three were probed through `scan_output` at the old policy threshold, at their own
+calibration and at the neutral 0.5: 0 of 20 ordinary sentences at every threshold, and 0 of 20
+with the sentences cut to 55 characters, which is the length probe rather than a second
+opinion on the same one.
+
+Trained on an L4 rather than the T4 the earlier models used, so bf16 was available where the
+T4 has none. Worth recording for anyone comparing artifacts later: the hardware is one of the
+things that changed.
 
 How this was caught is the part to keep. `docs/reference/performance.json` had been collected
 before the swap, so it still said 0.9755, and the README quoted it. Re-running
