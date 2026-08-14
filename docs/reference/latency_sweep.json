@@ -2,8 +2,8 @@
   "artifact": "piiguard-full, model.int8.onnx",
   "cross_check": {
     "agrees": true,
-    "drift": -0.01,
-    "measured_p95": 151.41,
+    "drift": -0.002,
+    "measured_p95": 152.65,
     "recorded_p95": 153.0,
     "tokens": 87
   },
@@ -13,72 +13,98 @@
     "cpu": "Apple M3 Max",
     "platform": "macOS-26.5.2-arm64-arm-64bit"
   },
-  "ms_per_token": 1.66,
+  "ms_per_token": 1.663,
   "ms_per_token_scope": "slope across single-window points only, 16 to 94 tokens. Do not apply it across the window boundary.",
   "note": "Measured on the Gather-only INT8 re-export, which is the artifact the library loads. It replaces a sweep taken on the withdrawn published export, which was about three times cheaper and lost an entity on 13 of 120 texts. Cost is linear in tokens within a window and steps at each window boundary, so a single slope describes the range up to 94 tokens and nothing above it.",
   "points": [
     {
-      "ms_per_token": 2.105,
-      "p95": 33.69,
+      "ms_per_token": 2.054,
+      "p95": 32.87,
       "tokens": 16,
       "windows": 1
     },
     {
-      "ms_per_token": 1.9,
-      "p95": 60.79,
+      "ms_per_token": 1.858,
+      "p95": 59.44,
       "tokens": 32,
       "windows": 1
     },
     {
-      "ms_per_token": 1.812,
-      "p95": 86.99,
+      "ms_per_token": 1.806,
+      "p95": 86.68,
       "tokens": 48,
       "windows": 1
     },
     {
-      "ms_per_token": 1.779,
-      "p95": 113.86,
+      "ms_per_token": 1.774,
+      "p95": 113.56,
       "tokens": 64,
       "windows": 1
     },
     {
-      "ms_per_token": 1.764,
-      "p95": 141.11,
+      "ms_per_token": 1.755,
+      "p95": 140.38,
       "tokens": 80,
       "windows": 1
     },
     {
-      "ms_per_token": 1.74,
-      "p95": 151.41,
+      "ms_per_token": 1.755,
+      "p95": 152.65,
       "tokens": 87,
       "windows": 1
     },
     {
-      "ms_per_token": 1.736,
-      "p95": 163.18,
+      "ms_per_token": 1.73,
+      "p95": 162.62,
       "tokens": 94,
       "windows": 1
     },
     {
-      "ms_per_token": 2.082,
-      "p95": 197.82,
+      "ms_per_token": 2.062,
+      "p95": 195.87,
       "tokens": 95,
       "windows": 2
     },
     {
-      "ms_per_token": 1.942,
-      "p95": 248.55,
+      "ms_per_token": 1.933,
+      "p95": 247.43,
       "tokens": 128,
       "windows": 2
     }
   ],
   "revision": "local:2e9195727706",
+  "thread_scaling": {
+    "note": "The default stays at one thread. A library that quietly commandeers the machine it is embedded in is worse than one that is honestly slower, and a policy can raise it deliberately.",
+    "points": [
+      {
+        "is_default": true,
+        "p95": 157.32,
+        "threads": 1
+      },
+      {
+        "is_default": false,
+        "p95": 79.5,
+        "threads": 2
+      },
+      {
+        "is_default": false,
+        "p95": 42.99,
+        "threads": 4
+      },
+      {
+        "is_default": false,
+        "p95": 25.63,
+        "threads": 8
+      }
+    ],
+    "tokens": 87
+  },
   "threads": 1,
   "window_content_tokens": 94,
   "window_step": {
     "from_tokens": 94,
-    "ms": 34.64,
-    "note": "a window holds 94 content tokens, so text longer than that is a second forward pass. The step is most of a pass, not a per-token increment: it costs about as much as 21 tokens would inside a window.",
+    "ms": 33.25,
+    "note": "a window holds 94 content tokens, so text longer than that is a second forward pass. The step is most of a pass, not a per-token increment: it costs about as much as 20 tokens would inside a window.",
     "to_tokens": 95
   }
 }

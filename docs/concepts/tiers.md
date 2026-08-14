@@ -28,16 +28,32 @@ rather than be scored by them, not because it is cheaper. It is not.
 
 ## What a full scan costs
 
-Cost is per token and close to linear, about 0.6 ms per token on one thread. A full
-output-side scan with every detector wired would be one rule check plus seven
+Cost is per token and close to linear **within a window**, about 1.66 ms per token on
+one thread, and it steps at each window boundary. A window holds 94 content tokens,
+so 94 tokens is one forward pass and 95 is two: the step is about 33 ms for one more
+token. A document of n tokens costs roughly `ceil(n / 94)` passes, which is
+proportional rather than catastrophic, and that is the property worth relying on.
+
+A full output-side scan with every detector wired would be one rule check plus seven
 encoder passes, roughly 360 ms at the reference input.
 
 Keeping that off the common path is the entire job of the tier system, and it is a
 scheduling property rather than a cost one.
 
+This said "about 0.6 ms per token" until 2026-08-14. That rate belonged to `piiguard`'s
+published 266 MB INT8 export, withdrawn on 2026-08-12 for losing an entity entirely on
+13 of 120 texts, and it also averaged a slope across the window boundary, so it was
+wrong twice in the same direction. See `benchmarks/latency_sweep.py`, which records the
+sweep and refuses to run on a busy machine.
+
 ## Threads
 
-Measured at 96 tokens: 54.7 ms on one thread, 29.8 on two, 17.8 on four, 12.4 on
-eight. The default stays at one. A library that quietly commandeers the machine it
-is embedded in is worse than one that is honestly slower, and a policy can raise it
-deliberately.
+Measured at the 87-token reference input: 157.32 ms on one thread, 79.50 on two, 42.99
+on four, 25.63 on eight. The default stays at one. A library that quietly commandeers
+the machine it is embedded in is worse than one that is honestly slower, and a policy
+can raise it deliberately.
+
+These read 54.7, 29.8, 17.8 and 12.4 at 96 tokens until 2026-08-14, on the same
+withdrawn export. 96 tokens is also two windows, so that table measured parallelism
+across two passes, one of them 19 tokens long, which is not the shape anyone wanted to
+know about.

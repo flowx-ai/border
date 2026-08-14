@@ -304,10 +304,32 @@ def test_the_quoted_classifier_measurement_matches_the_record(readme: str) -> No
 
 
 def test_the_thread_scaling_figures_are_the_measured_ones(readme: str) -> None:
-    # Quoted in the README as the reason the default is one thread, so they have to be
-    # the numbers that were actually measured rather than a recollection of them.
-    for figure in ("54.7", "29.8", "17.8", "12.4"):
-        assert figure in readme, f"the thread scaling table lost {figure}"
+    """The README's thread figures must be the ones the benchmark last recorded.
+
+    This used to assert four hardcoded strings, which pinned the README to a
+    recollection rather than to a measurement. It kept passing after those four
+    figures were withdrawn with the published INT8 export on 2026-08-12, because a
+    test that asserts a constant against a document cannot tell you the constant is
+    wrong: both sides said 54.7 and both were describing an artifact the library no
+    longer loads.
+
+    So it reads the sweep instead. A figure changes in one place, the benchmark's own
+    output, and the README has to follow it.
+    """
+    sweep = Path(__file__).resolve().parent.parent / "docs/reference/latency_sweep.json"
+    if not sweep.exists():
+        pytest.skip("no sweep recorded; run benchmarks/latency_sweep.py")
+    scaling = json.loads(sweep.read_text()).get("thread_scaling")
+    if not scaling:
+        pytest.skip("the recorded sweep predates the thread scaling pass")
+
+    for point in scaling["points"]:
+        figure = f"{point['p95']:.2f}"
+        assert figure in readme, (
+            f"the README does not quote {figure} ms for {point['threads']} thread(s). "
+            "Re-run benchmarks/latency_sweep.py and update the paragraph, or the "
+            "README is describing a measurement nobody took."
+        )
 
 
 # ------------------------------------------------------------------- the public API

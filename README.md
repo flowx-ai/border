@@ -184,10 +184,17 @@ rounds.
 
 Two things about those numbers.
 
-**Threads are not taken by default.** At 96 tokens the same model pass costs 54.7 ms at one
-thread, 29.8 at two, 17.8 at four and 12.4 at eight. The default is one, because a library
-that quietly takes eight cores from the application it is embedded in is worse than a
-library that is honestly slower. A policy can raise it.
+**Threads are not taken by default.** At the 87-token reference input the same model pass
+costs 157.32 ms at one thread, 79.50 at two, 42.99 at four and 25.63 at eight. The default
+is one, because a library that quietly takes eight cores from the application it is
+embedded in is worse than a library that is honestly slower. A policy can raise it.
+
+**Cost is linear within a window and steps at each boundary.** A window holds 94 content
+tokens, so 94 tokens is one forward pass and 95 is two: about 33 ms more for one more
+token. Within a window the slope is 1.66 ms per token, and a document of n tokens costs
+roughly `ceil(n / 94)` passes. Both figures come from `benchmarks/latency_sweep.py`, which
+refuses to run on a busy machine and cross-checks itself at the reference length against
+the budget suite's independently recorded 153 ms.
 
 **A decision-safe INT8 export costs three times a decision-changing one, and every model here
 now pays it.** Quantising every operator moved 51 of 300 decisions, so these exports quantise

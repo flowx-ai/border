@@ -90,6 +90,24 @@ REFERENCE_TOKENS = 87
 REFERENCE_P95_MS = 153.0
 REFERENCE_TOLERANCE = 0.10
 
+#: Thread counts for the scaling pass, measured at `REFERENCE_TOKENS`.
+#:
+#: Taken here rather than in a separate script because the figures it replaces were on
+#: the withdrawn export too, and were the last of that artifact's numbers still rendered
+#: anywhere. They said 54.7 ms at one thread against 96 tokens, which is 0.57 per token:
+#: the published 266 MB export's rate, not the shipped one's.
+#:
+#: The ratios were defensible even so, because they describe how one graph parallelises
+#: rather than how fast it is, which is the argument the figures exist to support. The
+#: absolute milliseconds were not. Re-measuring gets both from the same run rather than
+#: asking a reader to trust half a table.
+#:
+#: Measured at the reference length, not at 96. 96 is two windows, so a thread-scaling
+#: table taken there measures parallelism across two forward passes and one of them is
+#: 19 tokens long. The reference length is one window and is the figure everything else
+#: on the page is quoted at.
+THREAD_COUNTS = (1, 2, 4, 8)
+
 #: Romanian, as the old sweep was, and prose rather than entities: this measures the
 #: encoder pass, and a text full of PII would also measure the checksum pass.
 _FILLER = (
@@ -375,6 +393,32 @@ def main() -> int:
             f"{over['p95'] - edge['p95']:+.2f} ms for one more token"
         )
 
+    # Thread scaling at the reference length, on the same run as everything above so a
+    # reader is not asked to reconcile two machines. A fresh detector per thread count
+    # because the count is fixed at construction and each one gets its own session.
+    print()
+    threads_points = []
+    reference_text = _text_of_length(REFERENCE_TOKENS, tokenizer)
+    for count in THREAD_COUNTS:
+        threaded = PiiDetector(threads=count)
+        threaded.warm()
+        measured = p95(
+            lambda text=reference_text, d=threaded: d.run(text, CFG, CTX),
+            args.runs,
+            before=threaded.forget,
+        )
+        threads_points.append(
+            {
+                "threads": count,
+                "p95": round(measured, 2),
+                "is_default": count == 1,
+            }
+        )
+        print(
+            f"  {count} thread{'s' if count != 1 else ' '} {measured:7.2f} ms "
+            f"at {REFERENCE_TOKENS} tokens"
+        )
+
     # The cross-check against the one figure this script did not produce. Reported
     # rather than enforced: this is a benchmark, and a benchmark that refuses to write
     # its output is one nobody runs twice. The consumer decides what a gap means.
@@ -417,6 +461,15 @@ def main() -> int:
             "platform": platform.platform(),
         },
         "points": points,
+        "thread_scaling": {
+            "tokens": REFERENCE_TOKENS,
+            "points": threads_points,
+            "note": (
+                "The default stays at one thread. A library that quietly commandeers "
+                "the machine it is embedded in is worse than one that is honestly "
+                "slower, and a policy can raise it deliberately."
+            ),
+        },
         "window_content_tokens": window_content,
         **({"window_step": window_step} if window_step else {}),
         **({"cross_check": cross_check} if cross_check else {}),

@@ -215,9 +215,11 @@ Qwen base. Two things to get right when that happens, and neither is a reason no
 - **Pin decoding.** A generative detector declares `requires={"llm"}`, and entry 6 in
   `CLAUDE.md` still holds: greedy decoding and a fixed seed, or the same input yields
   two verdicts and the evidence record stops being evidence.
-- **Give it a budget it can meet.** The encoder detectors here are 278M and cost 51 ms
-  at the reference input. A 1.6B generative pass on CPU is far past the 300 ms T3
-  ceiling, so it needs its own tier, its own budget, or `requires={"gpu"}`.
+- **Give it a budget it can meet.** The encoder detectors here are 278M and cost about
+  151 ms at the reference input, against a 225 ms budget. A 1.6B generative pass on CPU
+  is far past the 300 ms T3 ceiling, so it needs its own tier, its own budget, or
+  `requires={"gpu"}`. This said 51 ms until 2026-08-14, which was the withdrawn INT8
+  export's figure and made the gap look three times more forgiving than it is.
 
 A classification head on that base avoids both and answers the same question. That is a
 training decision rather than a library one, so it is recorded here rather than resolved

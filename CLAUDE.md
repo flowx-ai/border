@@ -344,12 +344,25 @@ Sharing the inference is still what makes the pair cheap: `output_leakage` reusi
 encoder pass over the same text is one 153 ms pass rather than two. Sharing the session
 saved memory; sharing the inference saved the time.
 
-**Threads buy the old numbers back, and the library will not take them.** Measured at 96
-tokens: 54.7 ms at one thread, 29.8 at two, 17.8 at four, 12.4 at eight. So a 15 ms T1
-budget is reachable, at the price of taking eight cores from the host application on every
-scan. The default stays at one thread, because a library that quietly commandeers the
-machine it is embedded in is worse than a library that is honestly slower, and a policy
-can raise it deliberately.
+**Threads scale almost linearly, and the library will not take them.** Re-measured
+2026-08-14 at the 87-token reference input, in the same run as the sweep: 157.32 ms at one
+thread, 79.50 at two, 42.99 at four, 25.63 at eight. That is 6.1x on eight threads, at the
+price of taking eight cores from the host application on every scan. The default stays at
+one thread, because a library that quietly commandeers the machine it is embedded in is
+worse than a library that is honestly slower, and a policy can raise it deliberately.
+
+**This read 54.7, 29.8, 17.8 and 12.4 at 96 tokens until 2026-08-14, and they were the last
+of the withdrawn export's numbers still quoted anywhere.** They were also taken at 96
+tokens, which is two windows, so the table measured parallelism across two forward passes
+with one of them 19 tokens long. `tests/test_readme.py` asserted four of those figures as
+string literals, which is why nothing caught it: a test comparing a constant to a document
+agrees with itself when both are wrong. It now reads `thread_scaling` out of
+`docs/reference/latency_sweep.json`, so a figure lives in one place.
+
+There is one more check worth knowing about in that record. The one-thread point and the
+sweep's own point at the same length measure the same quantity by two paths in the same
+run, 157.32 against 152.65, so the 3 percent between them is the run's noise floor read off
+the data rather than asserted.
 
 `gibberish` is T1 because a gibberish input should short circuit the tiers above it rather
 than be scored by them, not because it is cheaper. It is not.
