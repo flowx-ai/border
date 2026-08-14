@@ -987,9 +987,28 @@ was superseded, never merely when it was trained**, because "before the retrain"
 about chronology and gives a reader nothing to act on.
 
 Maltese went from 0.000 to 1.000 in `nsfw`, which is the number that disproved this file's own
-claim that the pretraining gap bounded it. Four detectors still sit on single-digit
-per-language positives: `toxicity`, `injection`, `politeness` and `bias`. Read their scores as
+claim that the pretraining gap bounded it. **Three detectors still sit on single-digit
+per-language positives: `injection`, `politeness` and `bias`.** Read their scores as
 understated rather than as ceilings, and reach for the corpus before the architecture.
+
+**`toxicity` came off that list on 2026-08-14 and now has 197 to 209 positives per language.**
+Regenerated at 13,778 examples over 26 languages, with `length_separation` at 0.508 and 0.474
+against a balanced 0.5, positive and negative medians 134 and 147 characters, mundane text at
+15 percent, and `assert_shippable(200)` passing. So a per-language F1 will rest on about 20
+test examples rather than two, and one item will move it by five points rather than half.
+
+Two things to hold about that. The corpus is not the model: `toxicity` still needs a retrain
+and an INT8 export, and its *previous* rebuild was refused by the decision-flip gate at a
+margin of 0.0687 against a 0.02 band, which is why the older model is still what ships. A
+better corpus is necessary and not sufficient, and this is the second time that sentence has
+had to be written about this detector.
+
+And the run is worth reading for how it ended rather than what it produced. The hosted
+endpoint went unresponsive for an hour at 75 percent, and the run resumed from its own cache,
+finished all 1,010 pending requests, and swept its 9 failures to zero before writing. The
+outage cost time and nothing else. That is the resumable design and the pre-write sweep both
+doing the job they were added for, after a burst took a bite out of Turkish in `nsfw` and out
+of Greek in an earlier `toxicity` attempt.
 
 **Three detectors ship unavailable, and they ship loudly.** The registry entry names
 the intended repo, the detector raises an error naming the missing model, and the
