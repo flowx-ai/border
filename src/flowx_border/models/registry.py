@@ -313,7 +313,9 @@ def local_spec_for(model_id: str) -> ModelSpec | None:
     folder = local_folder(model_id)
     if folder is None:
         return None
-    weights = folder / "onnx" / "model.int8.onnx"
+    weights = _weights_in(folder / "onnx")
+    if weights is None:
+        return None
     try:
         stat = weights.stat()
     except OSError:
@@ -326,6 +328,36 @@ def local_spec_for(model_id: str) -> ModelSpec | None:
     return spec
 
 
+#: The names a shrunk export can have, in the order they are tried.
+#:
+#: int8 first because seven of the shipped detectors are int8, so the common case costs
+#: one stat call. fp16 exists because int8 is not always tolerable: `groundedness` is a
+#: cross-encoder over a candidate and a source, and its int8 export moved probabilities
+#: by 0.07591 at the p99 against the export gate's 0.05 ceiling, which is a different
+#: model rather than a quantisation of this one. Its fp16 export changes no decisions at
+#: a p99 of 0.01288, for 21 MB more.
+WEIGHT_NAMES: Final = ("model.int8.onnx", "model.fp16.onnx")
+
+
+def _weights_in(onnx_dir: Path) -> Path | None:
+    """The one shrunk export in `onnx_dir`, or None.
+
+    Raises when both an int8 and an fp16 export are present. Picking one silently would
+    mean the evidence record attests a file nobody chose, and both names do appear
+    together in practice: a directory keeps its refused int8 while the fp16 that
+    replaced it is exported beside it. An ambiguous directory is a question for a human.
+    """
+    found = [onnx_dir / name for name in WEIGHT_NAMES if (onnx_dir / name).exists()]
+    if len(found) > 1:
+        raise ModelUnavailableError(
+            f"{onnx_dir} holds more than one shrunk export: "
+            f"{', '.join(path.name for path in found)}. The evidence record names the "
+            "weights it read, so the loader will not choose between them. Keep the one "
+            "that ships and move the other out, naming it for why it was superseded."
+        )
+    return found[0] if found else None
+
+
 def _build_local_spec(model_id: str) -> ModelSpec | None:
     """The uncached body of `local_spec_for`. Hashes the weights file."""
     root = local_root()
@@ -335,8 +367,8 @@ def _build_local_spec(model_id: str) -> ModelSpec | None:
     # Both layouts, because the training repo writes `<detector>-full` and a hand-made
     # directory is more likely to be named after the detector alone.
     for folder in (f"{model_id}-full", model_id, model_id.replace("_", "") + "-full"):
-        candidate = root / folder / "onnx" / "model.int8.onnx"
-        if candidate.exists():
+        candidate = _weights_in(root / folder / "onnx")
+        if candidate is not None:
             digest = sha256_of(candidate)
             return ModelSpec(
                 model_id=f"local/{model_id}",
