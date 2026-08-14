@@ -25,7 +25,7 @@ means the score is unverified rather than good or bad.
 | `json_schema` | T1 | built | – | – | – | – | – | – |
 | `markup_injection` | T1 | built | – | – | – | – | – | – |
 | `moderation` | T2 | not built | – | – | – | – | – | – |
-| `nsfw` | T2 | built | f1 | 0.976 | 1.000 | 0.870 | 262 | positive examples |
+| `nsfw` | T2 | built | f1 | 0.918 | 0.941 | 0.588 | 220 | positive examples |
 | `output_format` | T1 | built | – | – | – | – | – | – |
 | `output_leakage` | T1 | built | – | – | – | – | – | – |
 | `pii` | T1 | built | – | – | – | – | – | – |
@@ -47,6 +47,7 @@ means the score is unverified rather than good or bad.
 - **`gibberish`**: 2 of 26 languages have fewer than 10 positive examples: bg, en. Their individual scores are indicative rather than measured.
 - **`groundedness`**: no calibrated threshold recorded, so this detector runs at the policy default. Several detectors in this family reported nothing at 0.5 while separating positives from negatives well below it.
 - **`injection`**: 1 of 26 languages have fewer than 10 positive examples: es. Their individual scores are indicative rather than measured.
+- **`nsfw`**: 22 of 26 languages have fewer than 10 positive examples: az, bg, cs, da, de, el, en, es, et, fi, ga, hr, hu, it, lt, lv, mt, nl, pl, sl, sv, tr. Their individual scores are indicative rather than measured.
 - **`topic_scope`**: 26 of 26 languages have fewer than 10 examples evaluated: az, bg, cs, da, de, el, en, es, et, fi, fr, ga, hr, hu, it, lt, lv, mt, nl, pl, pt, ro, sk, sl, sv, tr. Their individual scores are indicative rather than measured.
 - **`topic_scope`**: no calibrated threshold recorded, so this detector runs at the policy default. Several detectors in this family reported nothing at 0.5 while separating positives from negatives well below it.
 - **`toxicity`**: 26 of 26 languages have fewer than 10 positive examples: az, bg, cs, da, de, el, en, es, et, fi, fr, ga, hr, hu, it, lt, lv, mt, nl, pl, pt, ro, sk, sl, sv, tr. Their individual scores are indicative rather than measured.
@@ -57,30 +58,30 @@ At a 396 character reference input, 1 thread, CPUExecutionProvider. Romanian pro
 
 | Detector | p95 ms | Budget ms | note |
 |---|---|---|---|
-| `banned_terms` | 0.212 | 5.0 | – |
-| `bias` | 154.686 | 225.0 | – |
-| `code_present` | 0.010 | 5.0 | – |
-| `disclosure` | 0.037 | 5.0 | – |
-| `gibberish` | 153.737 | 225.0 | – |
-| `groundedness` | 61.073 | 300.0 | – |
-| `injection` | 154.178 | 225.0 | – |
-| `internal_domains` | 0.209 | 5.0 | – |
-| `invisible_text` | 0.033 | 5.0 | – |
+| `banned_terms` | 0.205 | 5.0 | – |
+| `bias` | 153.769 | 225.0 | – |
+| `code_present` | 0.009 | 5.0 | – |
+| `disclosure` | 0.039 | 5.0 | – |
+| `gibberish` | 151.645 | 225.0 | – |
+| `groundedness` | 60.355 | 300.0 | – |
+| `injection` | 153.171 | 225.0 | – |
+| `internal_domains` | 0.204 | 5.0 | – |
+| `invisible_text` | 0.035 | 5.0 | – |
 | `json_schema` | 0.001 | 5.0 | – |
-| `markup_injection` | 0.212 | 5.0 | – |
-| `nsfw` | 154.861 | 225.0 | – |
+| `markup_injection` | 0.216 | 5.0 | – |
+| `nsfw` | 152.672 | 225.0 | – |
 | `output_format` | 0.001 | 5.0 | – |
-| `output_leakage` | 153.560 | 225.0 | – |
-| `pii` | 153.493 | 225.0 | – |
-| `politeness` | 152.878 | 225.0 | – |
+| `output_leakage` | 152.498 | 225.0 | – |
+| `pii` | 150.815 | 225.0 | – |
+| `politeness` | 151.229 | 225.0 | – |
 | `postal_code` | 0.001 | 5.0 | – |
-| `regulated_advice` | 153.533 | 225.0 | – |
-| `repetition` | 0.393 | 5.0 | – |
-| `secrets` | 0.045 | 1.0 | – |
-| `sql_injection` | 0.207 | 5.0 | – |
-| `summary_support` | 0.723 | 5.0 | – |
-| `system_prompt_leakage` | 0.241 | 5.0 | the unconfigured path |
+| `regulated_advice` | 159.273 | 225.0 | – |
+| `repetition` | 0.371 | 5.0 | – |
+| `secrets` | 0.038 | 1.0 | – |
+| `sql_injection` | 0.213 | 5.0 | – |
+| `summary_support` | 0.851 | 5.0 | – |
+| `system_prompt_leakage` | 0.245 | 5.0 | the unconfigured path |
 | `token_limit` | 0.001 | 5.0 | the unconfigured path |
-| `topic_scope` | 213.441 | 300.0 | – |
-| `toxicity` | 153.782 | 225.0 | – |
-| `url_reachability` | 0.006 | 3000.0 | – |
+| `topic_scope` | 211.342 | 300.0 | – |
+| `toxicity` | 150.930 | 225.0 | – |
+| `url_reachability` | 0.006 | 3000.0 | the unconfigured path |

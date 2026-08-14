@@ -308,6 +308,7 @@ def latency_for(detectors: dict[str, Any]) -> dict[str, Any]:
 
     sys.path.insert(0, str(REPO / "tests"))
     from flowx_border.detectors.base import Context, DetectorConfig
+    from flowx_border.detectors.catalogue import CATALOGUE
     from test_budgets import REFERENCE_INPUT  # type: ignore[import-not-found]
 
     ctx = Context(sources=("a source passage",))
@@ -404,6 +405,28 @@ def latency_for(detectors: dict[str, Any]) -> dict[str, Any]:
                 f"the path where the detector reported {refused[0]} rather than "
                 "the path where it does its work, because the reference "
                 "configuration does not give it what it needs"
+            )
+        elif "network" in CATALOGUE[name].requires:
+            # The suffix rule above catches a detector that says it could not run. It
+            # does not catch one that ran correctly and found nothing to do, and for a
+            # network detector those look identical from the outside and are not.
+            #
+            # `url_reachability` published 0.006 ms here, the fastest figure in the
+            # file, for a detector whose entire cost is an HTTP request. The reference
+            # input is Romanian prose with no URLs in it, so there was nothing to
+            # fetch, and the suite blocks sockets anyway. Publishing that as its
+            # latency would say a network detector is 25,000 times cheaper than a
+            # regex, which is the kind of number this project keeps having to withdraw.
+            #
+            # Keyed on the declared requirement rather than the detector id, so a
+            # second network detector is covered without this file learning its name.
+            record["describes"] = (
+                "the path where there was nothing to fetch. The reference input "
+                "contains no URLs, and the suite blocks outbound connections, so "
+                "this figure excludes the request that is the whole cost of the "
+                "detector. Its budget is a deadline it enforces on itself rather "
+                "than a measurement, because it depends on a network the library "
+                "does not control"
             )
         out["per_detector_ms"][name] = record
     return out

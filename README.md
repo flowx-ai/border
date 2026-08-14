@@ -220,7 +220,7 @@ column.**
 | detector | metric | macro | worst language | examples |
 |---|---|---|---|---|
 | `regulated_advice` | F1 | 0.995 | 0.957 | 622 positives |
-| `nsfw` | F1 | 0.976 | 0.870 | 262 positives |
+| `nsfw` | F1 | 0.918 | 0.588 | 220 positives |
 | `injection` | F1 | 0.969 | 0.867 | 355 positives |
 | `gibberish` | F1 | 0.966 | 0.870 | 276 positives |
 | `politeness` | F1 | 0.962 | 0.788 | 392 positives |
@@ -252,6 +252,18 @@ old figure was an estimate on four positives per language rather than a measurem
 but its INT8 export was refused by the decision-flip gate at a margin of 0.0687 against a 0.02
 band, so the previously verified model is the one that ships. A better number that cannot be
 exported safely is not a number this library will publish.
+
+**`nsfw`'s 0.976 in the table above is the rebuild, and it is not what ships.** The rebuild was
+itself superseded on 2026-08-13 by a further retrain, which is the artifact the library loads
+and which scores 0.918 with a worst language of 0.588. The first table shows the shipped figure;
+this one shows what the corpus rebuild bought, because that is what the paragraph is about. Both
+are true of different artifacts and neither is true of both.
+
+Worth being blunt about why the shipped number is lower. The retrain was adopted for behaviour
+rather than for score: its calibrated threshold is 0.81 against the rebuild's 0.95, and
+`policies/default.yaml` carries 0.81 with the measurement beside it. So this is a model chosen
+on a different axis from the one this table ranks by, and reading it as a regression would be
+reading the wrong column. The score is still lower and the table says so.
 
 `topic_scope`'s evaluation recorded no sample sizes until 2026-08-12, which made it the one
 detector here whose numbers could not be weighed at all. They can now, and they rest on 6 to 8

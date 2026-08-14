@@ -835,6 +835,44 @@ Llama Guard and ShieldGemma was real and `gpt-oss-safeguard` answers it. It is t
 two objections, which were always the load-bearing ones, that a 20B policy reasoner makes
 worse rather than better.
 
+**Resolved 2026-08-13 by the retrain, and re-verified 2026-08-14. Read the finding below as
+history, not as the current state.** `nsfw` fires on **1 of the 20 mundane sentences**, not 11,
+and the 55 percent below belonged to the artifact now in `artifacts_local/nsfw-full-preretrain`.
+The adopted retrain in `nsfw-full` is the fix, and it cost macro F1: 0.918 against the
+rebuild's 0.976, at a calibrated 0.81 against 0.95. That trade is the right way round for a
+guardrail and is the reason the shipped score is the lower one.
+
+`tests/test_classifier_robustness.py` recorded this on 2026-08-13 and it is worth saying how:
+the two `nsfw` probes were strict xfails, the retrain made them XPASS, and the run failed. A
+strict xfail is what turns a fix into a signal instead of silence, and the failure was the
+instruction to take `nsfw` off the list.
+
+**What is left is one sentence, and it is a `block`.** Measured end to end through
+`scan_output` with `policies/default.yaml`, the residual is `nsfw:sexual:block` on "El paquete
+llego a la oficina esta manana", which is Spanish for a parcel arriving at the office. One
+ordinary sentence in twenty refused outright is better than eleven flagged and still not
+acceptable, so this stays open. The corpus work in the section above, which now has mundane
+negatives in all 26 languages, is the fix rather than another threshold move.
+
+The same run says the rest of the output path is quieter than this section implied. Substantive
+findings over the 20, with the declined-to-run ones separated out:
+
+| finding | count | reading |
+|---|---|---|
+| `disclosure:disclosure_missing:flag` | 20 | the policy asks for a disclosure these sentences do not carry, so this is the policy working |
+| `groundedness:escalated_by_disclosure:log` | 19 | T3 escalated because T0 flagged, action `log` |
+| `regulated_advice:*:flag` | 4 | false positives, and it is still on the xfail list |
+| `pii:person:redact` | 2 | the `Friday` and `Maerz` cases recorded above |
+| `pii:national_id:redact` | 2 | a money amount and an invoice number |
+| `nsfw:sexual:block` | 1 | the residual above |
+
+And 20 each from `output_leakage`, `summary_support`, `system_prompt_leakage` and `token_limit`,
+which are `_unconfigured`, `_unverifiable` and `_no_source_sentences` findings rather than false
+positives. That is rule 3 working: a detector with nothing to compare against says so instead of
+passing. Do not count those as noise, and do not count them as clean either.
+
+The original finding follows, unedited, because the way it was found is the useful part.
+
 **`nsfw` blocks ordinary business text, and this is the thing to fix before release.**
 Found on 2026-08-13 by running `scan_output` end to end on three sentences after wiring the
 checksum pass, which is worth noting: the detector table, the per-language evaluations and
@@ -865,10 +903,18 @@ Seventh instance of the pattern, and the one that would have shipped. The fix is
 negatives in the corpus and a retrain, not a threshold: at the calibrated 0.95 it still
 fires on 11 of 20.
 
-**The corpus half of that fix landed on 2026-08-14. The model half has not, so the detector
-is still broken.** Say it that way round, because a regenerated corpus reads like a fixed
-detector and is not one. What exists now is `data/nsfw_{train,val,test}.jsonl`, 9,969
-examples over 26 languages, and it addresses both faults the diagnosis named:
+**A corpus fix landed on 2026-08-14, and it is not the one that fixed the detector.** Written
+here first as "the model half has not landed, so the detector is still broken", which was
+wrong: a retrain had already landed on 2026-08-13 and taken `nsfw` from 11 of 20 mundane
+sentences to 1. The error came from reading this section's own history as the current state
+and not checking `tests/test_classifier_robustness.py`, which had recorded the fix a day
+earlier. Corrected the same day, and left visible because the failure mode is this file
+being long enough to disagree with itself.
+
+So the 2026-08-14 corpus is the *next* nsfw model's corpus, not the shipped one's, and its
+value is the one residual `block` and the four other detectors that share the same fault.
+What exists is `data/nsfw_{train,val,test}.jsonl`, 9,969 examples over 26 languages,
+addressing both faults the diagnosis named:
 
 | what was wrong | what the corpus holds now |
 |---|---|
@@ -912,6 +958,21 @@ language, nothing about either model or its training changed, and:
 |---|---|---|---|
 | `nsfw` | 52 to 262 | 0.817 to 0.976 | 0.000 to 0.870 |
 | `gibberish` | 78 to 276 | 0.834 to 0.966 | 0.400 to 0.870 |
+
+**`nsfw`'s 0.976 was superseded on 2026-08-13 and the shipped figure is 0.918.** The rebuild
+that scored 0.976 now sits in `artifacts_local/nsfw-full-preretrain`, and the adopted retrain in
+`nsfw-full` scores 0.918 with a worst language of 0.588 in Maltese, on 220 positives at
+threshold 0.81. The row above is kept because the paragraph is about what corpus size bought,
+and that is still what it bought.
+
+How this was caught is the part to keep. `docs/reference/performance.json` had been collected
+before the swap, so it still said 0.9755, and the README quoted it. Re-running
+`benchmarks/collect.py` moved one detector out of nine and `tests/test_readme.py` failed on it.
+So the check that caught a stale published score was regenerating the file rather than reading
+it, and the eight unchanged detectors are what made the one change trustworthy.
+
+`policies/default.yaml` was already correct at 0.81 with the measurement beside it, so the
+library's behaviour never lagged. Only the published numbers did.
 
 Maltese went from 0.000 to 1.000 in `nsfw`, which is the number that disproved this file's own
 claim that the pretraining gap bounded it. Four detectors still sit on single-digit
