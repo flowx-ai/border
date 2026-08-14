@@ -201,6 +201,35 @@ def _idle_fraction() -> float | None:
 IDLE_SAMPLE_SECONDS = 2.0
 
 
+def _cpu_name() -> str:
+    """The CPU as a human would name it, falling back to what Python knows.
+
+    `platform.processor()` returns "arm" on Apple silicon, which is true and useless: a
+    reader judging whether a latency figure applies to their hardware needs to know it
+    was an M-series laptop rather than a server, and "arm" does not say. The sweep is
+    published to argue about, so the machine has to be nameable.
+    """
+    system = sys.platform
+    if system == "darwin":
+        out = subprocess.run(
+            ["/usr/sbin/sysctl", "-n", "machdep.cpu.brand_string"],
+            capture_output=True,
+            text=True,
+            timeout=10,
+            check=False,
+        ).stdout.strip()
+        if out:
+            return out
+    if system.startswith("linux"):
+        try:
+            for line in Path("/proc/cpuinfo").read_text().splitlines():
+                if line.startswith("model name"):
+                    return line.split(":", 1)[1].strip()
+        except OSError:
+            pass
+    return platform.processor() or platform.machine()
+
+
 def _refuse_if_busy() -> str | None:
     """The reason this machine cannot produce a latency figure, or None.
 
@@ -384,7 +413,7 @@ def main() -> int:
         "iterations": args.runs,
         "input": "Romanian prose, no entities",
         "machine": {
-            "cpu": platform.processor() or platform.machine(),
+            "cpu": _cpu_name(),
             "platform": platform.platform(),
         },
         "points": points,
