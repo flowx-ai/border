@@ -750,6 +750,53 @@ decline are in `docs/porting-guardrails-validators.md`, rendered from
 hand: read them off `PORTED` and `DECLINED`, which is how the numbers in this paragraph
 were found to have drifted from seven and 57.
 
+**`groundedness`, 2026-08-14: the corpus grew five times, pair accuracy went 0.6814 to 0.740,
+and the INT8 export was refused. It stays unavailable in v1.**
+
+The corpus is 16,196 examples over 26 languages, 8,098 pairs, every one exactly two rows, at
+60 to 64 examples per language against the 14 to 18 it had. So the per-language numbers are
+readable for the first time: one item now moves a score by under two points rather than six,
+and the weak cells that could not be published as findings (`ga` 0.556, `mt` 0.571) are
+replaced by a worst language of `sl` at 0.750 that can be.
+
+    pair accuracy              0.6814 -> 0.740
+    per-language accuracy      mean 0.8615, min 0.750, max 0.953
+    examples per language      14 to 18 -> 60 to 64
+
+**The export is the interesting part, and it is a finding about the gate rather than about the
+model.** `benchmarks`-side, the INT8 was refused: probability drift of 0.07591 at the p99
+against a 0.05 ceiling, with the gate's own words being that at that scale "the flip count is
+beside the point, because the outputs the detector reads are no longer the outputs it was
+evaluated on". No `export_manifest.json` was written, so there is nothing to attest and
+nothing that could ship.
+
+Compare it with the groundedness INT8 that is currently adopted in `artifacts_local`:
+
+| | adopted | 2026-08-14, refused |
+|---|---|---|
+| max logit drift | 0.4391 | 0.2646 |
+| mean logit drift | 0.0323 | 0.0139 |
+| decisions changed | 2 of 300 | 2 of 300 |
+| widest margin at a flip | 0.0195 | 0.0089 |
+| p99 probability drift | **not measured** | 0.07591 |
+
+The new model drifts less on every axis the old one recorded. It fails only because the gate
+now measures probability drift and the adopted artifact never was. Whether the adopted one
+would also fail cannot be stated, because its fp32 weights were not kept and the check needs
+both halves. That is worth fixing on its own: an artifact whose fp32 is gone cannot be
+re-verified when the gate gets stricter, which is exactly when you want to.
+
+So: `groundedness` continues to ship unavailable, which is its status in v1 anyway, and
+nothing regresses. Two routes if it is ever wanted. The fp32 export passed cleanly, 0 of 300
+and a p99 of 0.00001, at 1112 MB, and `groundedness` is T3 so it runs only on escalation,
+which makes a large artifact more defensible than it would be on the standard path. Or find a
+quantisation this cross-encoder tolerates, noting the gate's instruction is to narrow the op
+types rather than raise the ceiling, and Gather-only is already the narrowest non-empty set.
+
+**Its 0.740 must not be published as a shipped score.** The model that scores it is not the
+model the library loads. `docs/reference/performance.json` is collected from
+`artifacts_local`, so leaving the artifact unadopted is what keeps that honest.
+
 **`groundedness` was retrained on source-side pairs and the leak is closed.** The failure
 this fixes: the old corpus asked for ten items of one register per generation request with
 the register named in the prompt, so the candidate sentence's style carried the label and the
