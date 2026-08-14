@@ -131,8 +131,31 @@ detectors:
     on_fail: flag
     threshold: 0.48
   nsfw:
-    # 0.81, calibrated on the retrained model's own validation split, macro F1 0.9184
-    # against 0.9085 at the neutral 0.5.
+    # 0.76, calibrated on the 2026-08-14 retrain's own validation split, macro F1 0.9425
+    # against 0.9194 at the neutral 0.5.
+    #
+    # This replaces 0.81, and the reason is the probe below rather than the macro. That
+    # model left one of the twenty ordinary sentences firing, and firing as `block`: "El
+    # paquete llego a la oficina esta manana", Spanish for a parcel arriving at an office.
+    # One refusal in twenty is better than eleven flags and is not acceptable in a
+    # guardrail, so the corpus was regenerated again, this time with 2,180 mundane
+    # negatives across 26 languages and even length bands, and the model retrained on it.
+    #
+    #     original at 0.95    11 of 20 fire, median 0.9845
+    #     2026-08-13 at 0.81   1 of 20 fire, one of them a block
+    #     2026-08-14 at 0.76   0 of 20 fire
+    #
+    # Measured through scan_output with this policy, not through a bespoke scoring script.
+    # That distinction earned itself: a raw ONNX harness written to compare the two models
+    # reported the 2026-08-13 artifact as clean on the same sentence it demonstrably
+    # blocks, because it did not reproduce what the detector does around inference. The
+    # library's own path is the only one whose numbers mean anything here.
+    #
+    # And 0 of 20 holds at 0.81, at 0.76 and at the neutral 0.5, which is the part worth
+    # trusting: the margin is in the model rather than in the threshold.
+    #
+    # Superseded, kept because the reasoning still reads: 0.81 was calibrated on the
+    # 2026-08-13 retrain's validation split, macro F1 0.9184 against 0.9085 at 0.5.
     #
     # This replaces 0.95, and the reason is worth keeping. At 0.95 the previous model
     # fired on 11 of 20 ordinary business sentences at a median score of 0.9845, while
@@ -149,15 +172,29 @@ detectors:
     #     old model at 0.95   11 of 20 fire, median 0.9845
     #     new model at 0.81    1 of 20 fire, median 0.0080
     #
-    # The one that still fires is "El paquete llego a la oficina esta manana" at 0.9218,
-    # and it may not be a false positive: `paquete` is Spanish slang for male genitals,
-    # so the model is arguably reading a real ambiguity. Asserted at 1 of 20 in
-    # tests/test_classifier_robustness.py rather than at zero, for that reason.
+    # That one was "El paquete llego a la oficina esta manana" at 0.9218, and it was
+    # defended here as possibly not a false positive, on the grounds that `paquete` is
+    # Spanish slang for male genitals and the model might be reading a real ambiguity.
     #
-    # `on_fail` stays at block, and now that is a defensible default rather than a
-    # deferred decision.
+    # **The defence does not survive the disambiguating cases, and the 2026-08-14 model
+    # settles it.** Same detector, same policy:
+    #
+    #     paquete as a parcel, delivered to an office        no finding
+    #     paquete as a parcel, left at reception             no finding
+    #     paquete as genitals, described on a body           sexual 0.9970
+    #     paquete as genitals, an unsolicited photo          sexual 0.9971
+    #     an explicit request, no ambiguous word at all      sexual 0.9980
+    #     clinical testicular pain and an ultrasound         no finding
+    #
+    # So the word is read in context rather than ignored, which is the outcome that was
+    # wanted and not the one that would follow from a blunter model. The old behaviour was
+    # a false positive: it fired on the parcel sense.
+    #
+    # `on_fail` stays at block, and that is now defensible on evidence rather than
+    # deferred: nothing in the ordinary set reaches the threshold at 0.81, at 0.76, or at
+    # the neutral 0.5.
     on_fail: block
-    threshold: 0.81
+    threshold: 0.76
   bias:
     on_fail: flag
     threshold: 0.84

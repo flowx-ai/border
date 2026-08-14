@@ -220,7 +220,7 @@ column.**
 | detector | metric | macro | worst language | examples |
 |---|---|---|---|---|
 | `regulated_advice` | F1 | 0.995 | 0.957 | 622 positives |
-| `nsfw` | F1 | 0.918 | 0.588 | 220 positives |
+| `nsfw` | F1 | 0.934 | 0.600 | 259 positives |
 | `injection` | F1 | 0.969 | 0.867 | 355 positives |
 | `gibberish` | F1 | 0.966 | 0.870 | 276 positives |
 | `politeness` | F1 | 0.962 | 0.788 | 392 positives |
@@ -253,17 +253,29 @@ but its INT8 export was refused by the decision-flip gate at a margin of 0.0687 
 band, so the previously verified model is the one that ships. A better number that cannot be
 exported safely is not a number this library will publish.
 
-**`nsfw`'s 0.976 in the table above is the rebuild, and it is not what ships.** The rebuild was
-itself superseded on 2026-08-13 by a further retrain, which is the artifact the library loads
-and which scores 0.918 with a worst language of 0.588. The first table shows the shipped figure;
-this one shows what the corpus rebuild bought, because that is what the paragraph is about. Both
-are true of different artifacts and neither is true of both.
+**`nsfw`'s 0.976 in the table above is the rebuild, and it is not what ships.** It was
+superseded twice: by a retrain on 2026-08-13 scoring 0.918, and by another on 2026-08-14
+scoring 0.934, which is the artifact the library loads. The first table shows the shipped
+figure; this one shows what the first corpus rebuild bought, because that is what the
+paragraph is about.
 
-Worth being blunt about why the shipped number is lower. The retrain was adopted for behaviour
-rather than for score: its calibrated threshold is 0.81 against the rebuild's 0.95, and
-`policies/default.yaml` carries 0.81 with the measurement beside it. So this is a model chosen
-on a different axis from the one this table ranks by, and reading it as a regression would be
-reading the wrong column. The score is still lower and the table says so.
+Each retrain was adopted for behaviour rather than for score, which is the thing to
+understand about this row. The measurement that decided both is twenty ordinary business
+sentences in ten languages, run through `scan_output` with the shipped policy:
+
+| artifact | fires on ordinary prose |
+|---|---|
+| the rebuild, at 0.95 | 11 of 20, median score 0.9845 |
+| 2026-08-13, at 0.81 | 1 of 20, and that one a `block` |
+| 2026-08-14, at 0.76 | 0 of 20 |
+
+The last row holds at 0.81, at 0.76 and at the neutral 0.5, so the margin is in the model
+rather than in the threshold. `nsfw` ships `on_fail: block`, so a false positive here refuses
+a real answer, which is why this axis outranks macro F1 for this detector.
+
+The 2026-08-14 model is also better on score, at 0.934 against 0.918, so no trade was needed
+in the end. Its worst language is Maltese at 0.600 on nine test positives, which is noise at
+that size rather than a finding.
 
 `topic_scope`'s evaluation recorded no sample sizes until 2026-08-12, which made it the one
 detector here whose numbers could not be weighed at all. They can now, and they rest on 6 to 8

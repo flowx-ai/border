@@ -89,7 +89,9 @@ MUNDANE: tuple[str, ...] = (
 #: a reader can see what each number is without opening another file, and
 #: `test_thresholds_match_the_shipped_policy` asserts the two agree.
 THRESHOLDS: dict[str, float] = {
-    "nsfw": 0.81,
+    # 0.76 from 2026-08-14. Moves with policies/default.yaml by design: the test below
+    # asserts the two agree, so a threshold cannot be changed in one place only.
+    "nsfw": 0.76,
     "toxicity": 0.48,
     "bias": 0.84,
     "politeness": 0.89,
@@ -101,6 +103,13 @@ THRESHOLDS: dict[str, float] = {
 #: How many of the twenty may fire before the detector is considered to have a problem
 #: with ordinary text. Zero would be the honest target and one is the allowance for a
 #: genuinely ambiguous sentence; `nsfw` fired on eleven at its calibrated threshold.
+#:
+#: Still 1 rather than 0, and deliberately, even though every detector now sits at 0. It
+#: is an allowance, not a target, and tightening it to 0 would make the suite fail on the
+#: first genuinely ambiguous sentence somebody adds to MUNDANE rather than on a
+#: regression. The one that used to use the allowance was nsfw on "El paquete llego a la
+#: oficina esta manana", and the 2026-08-14 retrain reads that word in context: it scores
+#: 0.997 on the same word used sexually and does not fire on the parcel.
 MUNDANE_ALLOWED = 1
 
 #: How much the false-positive rate on a detector's own hard negatives may move when
