@@ -3,6 +3,31 @@
 Written 2026-08-15. Every number here comes from the repository or from a measurement
 recorded in it, and the ones that are guesses say so.
 
+## State at the 2026-08-15 machine move
+
+Everything was stopped cleanly for a move to a new machine. All three repos are committed
+and clean, and all four GCP VMs are TERMINATED. This section is what was in flight, so a
+session picking this up cold knows what resumes and what does not.
+
+**Where the work only exists once.** `training` has no git remote at all: 82 commits and a
+35 GB working tree, of which 21 GB is `artifacts_local` model weights that git ignores by
+design. `library` has a remote but no upstream on `main`, with 61 commits not on origin.
+`landing_page` is 19 commits ahead. So pushing the repos would still not carry the weights,
+and a disk copy is the only copy of most of this.
+
+**Stopped mid-run and resumable.** Moderation verification against the local
+`gpt-oss-safeguard:20b`, at 10,006 of 29,825 rows. The cache is committed at
+`training/reports/moderation_verify.gpt-oss-safeguard-20b.jsonl`; rerunning
+`border_train.verify_moderation` skips what is already there. Nothing was lost by stopping.
+
+**Waiting on the owner.** `training/reports/extremism_label_sheet.csv`, 52 rows, two per
+language, with an empty `is_violent_extremism_y_n` column. `moderation` must not be trained
+until it comes back, for the reason in section 2.
+
+**Finished and not yet adopted.** `injection` v3 is trained and exported on
+`border-train-l4` in `us-east1-b`, under `artifacts_new/injection-full`. That VM is
+stopped. `border-l4-b` in `us-east1-c` hit a STOCKOUT the same day.
+
 ## Where it stands
 
 All seven build phases are tagged, `phase-0` to `phase-7`. The library is complete: 28
