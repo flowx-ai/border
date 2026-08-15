@@ -49,6 +49,40 @@ def pii() -> PiiDetector:
 
 
 @pytest.fixture(scope="module")
+def retrained_pii(pii: PiiDetector) -> PiiDetector:
+    """The detector, but only when its weights are the unpublished 26-locale retrain.
+
+    Two piiguards exist and they disagree. The published nine-locale artifact scores
+    held-out IBAN F1 0.5913 and the 26-locale retrain scores 0.9278, so a handful of
+    texts get a different tag depending on which one loaded, and the retrain is
+    unpublished: it is reachable only through FLOWX_BORDER_MODEL_DIR.
+
+    Without this fixture a test asserting retrain behaviour still runs against the hub
+    copy and fails as `assert 'national_id' == 'iban'`, which names neither model and
+    reads as a broken detector rather than as the wrong weights. That is the first thing
+    a fresh clone would hit once this repository is public, since a fresh clone has no
+    override set and every one of these artifacts is held back until release.
+
+    `local_folder` is the test: the retrain has no published revision to compare
+    against,
+    so "supplied by the local override" is what distinguishes it. A superseded artifact
+    parked under another directory name is not picked up, because the override resolves
+    `piiguard-full` specifically.
+    """
+    from flowx_border.models.registry import local_folder
+
+    folder = local_folder("piiguard")
+    if folder is None:
+        pytest.skip(
+            "this asserts a tag only the unpublished 26-locale piiguard retrain gets "
+            "right, and the loaded weights came from the hub, which is the nine-locale "
+            "artifact. Point FLOWX_BORDER_MODEL_DIR at a directory holding "
+            "piiguard-full/onnx to run it."
+        )
+    return pii
+
+
+@pytest.fixture(scope="module")
 def leakage(pii: PiiDetector) -> OutputLeakageDetector:
     # Depends on `pii` for ordering only: it warms the shared session first.
     detector = OutputLeakageDetector()
@@ -357,7 +391,7 @@ def test_the_checksum_pass_corrects_a_label_the_model_gets_wrong(
 
 
 def test_the_model_labels_an_iban_the_checksum_cannot_vouch_for(
-    pii: PiiDetector,
+    retrained_pii: PiiDetector,
 ) -> None:
     """The other half: change one digit so arithmetic cannot help, and read the raw tag.
 
@@ -384,13 +418,13 @@ def test_the_model_labels_an_iban_the_checksum_cannot_vouch_for(
     a bad number through as a clean IBAN.
     """
     text = "Herr Müller, IBAN DE89370400440532013001."
-    found = {value: label for label, value in labels_and_text(pii, text)}
+    found = {value: label for label, value in labels_and_text(retrained_pii, text)}
     assert found.get("DE89370400440532013001") == "iban"
 
     # The checksum failure is reported, not swallowed. Without this the test would pass
     # on a detector that had stopped checking, which is the failure mode the whole
     # checksum pass exists to prevent.
-    labels = {label for label, _ in labels_and_text(pii, text)}
+    labels = {label for label, _ in labels_and_text(retrained_pii, text)}
     assert "pii_checksum_failed_iban" in labels
 
 
