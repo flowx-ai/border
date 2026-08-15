@@ -750,6 +750,73 @@ decline are in `docs/porting-guardrails-validators.md`, rendered from
 hand: read them off `PORTED` and `DECLINED`, which is how the numbers in this paragraph
 were found to have drifted from seven and 57.
 
+**`groundedness`, 2026-08-15, later the same day: six epochs made every aggregate better and
+the blocking probe worse, and the diagnosis that followed is the useful part.**
+
+Trained at 6 epochs because the eval was still climbing at 3. It climbed:
+
+| | 3 epochs | 6 epochs |
+|---|---|---|
+| pair accuracy | 0.740 | **0.7849** |
+| per-language mean | 0.8615 | 0.8895 |
+| worst language | 0.750 `sl` | 0.812 `sl` |
+| `contradicted` recall | 0.9022 | 0.8582 |
+| the blocking probe, `supported` | 0.9906 | **0.9987** |
+
+So the model got better at the task and more confident about the one case that disqualifies
+it. fp16 exported clean either way, 0 of 300 decisions changed at a p99 drift of 0.02820.
+
+**The failure is a shape, and the corpus has no register for it.** Eight candidates, all
+false against the same source, differing only in how they are false. Model alone, through
+the library's own `judge`:
+
+| how the candidate is false | caught |
+|---|---|
+| a number differs, matching `numeric_conflict` | 2 of 3 |
+| the opposite is asserted, matching `negation_conflict` | 1 of 2 |
+| a qualifying condition is dropped | **0 of 3** |
+
+The three misses score `supported` at 0.9987, 0.9977 and 0.9440, across three different
+clauses of the source, so it follows the shape rather than one sentence. A dropped condition
+asserts a conditional statement flat: no number differs, nothing is negated, and the words
+are all present in the source, which is why it reads as supported. The four registers are
+`unstated`, `lexical_overlap`, `numeric_conflict` and `negation_conflict`, and it is none of
+them. It sits nearest `lexical_overlap`, which is the weakest at 0.8277.
+
+That also explains why more epochs hurt: there is no training signal teaching the model to
+doubt this shape, so more training only sharpens the wrong answer. It predicts a class
+weight on `contradicted` will not fix it either, since the issue is a missing example type
+rather than a decision boundary in the wrong place.
+
+**The class weight was run and the prediction held, precisely.** 3 epochs at 1.0 / 2.0 / 2.5
+over supported / unsupported / contradicted, pair accuracy 0.7655, `supported` precision
+0.9535 to 0.9711, `contradicted` recall held at 0.8998:
+
+| how the candidate is false | rows in corpus | 6 epochs | class weight |
+|---|---|---|---|
+| a number differs | 3,164 | 2 of 3 | **3 of 3** |
+| the opposite is asserted | 4,066 | 1 of 2 | **2 of 2** |
+| a qualifying condition is dropped | **0** | 0 of 3 | 1 of 3 |
+
+The weight took both registers the corpus contains to perfect and barely moved the one it
+does not. That is the cleanest statement of the finding available: a loss weight can
+rebalance a decision the model was taught to make, and cannot supply an example type nobody
+generated. The blocking probe still reads `supported` at 0.9594, better than 0.9906 and
+0.9987 and still wrong, and the weight cost a regression on the weaker-claim probe, which
+now reads `contradicted` at 0.4728.
+
+So three models have failed that probe and each failure located something real. Both are
+parked in `artifacts_local` with a WHY_NOT_ADOPTED.md, `scope_conflict` is in the generator,
+and what is left is a regenerate and a retrain rather than another hyperparameter.
+
+**This is the eighth instance of the pattern named below**, and the first where the thing
+agreeing with itself was a *corpus*: four registers, an evaluation drawn from those same
+four, and a register accuracy table that cannot report a shape nobody generated. Dropping a
+qualifier is the single most common way an LLM summary goes wrong, and it is the one case
+the corpus never asks about.
+
+The previous entry follows and its numbers still hold for the 3-epoch model.
+
 **`groundedness`, 2026-08-15: the corpus grew five times, pair accuracy went 0.6814 to 0.740,
 fp16 solved the export, and the model is still not adopted. The reason is one probe.**
 
