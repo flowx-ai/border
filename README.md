@@ -226,8 +226,10 @@ column.**
 | `politeness` | F1 | 0.962 | 0.788 | 392 positives |
 | `toxicity` | F1 | 0.992 | 0.950 | 518 positives |
 | `bias` | F1 | 0.977 | 0.824 | 264 positives |
-| `groundedness` | exact match | 0.882 | 0.636 | 479 evaluated |
 | `topic_scope` | top-1 accuracy | 0.865 | 0.375 | 175 evaluated |
+
+`groundedness` has no row because no model for it is adopted, and the one that used to
+score here was measuring its own generator. See the second entry under what is weak.
 
 **The support column is why this table is ordered by it and not by score.** Six of these
 detectors had their corpora rebuilt over 2026-08-11 and 12, and no model changed architecture
@@ -374,23 +376,35 @@ The honest list, in rough order of how likely each is to matter to you.
    for this project, and one of them turned out to be measuring the generator rather than the
    task, which is the next entry. Read the support column, and treat these as internal figures
    rather than as benchmarks against anyone else's.
-2. **`groundedness`'s model reads the sentence, not the source.** The detector is
-   implemented and correct. The model reports 0.882 exact-match accuracy on its own test
-   split, and that number does not mean what it appears to. Swapping a candidate sentence's
-   source for an unrelated passage in another language leaves the verdict unchanged for four
-   of its eight example types: one real paraphrase scores 0.9999 supported against its own
-   source and 0.9999 against a Romanian passage about travel expenses. The corpus leaks its
-   label through the candidate sentence's style, because every generation request asked for
-   ten examples of one type with the type named in the prompt, so each class came out
-   stylistically uniform and the model learned the style.
+2. **`groundedness` ships unavailable, and no model for it is adopted.** The detector is
+   implemented and correct; what is missing is a model good enough to publish. Three have
+   been trained and none adopted, which is why it has no row in the quality table above.
 
-   What follows is that it handles paraphrases written in that generator's voice and rejects
-   paraphrases written in any other, which is the case that matters, since an LLM paraphrases
-   its sources in its own voice. It also needs near-exact wording: dropping two words from a
-   supported restatement flips it from 0.9999 supported to 0.0002. The model is therefore not
-   published, the behaviour is pinned by four tests, and the fix is a corpus where the same
-   sentence appears against both a source that supports it and one that does not, so style
-   cannot predict the label by construction.
+   The first leaked its labels through style. It reported 0.882 exact-match accuracy on its
+   own test split, and that number was measuring the generator rather than the task:
+   swapping a candidate sentence's source for an unrelated passage in another language left
+   the verdict unchanged for four of its eight example types, and one real paraphrase scored
+   0.9999 supported against its own source and 0.9999 against a Romanian passage about
+   travel expenses. Every generation request had asked for ten examples of one type with the
+   type named in the prompt, so each class came out stylistically uniform and the model
+   learned the style. **That 0.882 was published here until 2026-08-15**, with this caveat
+   beside it, which is one caveat further away than a disqualified number should be.
+
+   The corpus was then rebuilt as source-side pairs: one candidate sentence, two different
+   sources, opposite labels, so the candidate text is byte-identical across a pair and style
+   cannot carry the label by construction. That closed the leak, measured rather than
+   assumed, and the current corpus is 16,196 examples over 26 languages.
+
+   The model trained on it is better on every aggregate and is still not adopted, for one
+   reason worth stating plainly. Against a source saying withdrawals incur a fee for twelve
+   months and are free only after, the candidate "Withdrawals are free from the day the
+   account opens" scores supported at 0.9906. That is a clear temporal contradiction called
+   grounded, and for a detector whose whole job is noticing that a claim is not carried by
+   its source, a confident false `supported` is the worst failure available. It is worse
+   than what it trades against, since the other two verdicts both mean "not grounded" and
+   cost a caller caution rather than a missed contradiction.
+
+   The behaviour is pinned by tests, and those tests are not relaxed to let a model pass.
 3. **`piiguard` covers 9 of 26 languages** and was exported before the decision-flip gate
    existed, so its latency and quality numbers come from a file held to a weaker standard
    than the nine trained later.

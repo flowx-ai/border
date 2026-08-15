@@ -406,138 +406,16 @@
     },
     "groundedness": {
       "budget_ms": 300.0,
-      "caveats": [
-        "no calibrated threshold recorded, so this detector runs at the policy default. Several detectors in this family reported nothing at 0.5 while separating positives from negatives well below it."
-      ],
+      "caveats": [],
       "in_core": true,
-      "metrics": {
-        "best": 1.0,
-        "languages_evaluated": 26,
-        "languages_without_a_count": [],
-        "macro": 0.8824,
-        "median": 0.8889,
-        "metric": "exact_match_accuracy",
-        "n_means": "examples evaluated",
-        "per_language": {
-          "az": {
-            "n": 20,
-            "score": 0.95
-          },
-          "bg": {
-            "n": 20,
-            "score": 0.95
-          },
-          "cs": {
-            "n": 17,
-            "score": 0.9412
-          },
-          "da": {
-            "n": 19,
-            "score": 0.7895
-          },
-          "de": {
-            "n": 18,
-            "score": 0.8889
-          },
-          "el": {
-            "n": 19,
-            "score": 0.8947
-          },
-          "en": {
-            "n": 16,
-            "score": 0.875
-          },
-          "es": {
-            "n": 21,
-            "score": 0.9524
-          },
-          "et": {
-            "n": 20,
-            "score": 0.95
-          },
-          "fi": {
-            "n": 17,
-            "score": 0.9412
-          },
-          "fr": {
-            "n": 16,
-            "score": 1.0
-          },
-          "ga": {
-            "n": 22,
-            "score": 0.6364
-          },
-          "hr": {
-            "n": 19,
-            "score": 0.9474
-          },
-          "hu": {
-            "n": 19,
-            "score": 0.7895
-          },
-          "it": {
-            "n": 18,
-            "score": 0.7778
-          },
-          "lt": {
-            "n": 21,
-            "score": 1.0
-          },
-          "lv": {
-            "n": 17,
-            "score": 0.8235
-          },
-          "mt": {
-            "n": 19,
-            "notes": [
-              "absent from the base model's pretraining corpus, which is worth knowing but has not been shown to bound the score: nsfw went from 0.000 to 1.000 here on more examples"
-            ],
-            "score": 0.7895
-          },
-          "nl": {
-            "n": 18,
-            "score": 0.8889
-          },
-          "pl": {
-            "n": 16,
-            "score": 1.0
-          },
-          "pt": {
-            "n": 18,
-            "score": 0.8889
-          },
-          "ro": {
-            "n": 18,
-            "score": 0.8889
-          },
-          "sk": {
-            "n": 18,
-            "score": 0.8333
-          },
-          "sl": {
-            "n": 18,
-            "score": 0.8333
-          },
-          "sv": {
-            "n": 18,
-            "score": 0.8889
-          },
-          "tr": {
-            "n": 17,
-            "score": 0.8235
-          }
-        },
-        "threshold": null,
-        "threshold_chosen_by": null,
-        "total_examples": 479,
-        "worst": 0.6364
-      },
+      "metrics": null,
       "requires": {},
       "sides": [
         "output"
       ],
-      "status": "built",
-      "tier": "T3"
+      "status": "not built",
+      "tier": "T3",
+      "why_not_built": "weights are not published yet and no local override provides them"
     },
     "injection": {
       "budget_ms": 225.0,
@@ -1787,10 +1665,10 @@
   "latency": {
     "per_detector_ms": {
       "banned_terms": {
-        "p95": 0.215
+        "p95": 0.211
       },
       "bias": {
-        "p95": 150.184
+        "p95": 150.342
       },
       "code_present": {
         "p95": 0.009
@@ -1799,16 +1677,13 @@
         "p95": 0.035
       },
       "gibberish": {
-        "p95": 149.76
-      },
-      "groundedness": {
-        "p95": 59.443
+        "p95": 148.992
       },
       "injection": {
-        "p95": 149.923
+        "p95": 149.193
       },
       "internal_domains": {
-        "p95": 0.199
+        "p95": 0.196
       },
       "invisible_text": {
         "p95": 0.031
@@ -1817,54 +1692,54 @@
         "p95": 0.001
       },
       "markup_injection": {
-        "p95": 0.203
+        "p95": 0.204
       },
       "nsfw": {
-        "p95": 150.161
+        "p95": 149.168
       },
       "output_format": {
         "p95": 0.001
       },
       "output_leakage": {
-        "p95": 151.114
+        "p95": 148.837
       },
       "pii": {
-        "p95": 150.326
+        "p95": 149.333
       },
       "politeness": {
-        "p95": 150.058
+        "p95": 149.449
       },
       "postal_code": {
         "p95": 0.001
       },
       "regulated_advice": {
-        "p95": 150.266
+        "p95": 149.154
       },
       "repetition": {
-        "p95": 0.394
+        "p95": 0.369
       },
       "secrets": {
-        "p95": 0.037
+        "p95": 0.038
       },
       "sql_injection": {
-        "p95": 0.202
+        "p95": 0.197
       },
       "summary_support": {
-        "p95": 0.702
+        "p95": 0.692
       },
       "system_prompt_leakage": {
         "describes": "the path where the detector reported leakage_unverifiable rather than the path where it does its work, because the reference configuration does not give it what it needs",
-        "p95": 0.238
+        "p95": 0.241
       },
       "token_limit": {
         "describes": "the path where the detector reported token_limit_unconfigured rather than the path where it does its work, because the reference configuration does not give it what it needs",
         "p95": 0.001
       },
       "topic_scope": {
-        "p95": 213.3
+        "p95": 206.961
       },
       "toxicity": {
-        "p95": 150.225
+        "p95": 149.247
       },
       "url_reachability": {
         "describes": "the path where there was nothing to fetch. The reference input contains no URLs, and the suite blocks outbound connections, so this figure excludes the request that is the whole cost of the detector. Its budget is a deadline it enforces on itself rather than a measurement, because it depends on a network the library does not control",

@@ -161,10 +161,24 @@ def _shape_of(
     return "exact_match_accuracy", "accuracy", "examples evaluated"
 
 
+#: A directory holding this file is a candidate, not a deliverable, and its score is not
+#: collected. It exists because one directory name was doing two jobs: `<detector>-full`
+#: is what the library's local override loads AND what this file publishes, so a model
+#: could not be probed locally without its number reaching the README. groundedness is
+#: where that bit: its leaked model scored 0.882, which was measuring the generator
+#: rather than the task, and that figure was published for two days because the artifact
+#: sat under the adopted name. Renaming it away fixed the publishing and disabled the 16
+#: tests using it as a probe baseline, which is the same problem from the other side.
+#: The marker separates the two, and the file says why in prose a reader can act on.
+NOT_ADOPTED_MARKER = "WHY_NOT_ADOPTED.md"
+
+
 def quality_for(root: Path, detector: str) -> dict[str, Any] | None:
     """Per-language numbers for one detector, or None when there is no evaluation."""
     folder = _artifact_dir(root, detector)
     if folder is None:
+        return None
+    if (folder / NOT_ADOPTED_MARKER).exists():
         return None
     evaluation = _read_eval(folder, detector)
     if evaluation is None:
@@ -566,6 +580,35 @@ def main() -> None:
         raise SystemExit(f"{artifacts} is not a directory")
 
     data = collect(artifacts)
+
+    # An artifacts directory that yields no quality at all is a misconfiguration, not a
+    # result, and it must not be written.
+    #
+    # Quality is read only for a detector that loaded, and a model-backed detector loads
+    # only when its weights are reachable. So running this with --artifacts but without
+    # FLOWX_BORDER_MODEL_DIR silently drops every score while still writing a file that
+    # looks complete: 28 catalogued, 18 built, 0 with measured quality, and a valid JSON
+    # document with every metrics block set to null. That is the second way this command
+    # has quietly stripped published data, after being run with no --artifacts at all,
+    # and both times the output was well-formed enough to commit.
+    #
+    # Refusing costs nothing, because there is no reason to point this at a directory of
+    # artifacts and want none of them read.
+    if artifacts is not None:
+        scored_now = sum(
+            1 for e in data["detectors"].values() if e["metrics"] is not None
+        )
+        if scored_now == 0:
+            raise SystemExit(
+                f"\n  {artifacts} was given but produced no quality figures at all, so "
+                "nothing was written.\n"
+                "  Quality is collected only for detectors that loaded, and a "
+                "model-backed detector loads only when its weights are reachable. Set "
+                "FLOWX_BORDER_MODEL_DIR to the same directory and run this again:\n\n"
+                f"    FLOWX_BORDER_MODEL_DIR={artifacts} uv run python "
+                f"benchmarks/collect.py --artifacts {artifacts}\n"
+            )
+
     OUT_JSON.parent.mkdir(parents=True, exist_ok=True)
     OUT_JSON.write_text(
         json.dumps(data, indent=2, sort_keys=True) + "\n", encoding="utf-8"
