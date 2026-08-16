@@ -713,6 +713,32 @@ Weekday and month names go to `PERSON`, and a money amount goes to the fallback 
 is the same gap `entity_shapes.py` already records for `PERSON`, which has no shape to check
 and let `nio` through in Swedish, now with two cases that visibly damage output.
 
+**Measured at scale on 2026-08-16, and it is a release question rather than an anecdote.**
+`tests/test_ordinary_text_sweep.py` runs the whole shipped configuration, both sides, over
+234 ordinary rows: 8 per language from the moderation corpus `mundane_*` registers, plus
+the 26 hand-written sentences from `test_language_id.py` that no generator produced. Per
+row, not per finding, since one product description naming four entities is one damaged
+row:
+
+| detector | fires | blocks or redacts |
+|---|---|---|
+| `pii` | 0.803 | **0.748** |
+| `regulated_advice` | 0.145 | 0 |
+| `nsfw` | 0.009 | 0.009 |
+| `injection` | 0.004 | 0.004 |
+| the other eight in the table | at or under ceiling | 0 |
+
+Three quarters of ordinary business prose comes back with something removed. That is worse
+than the `nsfw` 55 percent treated as a shipping blocker in August, and it is the same gap
+this section already describes, now with a number attached: `Elektrik` and a tariff name
+come back as `PERSON`, `2026/2027` as a `NATIONAL_ID`, `mm x 80 mm x 45 mm` as an `IBAN`.
+The default policy enables all seven entity types, so it is the model's precision on
+ordinary text rather than a misconfiguration.
+
+Recorded as two strict xfails carrying the numbers, never as raised ceilings, and split
+from the enforcing test so a `toxicity` or `nsfw` regression still fails something. A known
+failure must not become cover for an unknown one.
+
 **It stays a corpus fix and does not become a stoplist.** A calendar-word list in the library
 would drop a span, and `entity_shapes.py` refuses to drop for a reason that still holds: a
 person really can be called April or June or Mars, and turning a visible over-redaction into
