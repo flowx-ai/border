@@ -31,6 +31,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Final
 
+from flowx_border.detectors.multilingual import LANGUAGES
+
 # The default cache location. Overridden by HF_HOME or HF_HUB_CACHE, which
 # huggingface-hub reads itself; this constant exists only so that error messages can
 # name a concrete path instead of saying "the cache".
@@ -114,29 +116,38 @@ MODELS: Final[dict[str, ModelSpec]] = {
     "piiguard": ModelSpec(
         model_id="flowxai/piiguard",
         repo="flowxai/piiguard",
-        revision="018e7f0355c0576938007c2bbfdd22d9275edbb9",
-        # The INT8 build, and specifically not onnx/model.onnx: the fp32 export on this
-        # repo keeps its weights in a sibling model.onnx.data, so the .onnx file alone
-        # is 1.8 MB of graph. Loading it without the sidecar fails, and hashing it would
-        # attest a graph rather than a model.
-        filename="onnx/model.int8.onnx",
-        sha256="d59a4ece4ac6ea69cb97188eb7b1e88d5c87fd97c6d7cb1aa1d57daef830ab5a",
+        # The 26-locale retrain, published 2026-08-16. It replaced the nine-locale
+        # artifact this entry pinned until then, and the superseded ONNX exports were
+        # deleted from the repo rather than left beside it: a stale file at the old
+        # pinned filename is a model the library would go on fetching for as long as
+        # anybody forgot to move the pin.
+        revision="246866fa594820aab1a6fe8a71abd83cfaa5078c",
+        # fp16, and specifically not onnx/model.onnx, which is no longer published
+        # either: the fp32 export kept its weights in a sibling model.onnx.data, so the
+        # .onnx file alone was 1.8 MB of graph. Loading it without the sidecar fails,
+        # and hashing it would attest a graph rather than a model.
+        #
+        # fp16 rather than INT8 for this artifact. The export gate for a tagger compares
+        # decoded character spans, and fp16 changed no span set on 300 texts and lost no
+        # covered character.
+        filename="onnx/model.fp16.onnx",
+        sha256="d47475fa20ee0e296b6d5dd2fc606ceddae441200899b33963b392b787cc0733",
         extra_files=("tokenizer.json", "config.json"),
         trained_max_length=96,
-        # The 9 locales in configs/cross/pii_multi.yaml in the OpenNER training repo,
-        # not the hub tags, which advertise two. The remaining 17 of the supported 26
-        # are untested rather than covered, which is what lets a caller be told which.
-        trained_languages=frozenset(
-            {"en", "ro", "bg", "hu", "sl", "hr", "de", "it", "fr"}
-        ),
+        # All 26. This read as 9 until 2026-08-16, which was true of the artifact then
+        # pinned and false the moment the retrain was published. A language list is a
+        # fact about one set of weights, so it moves when the revision above moves.
+        trained_languages=frozenset(LANGUAGES),
         notes=(
             "XLM-RoBERTa base, BIO tagging over 7 entity types (CARD, DATE, "
-            "EMAIL, IBAN, NATIONAL_ID, PERSON, PHONE). Trained on 9 locales: "
-            "en, ro, bg, hu, sl, hr, de, it, fr. The other 17 of the 26 "
-            "supported languages are untested rather than covered. In the "
-            "training generator, locale en is labelled United Kingdom but uses "
-            "the German Steuer-IdNr algorithm as a numeric fallback, so do not "
-            "claim English national IDs are checksum validated."
+            "EMAIL, IBAN, NATIONAL_ID, PERSON, PHONE), trained on all 26 "
+            "supported languages. Held out, it misses nothing: token coverage "
+            "is 1.0 on every entity type and no sensitive token is left "
+            "uncovered. What it gets wrong is the type name, NATIONAL_ID worst "
+            "at 0.1429 F1 with every span found and 16 of 208 named right. In "
+            "the training generator, locale en is labelled United Kingdom but "
+            "uses the German Steuer-IdNr algorithm as a numeric fallback, so do "
+            "not claim English national IDs are checksum validated."
         ),
     ),
 }

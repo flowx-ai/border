@@ -1,8 +1,8 @@
 # SPDX-License-Identifier: Apache-2.0
 """Tests for the model runtime and the two T1 detectors.
 
-Real weights, no mocked sessions, per CLAUDE.md. Marked `slow` because they need the 279
-MB INT8 artifact present, and skipped with a readable reason when it is not, so a fresh
+Real weights, no mocked sessions, per CLAUDE.md. Marked `slow` because they need the 555
+MB fp16 artifact present, and skipped with a readable reason when it is not, so a fresh
 clone does not fail a suite it was never able to run.
 
 `HF_HUB_OFFLINE=1` is set for the whole module, which is doing double duty. It stops
@@ -50,34 +50,37 @@ def pii() -> PiiDetector:
 
 @pytest.fixture(scope="module")
 def retrained_pii(pii: PiiDetector) -> PiiDetector:
-    """The detector, but only when its weights are the unpublished 26-locale retrain.
+    """The detector, but only when its weights are the 26-locale retrain.
 
-    Two piiguards exist and they disagree. The published nine-locale artifact scores
-    held-out IBAN F1 0.5913 and the 26-locale retrain scores 0.9278, so a handful of
-    texts get a different tag depending on which one loaded, and the retrain is
-    unpublished: it is reachable only through FLOWX_BORDER_MODEL_DIR.
+    Two piiguards exist and they disagree. The nine-locale artifact scores held-out IBAN
+    F1 0.5913 and the 26-locale retrain scores 1.0000, so a handful of texts get a
+    different tag depending on which one loaded.
 
-    Without this fixture a test asserting retrain behaviour still runs against the hub
-    copy and fails as `assert 'national_id' == 'iban'`, which names neither model and
-    reads as a broken detector rather than as the wrong weights. That is the first thing
-    a fresh clone would hit once this repository is public, since a fresh clone has no
-    override set and every one of these artifacts is held back until release.
+    **This gate was `local_folder(...) is not None` until 2026-08-16, on the grounds
+    that the retrain was unpublished and reachable only through
+    FLOWX_BORDER_MODEL_DIR.** It was published that day, so the gate then skipped 20
+    tests against exactly the weights they were written for: the fixture asked "is
+    there an override" while its
+    docstring claimed to ask "are these the retrain's weights". Those were the same
+    question for four days and are not any more.
 
-    `local_folder` is the test: the retrain has no published revision to compare
-    against,
-    so "supplied by the local override" is what distinguishes it. A superseded artifact
-    parked under another directory name is not picked up, because the override resolves
-    `piiguard-full` specifically.
+    So it asks the question it means. The published pin is the retrain, and an override
+    is assumed to be one too, since an override is deliberate and the library cannot
+    inspect a weights directory to find out what trained it. What is excluded is the
+    superseded nine-locale revision, which a pinned older library would still fetch.
+
+    Without this a test asserting retrain behaviour fails as `assert 'national_id' ==
+    'iban'`, which names neither model and reads as a broken detector rather than as the
+    wrong weights.
     """
-    from flowx_border.models.registry import local_folder
+    from flowx_border.models.registry import MODELS, local_folder, spec_for
 
-    folder = local_folder("piiguard")
-    if folder is None:
+    spec = spec_for("piiguard")
+    pinned = MODELS["piiguard"].revision
+    if local_folder("piiguard") is None and spec.revision != pinned:
         pytest.skip(
-            "this asserts a tag only the unpublished 26-locale piiguard retrain gets "
-            "right, and the loaded weights came from the hub, which is the nine-locale "
-            "artifact. Point FLOWX_BORDER_MODEL_DIR at a directory holding "
-            "piiguard-full/onnx to run it."
+            "this asserts a tag only the 26-locale piiguard retrain gets right, and "
+            f"the loaded weights are revision {spec.revision}, not {pinned}."
         )
     return pii
 
@@ -548,7 +551,14 @@ def test_findings_carry_the_model_that_produced_them(pii: PiiDetector) -> None:
         # two and nothing else, so a record cannot claim a pinned revision for a file on
         # a laptop.
         assert finding.model_revision is not None
-        assert finding.model_revision == "018e7f0355c0576938007c2bbfdd22d9275edbb9" or (
+        # Read off the registry, never written out here. This held the literal
+        # `018e7f03...` until 2026-08-16 and failed the moment the 26-locale retrain was
+        # published, which is the good half; the bad half is that a test comparing one
+        # constant to another agrees with itself, so it could only ever catch the
+        # republish and never a record that attested the wrong artifact.
+        from flowx_border.models.registry import MODELS
+
+        assert finding.model_revision == MODELS["piiguard"].revision or (
             finding.model_revision.startswith("local:")
         )
 
