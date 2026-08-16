@@ -221,7 +221,7 @@ column.**
 |---|---|---|---|---|
 | `regulated_advice` | F1 | 0.995 | 0.957 | 622 positives |
 | `nsfw` | F1 | 0.934 | 0.600 | 259 positives |
-| `injection` | F1 | 0.969 | 0.867 | 355 positives |
+| `injection` | F1 | 0.970 | 0.727 | 357 positives |
 | `gibberish` | F1 | 0.966 | 0.870 | 276 positives |
 | `politeness` | F1 | 0.962 | 0.788 | 392 positives |
 | `toxicity` | F1 | 0.992 | 0.950 | 518 positives |

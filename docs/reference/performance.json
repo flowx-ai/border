@@ -419,160 +419,155 @@
     },
     "injection": {
       "budget_ms": 225.0,
-      "caveats": [
-        "1 of 26 languages have fewer than 10 positive examples: es. Their individual scores are indicative rather than measured."
-      ],
+      "caveats": [],
       "in_core": true,
       "metrics": {
         "best": 1.0,
         "languages_evaluated": 26,
         "languages_without_a_count": [],
-        "macro": 0.9685,
+        "macro": 0.9703,
         "median": 0.9828,
         "metric": "f1",
         "n_means": "positive examples",
         "per_language": {
           "az": {
             "n": 14,
-            "n_evaluated": 39,
+            "n_evaluated": 44,
             "score": 0.963
           },
           "bg": {
             "n": 13,
-            "n_evaluated": 37,
+            "n_evaluated": 43,
             "score": 1.0
           },
           "cs": {
-            "n": 14,
-            "n_evaluated": 38,
-            "score": 0.9231
+            "n": 13,
+            "n_evaluated": 43,
+            "score": 0.96
           },
           "da": {
             "n": 14,
-            "n_evaluated": 38,
-            "score": 0.963
+            "n_evaluated": 44,
+            "score": 0.9655
           },
           "de": {
             "n": 14,
-            "n_evaluated": 38,
-            "score": 1.0
+            "n_evaluated": 44,
+            "score": 0.9655
           },
           "el": {
-            "n": 13,
-            "n_evaluated": 39,
-            "score": 0.9167
+            "n": 14,
+            "n_evaluated": 44,
+            "score": 1.0
           },
           "en": {
             "n": 14,
-            "n_evaluated": 38,
-            "score": 0.963
+            "n_evaluated": 44,
+            "score": 0.9655
           },
           "es": {
-            "n": 9,
-            "n_evaluated": 34,
-            "notes": [
-              "only 9 positive examples, so one case moves this materially"
-            ],
+            "n": 12,
+            "n_evaluated": 42,
             "score": 1.0
           },
           "et": {
             "n": 14,
-            "n_evaluated": 38,
-            "score": 1.0
+            "n_evaluated": 44,
+            "score": 0.9655
           },
           "fi": {
             "n": 14,
-            "n_evaluated": 39,
+            "n_evaluated": 44,
             "score": 0.9655
           },
           "fr": {
-            "n": 14,
-            "n_evaluated": 38,
-            "score": 0.963
+            "n": 13,
+            "n_evaluated": 43,
+            "score": 0.9231
           },
           "ga": {
             "n": 14,
-            "n_evaluated": 41,
-            "score": 0.9231
+            "n_evaluated": 44,
+            "score": 1.0
           },
           "hr": {
             "n": 13,
-            "n_evaluated": 38,
+            "n_evaluated": 43,
             "score": 1.0
           },
           "hu": {
             "n": 14,
-            "n_evaluated": 39,
-            "score": 0.9286
+            "n_evaluated": 44,
+            "score": 1.0
           },
           "it": {
             "n": 14,
-            "n_evaluated": 39,
+            "n_evaluated": 44,
             "score": 1.0
           },
           "lt": {
-            "n": 14,
-            "n_evaluated": 38,
-            "score": 0.88
+            "n": 13,
+            "n_evaluated": 43,
+            "score": 1.0
           },
           "lv": {
-            "n": 13,
-            "n_evaluated": 39,
+            "n": 14,
+            "n_evaluated": 44,
             "score": 1.0
           },
           "mt": {
             "n": 14,
-            "n_evaluated": 39,
+            "n_evaluated": 44,
             "notes": [
               "absent from the base model's pretraining corpus, which is worth knowing but has not been shown to bound the score: nsfw went from 0.000 to 1.000 here on more examples"
             ],
-            "score": 0.8667
+            "score": 0.7273
           },
           "nl": {
             "n": 14,
-            "n_evaluated": 38,
+            "n_evaluated": 44,
             "score": 1.0
           },
           "pl": {
             "n": 14,
-            "n_evaluated": 38,
+            "n_evaluated": 44,
             "score": 1.0
           },
           "pt": {
             "n": 14,
-            "n_evaluated": 38,
-            "score": 1.0
+            "n_evaluated": 44,
+            "score": 0.9333
           },
           "ro": {
             "n": 14,
-            "n_evaluated": 38,
-            "score": 1.0
+            "n_evaluated": 44,
+            "score": 0.9655
           },
           "sk": {
             "n": 14,
-            "n_evaluated": 38,
-            "score": 1.0
+            "n_evaluated": 44,
+            "score": 0.963
           },
           "sl": {
             "n": 14,
-            "n_evaluated": 39,
-            "score": 0.963
+            "n_evaluated": 44,
+            "score": 1.0
           },
           "sv": {
             "n": 14,
-            "n_evaluated": 38,
+            "n_evaluated": 44,
             "score": 1.0
           },
           "tr": {
             "n": 14,
-            "n_evaluated": 38,
-            "score": 0.963
+            "n_evaluated": 44,
+            "score": 0.9655
           }
         },
-        "threshold": 0.26,
+        "threshold": 0.19,
         "threshold_chosen_by": "recall_at_fpr",
-        "total_examples": 355,
-        "worst": 0.8667
+        "total_examples": 357,
+        "worst": 0.7273
       },
       "requires": {},
       "sides": [
@@ -1665,85 +1660,85 @@
   "latency": {
     "per_detector_ms": {
       "banned_terms": {
-        "p95": 0.211
+        "p95": 0.218
       },
       "bias": {
-        "p95": 150.342
+        "p95": 27.594
       },
       "code_present": {
-        "p95": 0.009
+        "p95": 0.012
       },
       "disclosure": {
-        "p95": 0.035
+        "p95": 0.048
       },
       "gibberish": {
-        "p95": 148.992
+        "p95": 30.503
       },
       "injection": {
-        "p95": 149.193
+        "p95": 34.094
       },
       "internal_domains": {
-        "p95": 0.196
+        "p95": 0.355
       },
       "invisible_text": {
-        "p95": 0.031
+        "p95": 0.054
       },
       "json_schema": {
-        "p95": 0.001
+        "p95": 0.002
       },
       "markup_injection": {
-        "p95": 0.204
+        "p95": 0.357
       },
       "nsfw": {
-        "p95": 149.168
+        "p95": 38.889
       },
       "output_format": {
-        "p95": 0.001
+        "p95": 0.002
       },
       "output_leakage": {
-        "p95": 148.837
+        "p95": 70.957
       },
       "pii": {
-        "p95": 149.333
+        "p95": 70.208
       },
       "politeness": {
-        "p95": 149.449
+        "p95": 38.789
       },
       "postal_code": {
-        "p95": 0.001
+        "p95": 0.002
       },
       "regulated_advice": {
-        "p95": 149.154
+        "p95": 42.619
       },
       "repetition": {
-        "p95": 0.369
+        "p95": 0.613
       },
       "secrets": {
-        "p95": 0.038
+        "p95": 0.058
       },
       "sql_injection": {
-        "p95": 0.197
+        "p95": 0.308
       },
       "summary_support": {
-        "p95": 0.692
+        "p95": 1.155
       },
       "system_prompt_leakage": {
         "describes": "the path where the detector reported leakage_unverifiable rather than the path where it does its work, because the reference configuration does not give it what it needs",
-        "p95": 0.241
+        "p95": 0.383
       },
       "token_limit": {
         "describes": "the path where the detector reported token_limit_unconfigured rather than the path where it does its work, because the reference configuration does not give it what it needs",
-        "p95": 0.001
+        "p95": 0.002
       },
       "topic_scope": {
-        "p95": 206.961
+        "p95": 78.053
       },
       "toxicity": {
-        "p95": 149.247
+        "p95": 70.804
       },
       "url_reachability": {
         "describes": "the path where there was nothing to fetch. The reference input contains no URLs, and the suite blocks outbound connections, so this figure excludes the request that is the whole cost of the detector. Its budget is a deadline it enforces on itself rather than a measurement, because it depends on a network the library does not control",
-        "p95": 0.006
+        "p95": 0.008
       }
     },
     "provider": "CPUExecutionProvider",
