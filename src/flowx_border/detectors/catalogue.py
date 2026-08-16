@@ -86,6 +86,11 @@ CATALOGUE: Final[MappingProxyType[str, Spec]] = MappingProxyType(
         "banned_terms": Spec("T1", frozenset({INPUT, OUTPUT}), 5.0),
         "system_prompt_leakage": Spec("T1", frozenset({OUTPUT}), 5.0),
         "markup_injection": Spec("T1", frozenset({INPUT, OUTPUT}), 5.0),
+        # Added 2026-08-16. T1 with a rule-sized budget because it is character
+        # trigrams over a packaged profile rather than a model: it has to answer before
+        # any encoder runs. Both sides, because `Language` asks about either side and
+        # `LanguageSame` needs both.
+        "language_id": Spec("T1", frozenset({INPUT, OUTPUT}), 5.0),
         "internal_domains": Spec("T1", frozenset({OUTPUT}), 5.0),
         # Shape rather than security, and the only entry here that is. It exists so that
         # sixteen hub shape validators have one destination instead of sixteen.

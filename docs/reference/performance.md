@@ -23,6 +23,7 @@ means the score is unverified rather than good or bad.
 | `internal_domains` | T1 | built | – | – | – | – | – | – |
 | `invisible_text` | T0 | built | – | – | – | – | – | – |
 | `json_schema` | T1 | built | – | – | – | – | – | – |
+| `language_id` | T1 | built | – | – | – | – | – | – |
 | `markup_injection` | T1 | built | – | – | – | – | – | – |
 | `moderation` | T2 | not built | – | – | – | – | – | – |
 | `nsfw` | T2 | built | f1 | 0.934 | 0.952 | 0.600 | 259 | positive examples |
@@ -56,29 +57,30 @@ At a 396 character reference input, 1 thread, CPUExecutionProvider. Romanian pro
 
 | Detector | p95 ms | Budget ms | note |
 |---|---|---|---|
-| `banned_terms` | 0.218 | 5.0 | – |
-| `bias` | 27.594 | 225.0 | – |
-| `code_present` | 0.012 | 5.0 | – |
-| `disclosure` | 0.048 | 5.0 | – |
-| `gibberish` | 30.503 | 225.0 | – |
-| `injection` | 34.094 | 225.0 | – |
-| `internal_domains` | 0.355 | 5.0 | – |
-| `invisible_text` | 0.054 | 5.0 | – |
-| `json_schema` | 0.002 | 5.0 | – |
-| `markup_injection` | 0.357 | 5.0 | – |
-| `nsfw` | 38.889 | 225.0 | – |
-| `output_format` | 0.002 | 5.0 | – |
-| `output_leakage` | 70.957 | 225.0 | – |
-| `pii` | 70.208 | 225.0 | – |
-| `politeness` | 38.789 | 225.0 | – |
+| `banned_terms` | 0.168 | 5.0 | – |
+| `bias` | 21.327 | 225.0 | – |
+| `code_present` | 0.009 | 5.0 | – |
+| `disclosure` | 0.038 | 5.0 | – |
+| `gibberish` | 27.528 | 225.0 | – |
+| `injection` | 27.622 | 225.0 | – |
+| `internal_domains` | 0.234 | 5.0 | – |
+| `invisible_text` | 0.038 | 5.0 | – |
+| `json_schema` | 0.001 | 5.0 | – |
+| `language_id` | 0.362 | 5.0 | – |
+| `markup_injection` | 0.239 | 5.0 | – |
+| `nsfw` | 27.544 | 225.0 | – |
+| `output_format` | 0.001 | 5.0 | – |
+| `output_leakage` | 27.991 | 225.0 | – |
+| `pii` | 27.636 | 225.0 | – |
+| `politeness` | 30.319 | 225.0 | – |
 | `postal_code` | 0.002 | 5.0 | – |
-| `regulated_advice` | 42.619 | 225.0 | – |
-| `repetition` | 0.613 | 5.0 | – |
-| `secrets` | 0.058 | 1.0 | – |
-| `sql_injection` | 0.308 | 5.0 | – |
-| `summary_support` | 1.155 | 5.0 | – |
-| `system_prompt_leakage` | 0.383 | 5.0 | the unconfigured path |
-| `token_limit` | 0.002 | 5.0 | the unconfigured path |
-| `topic_scope` | 78.053 | 300.0 | – |
-| `toxicity` | 70.804 | 225.0 | – |
-| `url_reachability` | 0.008 | 3000.0 | the unconfigured path |
+| `regulated_advice` | 30.430 | 225.0 | – |
+| `repetition` | 0.497 | 5.0 | – |
+| `secrets` | 0.048 | 1.0 | – |
+| `sql_injection` | 0.238 | 5.0 | – |
+| `summary_support` | 0.921 | 5.0 | – |
+| `system_prompt_leakage` | 0.318 | 5.0 | the unconfigured path |
+| `token_limit` | 0.001 | 5.0 | the unconfigured path |
+| `topic_scope` | 46.298 | 300.0 | – |
+| `toxicity` | 27.224 | 225.0 | – |
+| `url_reachability` | 0.007 | 3000.0 | the unconfigured path |

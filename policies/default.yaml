@@ -96,6 +96,21 @@ detectors:
   system_prompt_leakage:
     on_fail: flag           # needs no list: the phrase signal works in all 26 languages
     threshold: 0.5
+  language_id:
+    enabled: true
+    on_fail: flag           # a language question is rarely a reason to refuse an answer
+    options:
+      # No `allowed` list and no `match_input` by default, so out of the box this only
+      # records which language it saw. Both of the questions it can answer need something
+      # only the deployer knows: which languages the product serves, and what language the
+      # prompt was in. Guessing either would make the detector fire on correct behaviour.
+      #
+      # To gate on language, add:
+      #   allowed: [en, ro]
+      # To require the answer match the prompt, add `match_input: true` and pass
+      # ctx.metadata['input_language'].
+      min_margin: 0.12      # under this the text is called uncertain rather than guessed
+
   markup_injection:
     on_fail: redact         # remove the executable fragment, keep the answer
     # Left on for a general assistant. Turn it off for a coding assistant, where

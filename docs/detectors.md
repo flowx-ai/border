@@ -11,12 +11,12 @@ from here. Regenerate with:
 
 | figure | value |
 |---|---|
-| detectors in the catalogue | 28 |
-| implemented in the library | 27 |
-| that run on a fresh install, with no model download | 18 |
+| detectors in the catalogue | 29 |
+| implemented in the library | 28 |
+| that run on a fresh install, with no model download | 19 |
 | implemented but waiting on weights that are not published | 9 |
 | catalogued but not yet implemented | 1 |
-| that need nothing beyond a CPU and the base install | 25 |
+| that need nothing beyond a CPU and the base install | 26 |
 | that need something more, and declare it | 3 |
 | supported languages | 26 |
 
@@ -41,6 +41,7 @@ one on, so a caller finds out when they enable it rather than in production.
 | `gibberish` | T1 | input | built | nothing beyond a CPU | classifier | 225 ms | Input that is not meaningful text. |
 | `internal_domains` | T1 | output | built | nothing beyond a CPU | rule | 5 ms | Internal hostnames appearing in an answer meant for someone outside, in both their Unicode and punycode spellings. |
 | `json_schema` | T1 | output | built | dependency | rule | 5 ms | Output that does not satisfy a JSON Schema the policy carries. Point it at the OpenAPI meta-schema and it validates an OpenAPI document. |
+| `language_id` | T1 | input, output | built | nothing beyond a CPU | rule | 5 ms | Which of the 26 supported languages the text is in, whether that is one the policy permits, and whether an answer is in the same language as the prompt. Reports uncertain rather than guessing on short or mixed text. |
 | `markup_injection` | T1 | input, output | built | nothing beyond a CPU | rule | 5 ms | Markup in the text that a browser would execute rather than display, found through case folding, entity decoding and compatibility folding. |
 | `output_format` | T1 | output | built | nothing beyond a CPU | rule | 5 ms | Shape assertions a policy states: JSON, HTML, URL presence, length in graphemes, word count, case, choices, ranges, a regex, reading time. |
 | `output_leakage` | T1 | output | built | nothing beyond a CPU | ner | 225 ms | Personal data in the output that the user did not supply, which is the narrower and more useful question than whether any is present. |
@@ -70,6 +71,7 @@ one on, so a caller finds out when they enable it rather than in production.
 | `gpu` | needs an accelerator to meet its budget; CPU will be far slower |
 | `llm` | runs a generative model, so its verdict is only reproducible with decoding pinned, and an evidence record depends on that |
 | `network` | reaches another machine during a scan, so a third party is in the latency path of every request and their outage becomes yours |
+
 
 ## Things that are true and are easy to get wrong
 

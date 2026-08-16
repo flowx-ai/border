@@ -1195,7 +1195,7 @@ of Greek in an earlier `toxicity` attempt.
 **Three detectors ship unavailable, and they ship loudly.** The registry entry names
 the intended repo, the detector raises an error naming the missing model, and the
 tests are `xfail` with the repo id in the comment. There is no silent no-op, because
-a silent no-op in a security library is a vulnerability. v1 is 18 of 28 detectors real,
+a silent no-op in a security library is a vulnerability. v1 is 19 of 29 detectors real,
 stated plainly in the README. Nothing on the site or in the docs may imply otherwise.
 
 **`semantic-mapper` does not fit the detector contract as it stands.** It is a 4B

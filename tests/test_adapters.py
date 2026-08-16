@@ -42,20 +42,28 @@ RULES_ONLY = ["Secrets"]
 
 
 def test_an_unsupported_scanner_raises_rather_than_passing() -> None:
-    # The whole reason this file exists.
-    #
-    # The example used to be BanCode, which stopped being unsupported on 2026-08-12 when
-    # code_present landed. Language is the replacement because it is declined on grounds
-    # that will not change: every detector here works in 26 languages rather than gating
-    # on which one a text is in, so identification is not a gap this library has.
-    with pytest.raises(UnsupportedScannerError, match="Language"):
-        scan_prompt("hello", ["Language"])
+    """The whole reason this file exists.
+
+    **This test's example has now been wrong twice, and the pattern is the useful
+    part.** It was BanCode until code_present landed on 2026-08-12. Then Language,
+    chosen with a comment saying it was "declined on grounds that will not change: every
+    detector here works in 26 languages rather than gating on which one a text is in".
+    That reasoning was wrong within four days: language_id landed on 2026-08-16 for
+    exactly the gap the comment said did not exist, and gating is a real thing a caller
+    wants.
+
+    So the example is Sentiment now, and no claim is made about it being permanent. A
+    scanner is unsupported until somebody builds it, and predicting which ones nobody
+    will build is not a thing this file is good at.
+    """
+    with pytest.raises(UnsupportedScannerError, match="Sentiment"):
+        scan_prompt("hello", ["Sentiment"])
 
 
 def test_the_error_says_why_the_scanner_is_unsupported() -> None:
     # "not supported" is not actionable. Naming the reason is.
-    with pytest.raises(UnsupportedScannerError, match="language identification"):
-        scan_prompt("hello", ["Language"])
+    with pytest.raises(UnsupportedScannerError, match="politeness is the nearest"):
+        scan_prompt("hello", ["Sentiment"])
 
 
 def test_an_unknown_scanner_name_also_raises() -> None:

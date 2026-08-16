@@ -618,6 +618,20 @@
       "status": "built",
       "tier": "T1"
     },
+    "language_id": {
+      "budget_ms": 5.0,
+      "caveats": [],
+      "in_core": true,
+      "metrics": null,
+      "metrics_note": "no evaluation artifact was available at collection time. A rules-based detector has none by nature; a model-backed one missing this is a gap.",
+      "requires": {},
+      "sides": [
+        "input",
+        "output"
+      ],
+      "status": "built",
+      "tier": "T1"
+    },
     "markup_injection": {
       "budget_ms": 5.0,
       "caveats": [],
@@ -1660,85 +1674,88 @@
   "latency": {
     "per_detector_ms": {
       "banned_terms": {
-        "p95": 0.218
+        "p95": 0.168
       },
       "bias": {
-        "p95": 27.594
+        "p95": 21.327
       },
       "code_present": {
-        "p95": 0.012
+        "p95": 0.009
       },
       "disclosure": {
-        "p95": 0.048
+        "p95": 0.038
       },
       "gibberish": {
-        "p95": 30.503
+        "p95": 27.528
       },
       "injection": {
-        "p95": 34.094
+        "p95": 27.622
       },
       "internal_domains": {
-        "p95": 0.355
+        "p95": 0.234
       },
       "invisible_text": {
-        "p95": 0.054
+        "p95": 0.038
       },
       "json_schema": {
-        "p95": 0.002
+        "p95": 0.001
+      },
+      "language_id": {
+        "p95": 0.362
       },
       "markup_injection": {
-        "p95": 0.357
+        "p95": 0.239
       },
       "nsfw": {
-        "p95": 38.889
+        "p95": 27.544
       },
       "output_format": {
-        "p95": 0.002
+        "p95": 0.001
       },
       "output_leakage": {
-        "p95": 70.957
+        "p95": 27.991
       },
       "pii": {
-        "p95": 70.208
+        "p95": 27.636
       },
       "politeness": {
-        "p95": 38.789
+        "p95": 30.319
       },
       "postal_code": {
         "p95": 0.002
       },
       "regulated_advice": {
-        "p95": 42.619
+        "p95": 30.43
       },
       "repetition": {
-        "p95": 0.613
+        "p95": 0.497
       },
       "secrets": {
-        "p95": 0.058
+        "p95": 0.048
       },
       "sql_injection": {
-        "p95": 0.308
+        "p95": 0.238
       },
       "summary_support": {
-        "p95": 1.155
+        "p95": 0.921
       },
       "system_prompt_leakage": {
         "describes": "the path where the detector reported leakage_unverifiable rather than the path where it does its work, because the reference configuration does not give it what it needs",
-        "p95": 0.383
+        "p95": 0.318
       },
       "token_limit": {
         "describes": "the path where the detector reported token_limit_unconfigured rather than the path where it does its work, because the reference configuration does not give it what it needs",
-        "p95": 0.002
+        "p95": 0.001
       },
       "topic_scope": {
-        "p95": 78.053
+        "p95": 46.298
       },
       "toxicity": {
-        "p95": 70.804
+        "p95": 27.224
       },
       "url_reachability": {
         "describes": "the path where there was nothing to fetch. The reference input contains no URLs, and the suite blocks outbound connections, so this figure excludes the request that is the whole cost of the detector. Its budget is a deadline it enforces on itself rather than a measurement, because it depends on a network the library does not control",
-        "p95": 0.008
+        "p95": 0.007
       }
     },
     "provider": "CPUExecutionProvider",

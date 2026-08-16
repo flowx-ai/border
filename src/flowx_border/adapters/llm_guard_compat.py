@@ -76,6 +76,12 @@ SUPPORTED: Final[dict[str, str]] = {
     "Regex": "output_format",
     "ReadingTime": "output_format",
     "URLReachability": "url_reachability",
+    # Added 2026-08-16 with language_id. Both were in UNSUPPORTED until it existed,
+    # and the note there said what was missing. Language asks whether text is in a
+    # permitted language and needs the list; LanguageSame compares an answer against
+    # the prompt and needs the prompt's language, which only the caller can supply.
+    "Language": "language_id",
+    "LanguageSame": "language_id",
 }
 
 #: Scanners that map onto a detector whose entire input is data the caller has to
@@ -92,17 +98,16 @@ NEEDS_POLICY: Final[dict[str, str]] = {
     "Regex": "output_format.options.regex",
     "ReadingTime": "output_format.options.max_reading_seconds",
     "JSON": "output_format.options.json: true",
+    "Language": "language_id.options.allowed, a list of language codes",
+    "LanguageSame": (
+        "language_id.options.match_input: true, and ctx.metadata['input_language']"
+    ),
 }
 
 # Scanners with no equivalent here, and why. Listed rather than omitted so that the
 # error
 #: can say what the gap is instead of only that there is one.
 UNSUPPORTED: Final[dict[str, str]] = {
-    "Language": (
-        "no language identification detector. The library supports 26 languages in "
-        "every detector rather than gating on which one a text is in."
-    ),
-    "LanguageSame": "no language identification, as above.",
     "Sentiment": (
         "no sentiment detector. politeness is the nearest, and it is not the same."
     ),

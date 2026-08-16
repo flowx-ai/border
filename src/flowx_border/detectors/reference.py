@@ -121,6 +121,11 @@ SUMMARIES: Final[MappingProxyType[str, str]] = MappingProxyType(
             "Markup in the text that a browser would execute rather than display, "
             "found through case folding, entity decoding and compatibility folding."
         ),
+        "language_id": (
+            "Which of the 26 supported languages the text is in, whether that is one "
+            "the policy permits, and whether an answer is in the same language as the "
+            "prompt. Reports uncertain rather than guessing on short or mixed text."
+        ),
         "internal_domains": (
             "Internal hostnames appearing in an answer meant for someone outside, in "
             "both their Unicode and punycode spellings."

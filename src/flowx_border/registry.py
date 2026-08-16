@@ -62,6 +62,7 @@ def _build() -> tuple[dict[str, Detector], frozenset[str]]:
     from flowx_border.detectors.disclosure import DisclosureDetector
     from flowx_border.detectors.internal_domains import InternalDomainsDetector
     from flowx_border.detectors.invisible_text import InvisibleTextDetector
+    from flowx_border.detectors.language_id import LanguageIdDetector
     from flowx_border.detectors.markup_injection import MarkupInjectionDetector
     from flowx_border.detectors.output_format import OutputFormatDetector
     from flowx_border.detectors.output_leakage import OutputLeakageDetector
@@ -89,6 +90,7 @@ def _build() -> tuple[dict[str, Detector], frozenset[str]]:
         # scan, which is why they are loaded here but disabled in the shipped policies.
         "banned_terms": BannedTermsDetector(),
         "system_prompt_leakage": SystemPromptLeakageDetector(),
+        "language_id": LanguageIdDetector(),
         "markup_injection": MarkupInjectionDetector(),
         "internal_domains": InternalDomainsDetector(),
         "output_format": OutputFormatDetector(),
