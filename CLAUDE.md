@@ -492,7 +492,7 @@ repository for this library. `models/registry.py` pins every entry to a commit s
 | `secrets` | – | rules, no weights |
 | `disclosure` | – | rules plus a phrasings data file |
 | `invisible_text` | – | rules, no weights |
-| `pii` | `flowxai/piiguard` default, `flowxai/cee-pii` policy-selectable | piiguard has ONNX and INT8 published |
+| `pii` | `flowxai/piiguard` default, `flowxai/cee-pii` policy-selectable | 26 locales, fp16 published 2026-08-16 |
 | `output_leakage` | whichever session `pii` loaded | never a second copy |
 | `banned_terms` | – | rules over a policy-supplied term list |
 | `system_prompt_leakage` | – | rules plus a phrasings data file |
@@ -519,13 +519,16 @@ labels weighted toward CEE, and it has no ONNX export yet, so wiring it means do
 that export first. Both are selectable per policy, and `output_leakage` reuses the
 session that `pii` already loaded whichever way the policy went.
 
-`piiguard` was trained on **nine** locales, not the two its hub tags advertise: `en`,
-`ro`, `bg`, `hu`, `sl`, `hr`, `de`, `it`, `fr`, all of them EU official languages. The
-source of truth is `configs/cross/pii_multi.yaml` in the OpenNER training repo, and
-the hub tags need fixing to match. Trained at `max_length: 96`, which is the number to
-quote when anyone asks what input the latency figures describe.
+**The published `piiguard` is the 26-locale retrain as of 2026-08-16**, at
+`max_length: 96`, which is the number to quote when anyone asks what input the latency
+figures describe. The paragraph that stood here said it was trained on nine locales
+against hub tags advertising two, and that was true of the artifact then pinned.
 
-**A 26-locale retrain exists and its score cannot be published.** Finished 2026-08-12 on
+The retrain's *own* score still cannot be published and the paragraph below is why. What
+is published on its card is the held-out table and the ordinary-text rate, neither of
+which the generator can ace.
+
+**A 26-locale retrain exists and its own score cannot be published.** Finished 2026-08-12 on
 60,000 train and 6,000 test examples, three epochs, and it reported test precision,
 recall, F1 and accuracy of exactly 1.0 at a loss of 1.09e-05. That is not a perfect PII
 tagger, it is a test set the generator wrote. Both splits are drawn from the same fixed
@@ -765,12 +768,47 @@ digits. An alnum floor cannot separate `2026/2027` and `EcoWash 3000` from Malta
 hole in the 17 locales `_national_id_checks.BY_LENGTH` has no validator for. It is a
 corpus problem and saying so is better than a rule that looks like a fix.
 
-**`person` at 0.581 is the whole of what remains, and a threshold cannot touch it.** The
-false positives score a median of 0.9416 and a p90 of 0.9998: the model is confidently
-wrong rather than uncertain, so there is no number to turn. Worth knowing before anyone
-proposes calibration as the cheap answer. Neither big cause helps much alone either, since
-they overlap on nearly every row: fixing `date` alone was 0.756 to 0.632, `person` alone
-would be 0.641, and both together 0.107.
+**Then the third cause turned out not to be a corpus problem at all, and this is the
+ninth instance of the pattern.** I wrote here that `person` at 0.581 needed a corpus fix
+and a retrain, having established that a threshold could not help: the false positives
+score a median of 0.9416 and a p90 of 0.9998, so the model is confidently wrong rather
+than uncertain, and that part still holds. What was wrong is the conclusion. **The
+retrain already existed**, in `artifacts_dates` on the same disk, and the whole sweep
+reads differently through it:
+
+| | superseded | adopted |
+|---|---|---|
+| any redaction on ordinary text | 0.756 | **0.162** |
+| `person` | 0.581 | 0.128 |
+| `national_id` | 0.064 | 0.017 |
+| held-out `CARD` | 0.7005 | 0.8442 |
+| held-out `DATE` | 0.0000 | 1.0000 |
+| held-out `IBAN` | 0.9278 | 1.0000 |
+| leaked tokens | 0 | 0 |
+
+`Friday` and `Maerz` are no longer people. This is the `nsfw-full-rebuild-superseded`
+mistake exactly, and the rule that episode produced did not prevent it: a suffix says
+whether an artifact was superseded, but the better artifact here sat in a different
+directory with no suffix at all, so nothing named it. **Read the reports, not the
+directory names.** `artifacts_local/piiguard-full-frames-superseded/WHY_SUPERSEDED.md`
+carries the comparison.
+
+The adopted artifact is published as `flowxai/piiguard` revision `246866fa`, fp16, and
+the registry pins it with `trained_languages` at all 26. The superseded ONNX exports,
+`model.safetensors` and `metrics.json` were deleted from that repo rather than left
+beside the new files: a stale file at the old pinned filename is a model the library goes
+on fetching, and that `metrics.json` held the vacuous `test_f1: 1.0`.
+
+**It regressed one thing, fixed in the library rather than the model.** In `hr`, `sl` and
+`fr` it labels `ivan.horvat@primjer.hr` as `person`, the neighbour axis again: it happens
+only where a name precedes the address, so `hu`, `en` and `de` are unaffected. The span
+was always whole, so nothing leaked. `entity_shapes.corrected_label` relabels a span that
+*is* an address and was called something else, in that direction only, and reports
+`pii_relabelled_from_person` at `log` so the record shows it.
+
+What remains on ordinary text is `person` 0.128, `phone` 0.017, `national_id` 0.017, and
+some of the `person` remainder is arguably right: a Bulgarian school named after a poet
+does contain a person's name.
 
 **It stays a corpus fix and does not become a stoplist.** A calendar-word list in the library
 would drop a span, and `entity_shapes.py` refuses to drop for a reason that still holds: a
@@ -1298,12 +1336,16 @@ What this obliges:
 - Where a language genuinely underperforms, publish the number and say so. Do not
   drop the language from the table.
 
-Where the models actually are, as of 2026-08-10: `piiguard` covers 9 of the 26 (`en`,
-`ro`, `bg`, `hu`, `sl`, `hr`, `de`, `it`, `fr`). The remaining 17 are untested, and the
-per-language table says so rather than implying coverage.
+**Closed for `pii` on 2026-08-16.** The published `flowxai/piiguard` is the 26-locale
+retrain, `trained_languages` in the registry is all 26, and the per-language table in its
+card has 26 rows. This paragraph said "covers 9 of the 26, the remaining 17 untested"
+until then, which was a fact about the artifact pinned at the time. Do not restate a
+coverage claim from here: `registry.MODELS["piiguard"].trained_languages` is a property of
+the pinned weights and moves when they do, which is why it lives there and not in a
+detector constant.
 
-Closing that gap is a data task, not a research task, which is the useful thing to know
-here. Training data is synthetic and correct by construction, so each new locale needs
+Closing the same gap elsewhere is a data task, not a research task, which is the useful
+thing to know here. Training data is synthetic and correct by construction, so each new locale needs
 a national-ID generator with its real checksum, a phone country code, name lists, and
 an email TLD. Most of the 17 have documented schemes: PESEL, Czech and Slovak rodné
 číslo, Dutch BSN, Portuguese NIF, Spanish DNI, Swedish personnummer, Finnish
