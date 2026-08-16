@@ -89,6 +89,7 @@ from flowx_border.detectors.entity_shapes import (
     is_possible,
 )
 from flowx_border.detectors.multilingual import LANGUAGES
+from flowx_border.detectors.national_id_shapes import repair as repair_national_ids
 from flowx_border.models.registry import spec_for
 from flowx_border.types import Finding
 
@@ -430,8 +431,18 @@ class PiiDetector:
         # or the cache would serve the wrong answer. And there is no version of a caller
         # who wants a Luhn-valid card number left in the clear, so the only thing a
         # switch could do is reopen the leak this closes.
+        # `repair` before `supplement`, and the order is the whole safety argument.
+        #
+        # repair rejoins national_id fragments the tagger tore and relabels a card that
+        # fails Luhn. supplement then runs its own Luhn and mod-97 checks and wins on
+        # anything that passes, so a real card relabelled by mistake is taken back.
+        # Reversing them would let a repair overwrite a checksum-verified span, the one
+        # direction that could turn a card into a national identifier in a record.
         merged = supplement(
-            text, self._merge_runs(text, self._snap_to_words(text, found))
+            text,
+            repair_national_ids(
+                text, self._merge_runs(text, self._snap_to_words(text, found))
+            ),
         )
         with self._cache_lock:
             if len(self._cache) >= _CACHE_ENTRIES:
