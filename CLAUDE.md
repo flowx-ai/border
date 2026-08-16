@@ -1289,11 +1289,33 @@ outage cost time and nothing else. That is the resumable design and the pre-writ
 doing the job they were added for, after a burst took a bite out of Turkish in `nsfw` and out
 of Greek in an earlier `toxicity` attempt.
 
-**Three detectors ship unavailable, and they ship loudly.** The registry entry names
-the intended repo, the detector raises an error naming the missing model, and the
-tests are `xfail` with the repo id in the comment. There is no silent no-op, because
-a silent no-op in a security library is a vulnerability. v1 is 19 of 29 detectors real,
-stated plainly in the README. Nothing on the site or in the docs may imply otherwise.
+**Two detectors ship unavailable, and they ship loudly.** The registry entry names the
+intended repo, the detector raises an error naming the missing model, and the tests are
+`xfail` with the repo id in the comment. There is no silent no-op, because a silent no-op
+in a security library is a vulnerability. v1 is 27 of 29 detectors real, stated plainly
+in the README. Nothing on the site or in the docs may imply otherwise.
+
+**It said three unavailable and 19 of 29 until 2026-08-16, and the eight in between were
+published the whole time.** `registry.MODELS` pinned one model, `piiguard`, while eight
+more sat on the hub, and `injection` and `regulated_advice` were still listed in
+`UNPUBLISHED` as having no artifact. So a fresh install could not load
+`policies/default.yaml` at all: `missing_for` returned six detectors on each side and
+`assert_satisfiable` raised. Nothing caught it because every run had
+`FLOWX_BORDER_MODEL_DIR` set, which is the local-override path and not the path a user
+takes.
+
+The invariant that now would is `MODELS` and `UNPUBLISHED` being disjoint, in
+`tests/test_registry_weights.py`. `resolve` checks `MODELS` first, so an id in both loads
+fine while its `UNPUBLISHED` note goes on saying the opposite, unread and unfalsifiable.
+Six ids were in both, and their notes carried `toxicity` at macro-F1 0.882, `nsfw` at
+0.817, `bias` at 0.869 and `gibberish` at 0.834, every one a pre-retrain figure. Deleting
+the entries deleted the stale numbers with them.
+
+Two figures in those entries were not scores and are worth keeping: `gibberish` was
+trained at `max_length` 32 and `topic_scope` at 128, against 96 for the other seven. The
+library windows at `trained_max_length - 2` and every graph has a dynamic sequence axis,
+so pinning either at the default would have fed the model a length it was never trained
+on and raised nothing at all.
 
 **`semantic-mapper` does not fit the detector contract as it stands.** It is a 4B
 Qwen3 LoRA that generates JSON against a frozen prompt, published as GGUF. That is a

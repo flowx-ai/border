@@ -133,8 +133,11 @@ def test_the_detector_counts_match_the_code(readme: str) -> None:
     """
     numbers = counts()
     claim = re.search(
+        # `is|are` because the count reached 1 on 2026-08-16 and the sentence became
+        # singular. A pattern that only matches the plural fails on the document being
+        # correct, which reads as drift and is the opposite of it.
         r"(\d+) catalogued\. (\d+) implemented\. (\d+) run on a fresh install with no "
-        r"model download, (\d+) are\s+implemented and waiting",
+        r"model download, (\d+) (?:are|is)\s+implemented and waiting",
         readme,
     )
     assert claim, "the README no longer states the counts in the expected form"

@@ -61,3 +61,53 @@ def test_both_precisions_present_is_refused_rather_than_chosen(tmp_path: Path) -
             "the error has to name both files, or it is not actionable"
         )
     assert "will not choose" in message
+
+
+def test_no_model_is_both_pinned_and_unpublished() -> None:
+    """A model id in MODELS and in UNPUBLISHED is two contradictory claims about it.
+
+    `resolve` checks MODELS first, so an overlapping id would load the weights while
+    UNPUBLISHED went on saying they do not exist. That is not a hypothetical: on
+    2026-08-16 six detectors were published to the hub and their UNPUBLISHED entries
+    were left behind, each still quoting a pre-retrain score. Nothing failed, because
+    nothing compared the two.
+    """
+    from flowx_border.models.registry import MODELS, UNPUBLISHED
+
+    overlap = sorted(set(MODELS) & set(UNPUBLISHED))
+    assert not overlap, (
+        f"{', '.join(overlap)} are pinned in MODELS and also listed as unpublished. "
+        "Delete the UNPUBLISHED entry when a model is published: resolve() checks "
+        "MODELS first, so the note would be unreachable and silently stale."
+    )
+
+
+def test_every_pinned_model_names_a_distinct_repo_and_file() -> None:
+    """Two entries pointing at one file means one of them attests the wrong model."""
+    from flowx_border.models.registry import MODELS
+
+    seen: dict[str, str] = {}
+    for model_id, spec in MODELS.items():
+        key = f"{spec.repo}@{spec.revision}/{spec.filename}"
+        assert key not in seen, (
+            f"{model_id} and {seen[key]} both resolve to {key}. An evidence record "
+            "would name two detectors for one set of weights."
+        )
+        seen[key] = model_id
+
+
+def test_the_trained_length_is_the_models_own_not_a_default() -> None:
+    """Windowing is `trained_max_length - 2`, so a wrong value here is a wrong score.
+
+    Two of the nine are not 96 and both would be wrong at the default. `gibberish` was
+    trained at 32, so a 94-token window feeds it three times what it ever saw, and
+    `topic_scope` was trained at 128. The ONNX sequence axis is dynamic on every one of
+    these graphs, so nothing would have raised: the model would simply have been asked a
+    question it was not trained to answer.
+    """
+    from flowx_border.models.registry import MODELS
+
+    assert MODELS["gibberish"].trained_max_length == 32
+    assert MODELS["topic_scope"].trained_max_length == 128
+    for model_id in ("piiguard", "bias", "injection", "nsfw", "politeness", "toxicity"):
+        assert MODELS[model_id].trained_max_length == 96, model_id

@@ -150,17 +150,159 @@ MODELS: Final[dict[str, ModelSpec]] = {
             "not claim English national IDs are checksum validated."
         ),
     ),
+    "bias": ModelSpec(
+        model_id="flowxai/bias",
+        repo="flowxai/bias",
+        revision="78a14104085c2703695f8c577d9b0b644423b721",
+        filename="onnx/model.int8.onnx",
+        sha256="4a3abfec28762e23000de3e122d23d1e5c4e285c1d30ba6eee5e36a8921761a6",
+        extra_files=("tokenizer.json", "config.json"),
+        trained_max_length=96,
+        trained_languages=frozenset(LANGUAGES),
+        notes=(
+            "XLM-RoBERTa base, 5 labels. Retrained 2026-08-14 on a corpus "
+            "carrying mundane registers and balanced length bands: mean "
+            "per-language F1 0.9771, worst language 0.824, calibrated "
+            "threshold 0.57, 0 of 300 decisions moved by the INT8 export. "
+            "Single-digit per-language positives, so read the score as "
+            "understated rather than as a ceiling."
+        ),
+    ),
+    "gibberish": ModelSpec(
+        model_id="flowxai/gibberish",
+        repo="flowxai/gibberish",
+        revision="5cd15c2c87ff605d01f7bff52b5eb9b23788d3e6",
+        filename="onnx/model.int8.onnx",
+        sha256="7e57cd2516054708d6c5ac63b7b849e2d0dad7884426dce34cce5ebd1919865e",
+        extra_files=("tokenizer.json", "config.json"),
+        trained_max_length=32,
+        trained_languages=frozenset(LANGUAGES),
+        notes=(
+            "XLM-RoBERTa base, 3 labels. Trained at max_length 32, which is "
+            "why trained_max_length is 32 here and 96 everywhere else: the "
+            "library windows at trained_max_length - 2, and a window larger "
+            "than the model ever saw is extrapolation. The ONNX sequence "
+            "axis is dynamic, so nothing stops a larger window except that "
+            "it would be wrong. Macro F1 0.966 after the corpus rebuild, "
+            "worst language 0.870."
+        ),
+    ),
+    "injection": ModelSpec(
+        model_id="flowxai/injection",
+        repo="flowxai/injection",
+        revision="e837ff99cb68909142f36d7eee4b177997e44cac",
+        filename="onnx/model.int8.onnx",
+        sha256="b360035204ffca5a5a534bc6dfd54979d0810879130e99752b4896117767fec6",
+        extra_files=("tokenizer.json", "config.json"),
+        trained_max_length=96,
+        trained_languages=frozenset(LANGUAGES),
+        notes=(
+            "XLM-RoBERTa base, 3 labels. The v3 artifact, adopted for "
+            "firing on 0 of 20 mundane sentences where its predecessor "
+            "fired on 1, accepting a worse Maltese tail for that. Policy "
+            "threshold 0.43 sits deliberately above the calibrated 0.26. "
+            "Single-digit per-language positives."
+        ),
+    ),
+    "nsfw": ModelSpec(
+        model_id="flowxai/nsfw",
+        repo="flowxai/nsfw",
+        revision="9585fcf77242d5479de37d43578265d6057be6fb",
+        filename="onnx/model.int8.onnx",
+        sha256="3c29d003bb2a5d1595b9a61f831c17318deb07d49b05119e0893bac3b5b9c8ce",
+        extra_files=("tokenizer.json", "config.json"),
+        trained_max_length=96,
+        trained_languages=frozenset(LANGUAGES),
+        notes=(
+            "XLM-RoBERTa base, 2 labels. The 2026-08-14 retrain: mean "
+            "per-language F1 0.9337, worst language 0.600, threshold 0.76. "
+            "Lower than the 0.976 of the superseded rebuild on purpose, "
+            "which fired on 55 percent of ordinary business prose because "
+            "its corpus held only hard negatives."
+        ),
+    ),
+    "politeness": ModelSpec(
+        model_id="flowxai/politeness",
+        repo="flowxai/politeness",
+        revision="824708066cfb2711a501100fa7f60150605460ee",
+        filename="onnx/model.int8.onnx",
+        sha256="0a58cdbf68b7964eb0dcc52228ed518e12b48ebe151800121705b628229f9930",
+        extra_files=("tokenizer.json", "config.json"),
+        trained_max_length=96,
+        trained_languages=frozenset(LANGUAGES),
+        notes=(
+            "XLM-RoBERTa base, 1 label. Calibrated threshold 0.89. "
+            "Single-digit per-language positives, so the score is "
+            "understated rather than a ceiling."
+        ),
+    ),
+    "regulated_advice": ModelSpec(
+        model_id="flowxai/regulated-advice",
+        repo="flowxai/regulated-advice",
+        revision="7e045e07af9f4c93936ec9e61612cb5a9517d1be",
+        filename="onnx/model.int8.onnx",
+        sha256="534a27e4137b2538bc6952c2e5e9e0031b9ceaf00805de64fffe39b53d0953b5",
+        extra_files=("tokenizer.json", "config.json"),
+        trained_max_length=96,
+        trained_languages=frozenset(LANGUAGES),
+        notes=(
+            "XLM-RoBERTa base, 3 labels. Known to over-fire on ordinary "
+            "text: it fires on 0.145 of 234 mundane rows in 26 languages "
+            "against a 0.10 ceiling, pinned as a strict xfail in "
+            "tests/test_ordinary_text_sweep.py. It flags rather than "
+            "redacts, so the cost is a noisy record and not damaged text."
+        ),
+    ),
+    "topic_scope": ModelSpec(
+        model_id="flowxai/topic-scope",
+        repo="flowxai/topic-scope",
+        revision="0da1f9c2c6ef3404a56b6a1efeabcb04b6bfca21",
+        filename="onnx/model.int8.onnx",
+        sha256="56b931f527556116b4bb4854d2dad657933b83aeb3fc3c8eacce9a58fd024f12",
+        extra_files=("tokenizer.json", "config.json"),
+        trained_max_length=128,
+        trained_languages=frozenset(LANGUAGES),
+        notes=(
+            "XLM-RoBERTa base as a bi-encoder, not a classification head: "
+            "it emits token embeddings of shape (batch, sequence, 768) and "
+            "the detector pools and compares against the policy's taxonomy. "
+            "Trained at max_length 128, hence trained_max_length 128. This "
+            "is the distilled encoder that flowxai/semantic-mapper could "
+            "not be: that is a 4B generative model published as GGUF, which "
+            "is a local LLM call inside a detector and cannot meet a 300 ms "
+            "CPU budget."
+        ),
+    ),
+    "toxicity": ModelSpec(
+        model_id="flowxai/toxicity",
+        repo="flowxai/toxicity",
+        revision="e43c0158f0a8b4ee600aa15259ece37471dbe9cd",
+        filename="onnx/model.int8.onnx",
+        sha256="0482d1c7a47bab575e2b434825df32df31339d825f200e24dd58c1d238b7f56e",
+        extra_files=("tokenizer.json", "config.json"),
+        trained_max_length=96,
+        trained_languages=frozenset(LANGUAGES),
+        notes=(
+            "XLM-RoBERTa base, 4 labels. Third attempt: the second was "
+            "refused by the decision-flip gate at a margin of 0.0687 "
+            "against a 0.02 band, so the older model kept shipping until "
+            "2026-08-14. Positives per language went from about 4 to "
+            "between 197 and 209, mean per-language F1 0.9915, worst "
+            "language 0.950, threshold 0.81."
+        ),
+    ),
 }
 
-#: The reason shared by every artifact that exists and is deliberately unreleased. Held
-#: back on the owner's instruction of 2026-08-11: one release at the end rather than a
-#: trickle, so that what is public is a set somebody chose.
-_HELD_BACK: Final = (
-    "{detector} is trained, exported and verified, and deliberately not published yet: "
-    "everything ships in one release at the end of the project. Measured {note}. "
-    "Point FLOWX_BORDER_MODEL_DIR at a directory of artifact folders to load it from "
-    "disk in the meantime."
-)
+# `_HELD_BACK` stood here until 2026-08-16: one shared sentence saying an artifact was
+# trained, verified and deliberately unpublished until a single release at the end. Six
+# detectors used it. All six are published now and pinned in MODELS above, so the
+# template has no callers and is deleted rather than kept for a case that may not recur.
+#
+# Deleting it also removed six figures that had been superseded and were still being
+# quoted: toxicity at macro-F1 0.882, nsfw at 0.817, bias at 0.869 and gibberish at
+# 0.834, all pre-retrain, with thresholds to match. The retrains landed on 2026-08-13
+# and 2026-08-14 and nothing brought these along, which is this project's most repeated
+# failure. See the notes on each MODELS entry for the current numbers.
 
 #: Named, intended, and not published. `resolve` raises for these with the repo in the
 #: message. Listed rather than omitted so that "not built yet" and "typo" are different
@@ -170,14 +312,6 @@ UNPUBLISHED: Final[dict[str, str]] = {
         "flowxai/cee-pii is published but has no ONNX export, only "
         "pytorch_model.bin. It is a GLiNER model with 34 labels weighted toward "
         "central and eastern Europe. Wiring it means doing the ONNX export first."
-    ),
-    "injection": (
-        "no ONNX artifact is published for injection yet. A model was trained on "
-        "2026-08-11 and reached macro-F1 0.889 across 26 languages at threshold 0.43."
-    ),
-    "regulated_advice": (
-        "no ONNX artifact is published for regulated_advice yet. A model was "
-        "trained and reached 0.983 macro-F1, still at an uncalibrated threshold."
     ),
     "groundedness": (
         "no ONNX artifact is published for groundedness, and neither trained model "
@@ -212,24 +346,6 @@ UNPUBLISHED: Final[dict[str, str]] = {
         "border_train.leak_check and the four tests in the library's tests/test_t3.py "
         "against any replacement: passing one and failing the other is what happened "
         "here and neither alone would have shown it."
-    ),
-    "toxicity": _HELD_BACK.format(
-        detector="toxicity", note="macro-F1 0.882 at threshold 0.32"
-    ),
-    "nsfw": _HELD_BACK.format(detector="nsfw", note="macro-F1 0.817 at threshold 0.31"),
-    "bias": _HELD_BACK.format(detector="bias", note="macro-F1 0.869 at threshold 0.22"),
-    "gibberish": _HELD_BACK.format(
-        detector="gibberish", note="macro-F1 0.834 at threshold 0.37"
-    ),
-    "politeness": _HELD_BACK.format(
-        detector="politeness", note="macro-F1 0.887 at threshold 0.5"
-    ),
-    "topic_scope": _HELD_BACK.format(
-        detector="topic_scope",
-        note=(
-            "a bi-encoder with 15 taxonomy nodes embedded at export time, verified at "
-            "0.99928 minimum cosine to the fp32 model"
-        ),
     ),
     "moderation": (
         "no artifact is published for moderation yet. The pipeline is in training/ and "
