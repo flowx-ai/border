@@ -113,6 +113,9 @@ detectors:
   markup_injection:
     on_fail: block
 
+  encoded_payload:
+    on_fail: block          # an encoded instruction override is not a review item here
+    threshold: 0.5
   injection:
     on_fail: block
     threshold: 0.35

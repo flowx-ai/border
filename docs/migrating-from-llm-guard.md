@@ -112,9 +112,17 @@ Behaviour differences that the tuple cannot express:
 - `repetition` (T1, output)
 - `json_schema` (T1, output, needs the `schema` extra)
 - `moderation` (T2, input and output, no artifact published yet)
+- `encoded_payload` (T1, input and output)
 
 The last twelve arrived on 2026-08-11 with the Guardrails Hub port, and six of them
 moved a scanner out of the unsupported table above.
+
+`encoded_payload` arrived on 2026-08-16 and moved no scanner, because llm-guard has
+nothing for it. It decodes base64, hex, percent-encoding and rot13 and applies the rules
+to what comes out, which is the half of prompt injection a classifier cannot reach: the
+surface text of a base64 blob carries no attack, so `PromptInjection` and our own
+`injection` both score it clean. Decoding alone is never a finding, so a JWT, a git hash
+and base64 of ordinary prose all decode and none is reported.
 
 ## Scanners that gained a detector on 2026-08-11
 

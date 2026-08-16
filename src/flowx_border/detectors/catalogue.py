@@ -113,6 +113,10 @@ CATALOGUE: Final[MappingProxyType[str, Spec]] = MappingProxyType(
         # a line that merely ends in a brace. The languages it knows are programming
         # languages and there are a handful, which is a different claim from the 26
         # human ones the rest of this table is held to.
+        # T1 and both sides. The decode is what makes the rules reachable: a base64
+        # blob's surface text carries no attack, so `injection` scores it as clean, and
+        # a credential inside one was reported as `pii:iban` before this existed.
+        "encoded_payload": Spec("T1", frozenset({INPUT, OUTPUT}), 5.0),
         "code_present": Spec("T1", frozenset({INPUT, OUTPUT}), 5.0),
         # From llm-guard's TokenLimit, which was declined during the port because a
         # token count depends on the tokenizer of the model being called. The answer is

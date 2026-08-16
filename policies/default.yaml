@@ -59,6 +59,20 @@ detectors:
   output_leakage:
     on_fail: redact
     threshold: 0.5
+  encoded_payload:
+    on_fail: flag           # see below: new, and flagging first is the cautious order
+    threshold: 0.5
+    # `flag` rather than `block`, unlike `injection`, and deliberately so for now. The
+    # rules are precise and the must-not-fire set is long, but this detector is new and
+    # has no field data: a JWT, a git hash and base64 of ordinary prose all decode
+    # cleanly and are reported as nothing, which is checked, and none of that is the
+    # same as a month of real traffic. A caller who wants the stronger action sets
+    # block here in one line, and this default should move to block once there is
+    # evidence rather than confidence behind it.
+    #
+    # The threshold is the knob that matters. At 0.5 the weak set is on, which is the
+    # `you are now` family of reframings inside an encoding. Raise it at all and only
+    # explicit overrides remain, scored 0.9.
   gibberish:
     on_fail: flag           # cheap, and mostly useful as a signal not a gate
     threshold: 0.37

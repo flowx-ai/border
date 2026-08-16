@@ -17,6 +17,7 @@ means the score is unverified rather than good or bad.
 | `bias` | T2 | built | f1 | 0.977 | 1.000 | 0.824 | 264 | positive examples |
 | `code_present` | T1 | built | – | – | – | – | – | – |
 | `disclosure` | T0 | built | – | – | – | – | – | – |
+| `encoded_payload` | T1 | built | – | – | – | – | – | – |
 | `gibberish` | T1 | built | f1 | 0.966 | 0.958 | 0.870 | 276 | positive examples |
 | `groundedness` | T3 | not built | – | – | – | – | – | – |
 | `injection` | T2 | built | f1 | 0.970 | 0.983 | 0.727 | 357 | positive examples |
@@ -61,6 +62,7 @@ At a 396 character reference input, 1 thread, CPUExecutionProvider. Romanian pro
 | `bias` | 21.327 | 225.0 | – |
 | `code_present` | 0.009 | 5.0 | – |
 | `disclosure` | 0.038 | 5.0 | – |
+| `encoded_payload` | 0.205 | 5.0 | the unconfigured path |
 | `gibberish` | 27.528 | 225.0 | – |
 | `injection` | 27.622 | 225.0 | – |
 | `internal_domains` | 0.234 | 5.0 | – |

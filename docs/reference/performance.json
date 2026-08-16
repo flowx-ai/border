@@ -237,6 +237,20 @@
       "status": "built",
       "tier": "T0"
     },
+    "encoded_payload": {
+      "budget_ms": 5.0,
+      "caveats": [],
+      "in_core": true,
+      "metrics": null,
+      "metrics_note": "no evaluation artifact was available at collection time. A rules-based detector has none by nature; a model-backed one missing this is a gap.",
+      "requires": {},
+      "sides": [
+        "input",
+        "output"
+      ],
+      "status": "built",
+      "tier": "T1"
+    },
     "gibberish": {
       "budget_ms": 225.0,
       "caveats": [
@@ -1685,6 +1699,10 @@
       },
       "disclosure": {
         "p95": 0.038
+      },
+      "encoded_payload": {
+        "describes": "the reference input has no encoded run in it, so this times the candidate scan and the two whole-text transforms and never reaches a decode. That is the common case; a text carrying a blob pays one bounded decode more.",
+        "p95": 0.205
       },
       "gibberish": {
         "p95": 27.528

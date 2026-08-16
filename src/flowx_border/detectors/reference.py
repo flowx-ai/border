@@ -156,6 +156,12 @@ SUMMARIES: Final[MappingProxyType[str, str]] = MappingProxyType(
             "a shell invocation. Each carries its own confidence so a policy can act "
             "on a fenced block without acting on a line that merely ends in a brace."
         ),
+        "encoded_payload": (
+            "Instructions or credentials hidden behind base64, hex, percent-encoding "
+            "or rot13, found by decoding the run and applying the rules to what comes "
+            "out. Decoding alone is never a finding: a JWT, a git hash and base64 of "
+            "ordinary prose all decode and none is reported."
+        ),
         "repetition": (
             "Sentences the answer says twice, compared over folded text so a change of "
             "case or diacritic spelling does not hide a repeat."

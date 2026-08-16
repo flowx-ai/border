@@ -1292,7 +1292,7 @@ of Greek in an earlier `toxicity` attempt.
 **Two detectors ship unavailable, and they ship loudly.** The registry entry names the
 intended repo, the detector raises an error naming the missing model, and the tests are
 `xfail` with the repo id in the comment. There is no silent no-op, because a silent no-op
-in a security library is a vulnerability. v1 is 27 of 29 detectors real, stated plainly
+in a security library is a vulnerability. v1 is 28 of 30 detectors real, stated plainly
 in the README. Nothing on the site or in the docs may imply otherwise.
 
 **It said three unavailable and 19 of 29 until 2026-08-16, and the eight in between were

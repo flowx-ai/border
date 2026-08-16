@@ -11,12 +11,12 @@ from here. Regenerate with:
 
 | figure | value |
 |---|---|
-| detectors in the catalogue | 29 |
-| implemented in the library | 28 |
-| that run on a fresh install, with no model download | 27 |
+| detectors in the catalogue | 30 |
+| implemented in the library | 29 |
+| that run on a fresh install, with no model download | 28 |
 | implemented but waiting on weights that are not published | 1 |
 | catalogued but not yet implemented | 1 |
-| that need nothing beyond a CPU and the base install | 26 |
+| that need nothing beyond a CPU and the base install | 27 |
 | that need something more, and declare it | 3 |
 | supported languages | 26 |
 
@@ -38,6 +38,7 @@ one on, so a caller finds out when they enable it rather than in production.
 | `secrets` | T0 | input, output | built | nothing beyond a CPU | rule | 1 ms | Credentials in text on its way to the model: named key formats, plus a deliberately conservative entropy rule. |
 | `banned_terms` | T1 | input, output | built | nothing beyond a CPU | rule | 5 ms | Terms the deploying organisation has decided must not appear, matched correctly in 26 languages. The list is policy; none ships. |
 | `code_present` | T1 | input, output | built | nothing beyond a CPU | rule | 5 ms | Source code in text that should be prose, reported as one finding per shape found: a fence, a shebang, a definition, an import, a script tag, a shell invocation. Each carries its own confidence so a policy can act on a fenced block without acting on a line that merely ends in a brace. |
+| `encoded_payload` | T1 | input, output | built | nothing beyond a CPU | rule | 5 ms | Instructions or credentials hidden behind base64, hex, percent-encoding or rot13, found by decoding the run and applying the rules to what comes out. Decoding alone is never a finding: a JWT, a git hash and base64 of ordinary prose all decode and none is reported. |
 | `gibberish` | T1 | input | built | nothing beyond a CPU | classifier | 225 ms | Input that is not meaningful text. |
 | `internal_domains` | T1 | output | built | nothing beyond a CPU | rule | 5 ms | Internal hostnames appearing in an answer meant for someone outside, in both their Unicode and punycode spellings. |
 | `json_schema` | T1 | output | built | dependency | rule | 5 ms | Output that does not satisfy a JSON Schema the policy carries. Point it at the OpenAPI meta-schema and it validates an OpenAPI document. |

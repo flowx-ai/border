@@ -103,6 +103,12 @@ MEASURED_MS = {
     # failing search over 396 characters is close to free. A text full of code costs the
     # same: the patterns are anchored and none of them backtracks.
     "code_present": 0.01,
+    # Measured 2026-08-16 on the reference input, which is prose with no encoded run in
+    # it, so this times the candidate scan and the two whole-text transforms and never
+    # reaches a decode. That is the common case and the right thing to budget: a text
+    # with a blob in it pays one bounded decode more, and `_MAX_DECODE_BYTES` is what
+    # stops a pasted megabyte data URI turning that into an unbounded one.
+    "encoded_payload": 0.21,
     # Counted with piiguard's tokenizer, which is the one this repository pins, so the
     # figure is a real 250k-piece SentencePiece pass rather than a toy vocabulary. The
     # tokenizer load is outside the timed region because `tokenizer_for` caches it and
@@ -347,6 +353,7 @@ RULE_DETECTORS: list[tuple[str, object, DetectorConfig, Context]] = [
     # no work. Using the reference input as its own source is the extractive case,
     # where every sentence matches and the comparison runs to completion.
     ("code_present", None, CFG, CTX),
+    ("encoded_payload", None, CFG, CTX),
     # A real pinned tokenizer, for the same reason banned_terms gets a real term list:
     # unconfigured this detector reports token_limit_unconfigured and returns, so the
     # measurement would time the refusal. max_tokens is high enough that the reference
@@ -378,6 +385,7 @@ def _rule_detector(detector_id: str) -> object:
     """
     from flowx_border.detectors.banned_terms import BannedTermsDetector
     from flowx_border.detectors.code_present import CodePresentDetector
+    from flowx_border.detectors.encoded_payload import EncodedPayloadDetector
     from flowx_border.detectors.internal_domains import InternalDomainsDetector
     from flowx_border.detectors.markup_injection import MarkupInjectionDetector
     from flowx_border.detectors.output_format import OutputFormatDetector
@@ -391,6 +399,7 @@ def _rule_detector(detector_id: str) -> object:
 
     return {
         "banned_terms": BannedTermsDetector,
+        "encoded_payload": EncodedPayloadDetector,
         "system_prompt_leakage": SystemPromptLeakageDetector,
         "markup_injection": MarkupInjectionDetector,
         "internal_domains": InternalDomainsDetector,
