@@ -1222,7 +1222,8 @@
       "metrics_note": "no evaluation artifact was available at collection time. A rules-based detector has none by nature; a model-backed one missing this is a gap.",
       "requires": {},
       "sides": [
-        "input"
+        "input",
+        "output"
       ],
       "status": "built",
       "tier": "T0"

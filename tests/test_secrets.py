@@ -18,7 +18,7 @@ from typing import Final
 
 import pytest
 
-from flowx_border.detectors.base import Context, DetectorConfig
+from flowx_border.detectors.base import INPUT, OUTPUT, Context, DetectorConfig
 from flowx_border.detectors.multilingual import LANGUAGES as CLAIMED
 from flowx_border.detectors.secrets import SecretsDetector, shannon_entropy
 
@@ -343,3 +343,58 @@ def test_a_keyword_still_overrides_the_segment_heuristic() -> None:
     # With the keyword as evidence the heuristic is not needed, and suppressing there
     # would miss a real credential that happens to be hyphen-joined.
     assert "high_entropy_string_near_keyword" in labels("password: abcdefgh-12345678")
+
+
+def test_a_credential_in_the_output_is_found() -> None:
+    """The hole this closed on 2026-08-16: the detector did not run on output at all.
+
+    A model echoing a credential out of a retrieved document, a pasted config or its own
+    system prompt is the ordinary case, and it is the direction where the credential
+    actually leaves.
+    """
+    detector = SecretsDetector()
+    assert OUTPUT in detector.sides
+    for text, label in (
+        (
+            "The deploy token is ghp_A1b2C3d4E5f6G7h8I9j0K1l2M3n4O5p6Q7r8.",
+            "github_token",
+        ),
+        (
+            "Use xoxb-123456789012-1234567890123-AbCdEfGhIjKlMnOpQrStUvWx.",
+            "slack_token",
+        ),
+    ):
+        labels = {f.label for f in detector.run(text, DetectorConfig(), Context())}
+        assert label in labels, f"{label} not in {labels}"
+
+
+def test_both_sides_see_exactly_the_same_thing() -> None:
+    """The rules do not branch on direction, and this is what says so.
+
+    The argument for input-only was that a false positive there is a refused request the
+    user cannot get around. That is an argument about what a policy should do with a
+    finding, not about whether the finding is true, and the policy decides the action.
+    """
+    detector = SecretsDetector()
+    assert detector.sides == frozenset({INPUT, OUTPUT})
+
+
+def test_a_credential_in_output_is_not_left_to_the_pii_model() -> None:
+    """Why this was worth fixing rather than leaving to the accident that covered it.
+
+    Before the change these were still redacted, because `pii` mislabelled a GitHub
+    token as `national_id` and a Slack token as `iban`. That put a false claim in the
+    evidence record, and it rested on a model false positive: the same day's work took
+    `pii`'s false-positive rate on ordinary text from 0.756 to 0.162 of rows, so better
+    weights were actively removing the cover.
+
+    This asserts the finding is `secrets`, at score 1.0, from a named pattern. A future
+    `pii` that stops guessing must not take credential coverage with it.
+    """
+    detector = SecretsDetector()
+    text = "Rotate ghp_A1b2C3d4E5f6G7h8I9j0K1l2M3n4O5p6Q7r8 before Friday."
+    findings = detector.run(text, DetectorConfig(), Context())
+    named = [f for f in findings if f.label == "github_token"]
+    assert named, f"expected a named-pattern finding, got {[f.label for f in findings]}"
+    assert named[0].score == 1.0
+    assert named[0].detector_id == "secrets"

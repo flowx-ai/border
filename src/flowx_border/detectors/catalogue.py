@@ -67,7 +67,11 @@ class Spec(NamedTuple):
 
 CATALOGUE: Final[MappingProxyType[str, Spec]] = MappingProxyType(
     {
-        "secrets": Spec("T0", frozenset({INPUT}), 1.0),
+        # Both sides. Input-only until 2026-08-16, which left credentials in model
+        # output covered by nothing: they were redacted only because `pii` mislabelled a
+        # GitHub token as a national identifier, so the record was wrong and the cover
+        # was a model false positive that better weights remove.
+        "secrets": Spec("T0", frozenset({INPUT, OUTPUT}), 1.0),
         "disclosure": Spec("T0", frozenset({OUTPUT}), 5.0),
         # T0 because all 26 supported languages are left to right, so a bidi override
         # has no typographic purpose in any text this library claims to support, and tag

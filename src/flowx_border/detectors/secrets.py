@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-"""T0: credentials in the text on its way to the model.
+"""T0: credentials in the text, on the way to the model and on the way back.
 
 Two rules, in this order, and the order is the design.
 
@@ -14,9 +14,31 @@ timid: see `_entropy_findings` for what it refuses to fire on, and why.
 
 Why the timidity matters here more than anywhere else. The shipped default policy sets
 `secrets: on_fail: block`, T0 cannot be disabled, and `secrets` is the first detector to
-run on the input side. A false positive is not a noisy log line, it is a refused request
-that the user cannot get around. A UUID in a support ticket must not be a blocked
-request, so a UUID is not a secret here even though it is high entropy.
+run. A false positive is not a noisy log line, it is a refused request that the user
+cannot get around. A UUID in a support ticket must not be a blocked request, so a UUID
+is not a secret here even though it is high entropy.
+
+Both sides, since 2026-08-16
+----------------------------
+
+This ran on the input side only until then, and the output side was not covered by
+anything. A model echoing a credential out of a retrieved document, a pasted config or
+its own system prompt is the ordinary case rather than an exotic one, and it is the
+direction where the credential actually leaves.
+
+Credentials in output were being redacted before this changed, which is what hid it, and
+the way they were redacted is the reason it had to change. `pii` was mislabelling them:
+a GitHub token came back `[NATIONAL_ID]`, a Slack token `[IBAN]`, the body of a PEM
+private key `[NATIONAL_ID]`. Two things wrong with that. The evidence record claimed a
+national identifier where an AWS credential was, a false statement in a document whose
+whole purpose is being checkable later. And the protection rested on a model false
+positive, so it was being eroded by every improvement to `pii`: the work of 2026-08-16
+took `pii`'s false-positive rate on ordinary text from 0.756 to 0.162 of rows.
+
+The argument for input-only was the one in the paragraph above, that a false positive
+blocks a request the user cannot get around. It does not carry across. The rules are
+identical on both sides, so the false-positive rate is identical, and what the policy
+does about it is the policy's business rather than this module's.
 
 Budget is 1 ms at p95. Everything is compiled once at import, both rules are a single
 pass, and there is no backtracking construct in any pattern.
@@ -29,7 +51,7 @@ import re
 from collections import Counter
 from typing import Final
 
-from flowx_border.detectors.base import INPUT, Context, DetectorConfig
+from flowx_border.detectors.base import INPUT, OUTPUT, Context, DetectorConfig
 from flowx_border.types import Finding
 
 # Named credential formats. Each is anchored on a vendor prefix, which is what makes a
@@ -283,7 +305,7 @@ class SecretsDetector:
 
     id = "secrets"
     tier = "T0"
-    sides = frozenset({INPUT})
+    sides = frozenset({INPUT, OUTPUT})
 
     def warm(self) -> None:
         """Nothing to load. Patterns are compiled at import, so this is a no-op.

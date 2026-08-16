@@ -35,7 +35,7 @@ one on, so a caller finds out when they enable it rather than in production.
 |---|---|---|---|---|---|---|---|
 | `disclosure` | T0 | output | built | nothing beyond a CPU | rule | 5 ms | Reports whether an AI disclosure is present in the output, in 26 languages, and records the affirmative as well as the absence. |
 | `invisible_text` | T0 | input, output | built | nothing beyond a CPU | rule | 5 ms | Characters that are in the text but not on the screen: bidirectional controls, tag characters used to smuggle instructions, zero-width characters used to evade filters. |
-| `secrets` | T0 | input | built | nothing beyond a CPU | rule | 1 ms | Credentials in text on its way to the model: named key formats, plus a deliberately conservative entropy rule. |
+| `secrets` | T0 | input, output | built | nothing beyond a CPU | rule | 1 ms | Credentials in text on its way to the model: named key formats, plus a deliberately conservative entropy rule. |
 | `banned_terms` | T1 | input, output | built | nothing beyond a CPU | rule | 5 ms | Terms the deploying organisation has decided must not appear, matched correctly in 26 languages. The list is policy; none ships. |
 | `code_present` | T1 | input, output | built | nothing beyond a CPU | rule | 5 ms | Source code in text that should be prose, reported as one finding per shape found: a fence, a shebang, a definition, an import, a script tag, a shell invocation. Each carries its own confidence so a policy can act on a fenced block without acting on a line that merely ends in a brace. |
 | `gibberish` | T1 | input | built | nothing beyond a CPU | classifier | 225 ms | Input that is not meaningful text. |
