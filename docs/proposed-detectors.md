@@ -14,7 +14,7 @@ Three lists, assembled rather than invented:
 - the seven `gap = yes` rows of the declined table in
   `docs/porting-guardrails-validators.md`, being hub validators whose capability is real
   and whose implementation was refused
-- the nine `UNSUPPORTED` entries in `adapters/llm_guard_compat.py`, being llm-guard
+- the four `UNSUPPORTED` entries in `adapters/llm_guard_compat.py`, being llm-guard
   scanners a migrating caller asks for and does not get
 - the three detectors that ship unavailable for want of published weights
 
@@ -106,9 +106,26 @@ licences bar redistribution, the sizes bar the budget, and a model that reads a 
 then reads attacker-controlled text is itself an injection surface. `moderation` is the
 answer to this row and is in flight.
 
-**A `reading_time` or `regex` detector.** Both are `UNSUPPORTED` in the shim only because
-they map onto `output_format` options rather than because the capability is missing. That is
-a mapping gap in the adapter, worth an hour, and not a detector.
+**A `reading_time` or `regex` detector, and there is no adapter gap.** This section said
+on 2026-08-16 that `ReadingTime` and `Regex` were `UNSUPPORTED` and that translating them
+was "a mapping gap in the adapter, worth an hour". Both halves were wrong, and the way they
+were wrong is worth keeping.
+
+They are not unsupported. `SCANNERS` maps both onto `output_format`, and they sit in
+`NEEDS_POLICY`, which is a different thing: the check is wired and what is missing is the
+caller's own data, exactly as `BanSubstrings` needs a term list. Verified by running them:
+given a policy carrying `output_format.options.max_reading_seconds` and `.regex`, both fire
+and return a verdict; without one they raise `UnconfiguredScannerError` naming the option to
+set. That is the correct behaviour and there is nothing to build.
+
+The error came from reading the file with `text.index("UNSUPPORTED")`, which found the
+string in a *comment* forty lines above the dictionary and returned `NEEDS_POLICY` instead.
+Five scanners then looked unsupported that are supported. The real `UNSUPPORTED` is four
+entries, and they are precisely the four the candidates above address: `Language` and
+`LanguageSame` for `language_id`, `Sentiment` for `sentiment`, `MaliciousURLs` for
+`url_reputation`. The proposal is unchanged by the correction, which is luck rather than
+judgement: the same mistake could as easily have invented a fifth candidate for a gap that
+was not there.
 
 ## What I would want before committing to any of it
 
