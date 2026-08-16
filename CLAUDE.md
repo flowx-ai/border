@@ -739,6 +739,39 @@ Recorded as two strict xfails carrying the numbers, never as raised ceilings, an
 from the enforcing test so a `toxicity` or `nsfw` regression still fails something. A known
 failure must not become cover for an unknown one.
 
+**Two of the four causes were fixed the same day, taking it to 0.624, and the two that
+were not are the useful part.**
+
+`date` was 0.594 of it. A bare date is not personal data, and the detector was also
+tagging `09:00` and a `14-18 C` temperature as dates, so `pii` gained
+`options.entity_actions` and `policies/default.yaml` sets `date: flag`. An override rather
+than a shorter `entities` list, because dropping the type would remove the noise and the
+evidence together: a record for a text full of dates would read identically to one for a
+text with none. `policies/bfsi.yaml` keeps `redact` and says why.
+
+`iban` was 0.021, from `5000 mAh` and `mm x 80 mm x 45 mm`. The rule was two letters and
+four digits, which a dimension list has, so it was no floor rather than a weak one. It is
+now the ISO 13616 minimum of 15 characters. That reverses a stated decision, that a span
+which clipped an IBAN should be redacted rather than dropped, and the reversal is safe for
+a reason worth keeping: `checksummed.py` scans raw text for mod-97-valid runs without
+consulting the model, so the clipped span dies in the gate and the whole account number is
+found anyway. The model is the recall net and the checksum is the guarantee, the same
+division of labour as CARD.
+
+**`national_id` at 0.064 has no safe library-side fix, and three were tried.** The digit
+floor cannot rise, because the Italian codice fiscale generates with as few as zero
+digits. An alnum floor cannot separate `2026/2027` and `EcoWash 3000` from Malta's
+8-character identifier. And demoting spans that validate under no scheme would punch a
+hole in the 17 locales `_national_id_checks.BY_LENGTH` has no validator for. It is a
+corpus problem and saying so is better than a rule that looks like a fix.
+
+**`person` at 0.581 is the whole of what remains, and a threshold cannot touch it.** The
+false positives score a median of 0.9416 and a p90 of 0.9998: the model is confidently
+wrong rather than uncertain, so there is no number to turn. Worth knowing before anyone
+proposes calibration as the cheap answer. Neither big cause helps much alone either, since
+they overlap on nearly every row: fixing `date` alone was 0.756 to 0.632, `person` alone
+would be 0.641, and both together 0.107.
+
 **It stays a corpus fix and does not become a stoplist.** A calendar-word list in the library
 would drop a span, and `entity_shapes.py` refuses to drop for a reason that still holds: a
 person really can be called April or June or Mars, and turning a visible over-redaction into
