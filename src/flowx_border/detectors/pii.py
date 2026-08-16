@@ -78,7 +78,7 @@ docstring was the fifth place the withdrawn figure had to be chased out of.
 from __future__ import annotations
 
 import threading
-from typing import TYPE_CHECKING, Final
+from typing import TYPE_CHECKING, Final, cast, get_args
 
 from flowx_border.detectors.base import INPUT, OUTPUT, Context, DetectorConfig
 from flowx_border.detectors.checksummed import supplement
@@ -91,7 +91,7 @@ from flowx_border.detectors.entity_shapes import (
 from flowx_border.detectors.multilingual import LANGUAGES
 from flowx_border.detectors.national_id_shapes import repair as repair_national_ids
 from flowx_border.models.registry import spec_for
-from flowx_border.types import Finding
+from flowx_border.types import Action, Finding
 
 if TYPE_CHECKING:
     import numpy as np
@@ -110,6 +110,11 @@ ENTITY_TYPES: Final[tuple[str, ...]] = (
     "person",
     "phone",
 )
+
+#: The actions `entity_actions` may name. Read off the `Action` literal rather than
+#: written out twice: a divergence would let a policy set an action the engine has never
+#: heard of, and the failure would be an override that is silently ignored.
+_ACTIONS: Final[frozenset[str]] = frozenset(get_args(Action))
 
 
 def trained_languages(model_id: str = MODEL_ID) -> frozenset[str] | None:
@@ -476,6 +481,7 @@ class PiiDetector:
         window_tokens = cfg.options.get("window_tokens")
         overlap = int(cfg.options.get("window_overlap", DEFAULT_OVERLAP))
         wanted = self._wanted_entities(cfg)
+        actions = self._entity_actions(cfg)
 
         merged = {
             span: value
@@ -511,7 +517,7 @@ class PiiDetector:
                     label=entity,
                     score=round(score, 6),
                     span=span,
-                    action=cfg.on_fail,
+                    action=actions.get(entity, cfg.on_fail),
                     model_id=self.model_id,
                     model_revision=self.model_revision,
                 )
@@ -556,6 +562,57 @@ class PiiDetector:
                 "that check."
             )
         return names
+
+    def _entity_actions(self, cfg: DetectorConfig) -> dict[str, Action]:
+        """Per-entity overrides of the detector's action, from `options.entity_actions`.
+
+        Added 2026-08-16 because one action for seven entity types cannot express the
+        thing the measurement asked for. `tests/test_ordinary_text_sweep.py` put a block
+        or a redact on 0.756 of ordinary rows in 26 languages, and `date` alone was on
+        0.594 of them.
+
+        **A bare date is not personal data, and redacting every one protects nobody.** A
+        date of birth beside a name is; a delivery date is not, and this detector cannot
+        tell them apart. So the default policy asks for `date` at `flag`: the finding
+        is still reported, the record still says a date was seen, and the caller's text
+        keeps its dates. A policy that wants dates gone, and BFSI plausibly does, sets
+        it back to redact in one line.
+
+        This is an override rather than a shorter `entities` list because dropping
+        `date` from that list would be the silent version of the same change: the
+        detector would stop reporting dates at all, and a reader of the record could
+        not tell that from a text that had none. Reporting at a lower action is the
+        honest shape, and it is the same distinction `_noted` draws for shapes.
+
+        Unknown names raise for the reason `_wanted_entities` gives: a misspelling here
+        would leave that entity at the detector's action instead of the one the policy
+        asked for, and nothing in the record would show it.
+        """
+        raw = cfg.options.get("entity_actions")
+        if not raw:
+            return {}
+        if not isinstance(raw, dict):
+            raise ValueError(
+                "pii: entity_actions must be a mapping of entity type to action, for "
+                "example {date: flag}."
+            )
+        out: dict[str, Action] = {}
+        for name, action in raw.items():
+            entity = str(name).strip().lower()
+            if entity not in ENTITY_TYPES:
+                raise ValueError(
+                    f"pii: entity_actions names unknown entity type {entity!r}. This "
+                    f"model tags {', '.join(ENTITY_TYPES)}. A misspelled type would "
+                    "silently leave that entity at the detector's own action."
+                )
+            chosen = str(action).strip().lower()
+            if chosen not in _ACTIONS:
+                raise ValueError(
+                    f"pii: entity_actions gives {entity!r} the action {chosen!r}, "
+                    f"which is not one of {', '.join(sorted(_ACTIONS))}."
+                )
+            out[entity] = cast(Action, chosen)
+        return out
 
     @staticmethod
     def _snap_to_words(

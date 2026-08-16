@@ -195,19 +195,24 @@ def sweep() -> dict[str, object]:
 
 @pytest.mark.xfail(
     reason=(
-        "Measured 2026-08-16 on the shipped model and policy, over 234 ordinary "
-        "rows in 26 languages: pii redacts something in 74.8 percent of them, nsfw "
-        "blocks 0.9 percent and injection 0.4 percent. Everything else is clean.\n\n"
-        "pii is the finding. Three quarters of ordinary business prose loses text, "
-        "which is worse than the nsfw 55 percent that was treated as a shipping "
-        "blocker in August. The default policy enables all seven entity types, so "
-        "this is the model's precision on ordinary text rather than a "
-        "misconfiguration: `Elektrik` and a tariff name come back as PERSON, "
-        "`2026/2027` as a NATIONAL_ID, and `mm x 80 mm x 45 mm` as an IBAN.\n\n"
-        "Strict, so whoever fixes it is told rather than left to notice. The corpus "
-        "work this needs is the one already recorded for PERSON: entity-free "
-        "sentences and ordinary prose in the pii corpus, which the frame corpus "
-        "began and has not finished."
+        "Measured over 234 ordinary rows in 26 languages. On 2026-08-16 this was "
+        "0.756 of rows losing text; two fixes the same day took it to 0.624, and the "
+        "remainder is one entity type.\n\n"
+        "What was fixed. `date` was on 0.594 of rows and is now `flag` in the default "
+        "policy, because a bare date is not personal data and the detector was "
+        "redacting times and a temperature reading. `iban` was on 0.021 and now fails "
+        "a length floor, because ISO 13616 starts at 15 characters and `5000 mAh` is "
+        "seven.\n\n"
+        "What is left. `person` at 0.581, `national_id` at 0.064, `phone` at 0.009, "
+        "plus 2 nsfw rows and 1 injection row. `person` is the whole of it and it "
+        "needs the corpus: `Elektrik`, a tariff name and the city `Berde` come back "
+        "as people. A threshold cannot help, because the false positives score a "
+        "median of 0.9416 and a p90 of 0.9998, so the model is confidently wrong "
+        "rather than uncertain. `national_id` has no safe library-side fix either: "
+        "the digit floor cannot rise, since the Italian codice fiscale generates with "
+        "as few as none, and demoting the ones that validate under no scheme would "
+        "punch a hole in the 17 locales with no validator.\n\n"
+        "Strict, so whoever fixes it is told rather than left to notice."
     ),
     strict=True,
 )
@@ -255,8 +260,13 @@ def test_no_detector_fires_above_its_measured_ceiling(sweep: dict[str, object]) 
 
 @pytest.mark.xfail(
     reason=(
-        "Measured 2026-08-16 over the same 234 rows. pii fires on 0.803 of ordinary "
-        "text against a 0.25 ceiling and regulated_advice on 0.145 against 0.10.\n\n"
+        "Measured over the same 234 rows. pii fires on 0.803 of ordinary text against "
+        "a 0.25 ceiling and regulated_advice on 0.145 against 0.10.\n\n"
+        "pii's firing rate did not move when its damage rate went from 0.756 to 0.624, "
+        "and that is the fix working rather than failing. A date is still found and "
+        "still recorded; it is no longer cut out of the caller's text. This test "
+        "measures noise in the record and the one above measures damage to the text, "
+        "and they are different questions.\n\n"
         "regulated_advice is the milder of the two and was already on the known-false-"
         "positive list: it flags rather than redacts, so the cost is a noisy record "
         "rather than damaged text. pii is the one that matters, and the test above "

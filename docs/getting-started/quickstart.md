@@ -39,9 +39,22 @@ detectors:
     threshold: 0.5
     options:
       entities: [CARD, DATE, EMAIL, IBAN, NATIONAL_ID, PERSON, PHONE]
+      entity_actions:
+        date: flag            # found and recorded, but left in the text
   disclosure:
     on_fail: flag
 ```
+
+`entity_actions` overrides `on_fail` for one entity type. The shipped default uses it for
+dates, because a bare date is not personal data: a date of birth beside a name is, a
+delivery date is not, and the detector cannot tell them apart. Measured over 234 ordinary
+sentences in 26 languages, redacting every date removed text from 59 percent of them,
+including clock times and a temperature reading.
+
+It is an override rather than a shorter `entities` list on purpose. Dropping `DATE` from
+the list would stop the detector reporting dates at all, and an evidence record for a
+text full of dates would then look exactly like one for a text with none. Set it back to
+`redact` where dates are sensitive; `policies/bfsi.yaml` does.
 
 ## Scan a turn
 

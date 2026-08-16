@@ -44,6 +44,18 @@ detectors:
     threshold: 0.5
     options:
       entities: [CARD, DATE, EMAIL, IBAN, NATIONAL_ID, PERSON, PHONE]
+      # A bare date is not personal data. A date of birth beside a name is, a delivery
+      # date is not, and the model cannot tell them apart: measured over 234 ordinary
+      # rows in 26 languages on 2026-08-16, `date` put a redaction on 0.594 of them,
+      # including `09:00` and a temperature reading of `14-18 C`. Redacting all of that
+      # damages text and protects nobody.
+      #
+      # So it is reported and not removed. `flag` keeps the finding in the record, so a
+      # reader can still see a date was present, which dropping DATE from `entities`
+      # above would not. A policy that wants dates gone says redact here: see
+      # policies/bfsi.yaml, where a date of birth is the likely case and it does.
+      entity_actions:
+        date: flag
   output_leakage:
     on_fail: redact
     threshold: 0.5

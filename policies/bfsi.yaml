@@ -38,6 +38,12 @@ detectors:
     threshold: 0.4          # lower threshold: prefer over-redaction to a leak
     options:
       entities: [CARD, DATE, EMAIL, IBAN, NATIONAL_ID, PERSON, PHONE]
+      # No `entity_actions` here, deliberately, so DATE stays at the `redact` above.
+      # policies/default.yaml drops DATE to `flag` because a delivery date is not
+      # personal data and redacting every date damages ordinary text. In this sector a
+      # date next to a name is usually a date of birth, and the line above already says
+      # over-redaction is the preferred error, so the divergence is the point rather
+      # than an omission.
   output_leakage:
     on_fail: block          # personal data on the way out is a reportable event
     threshold: 0.4

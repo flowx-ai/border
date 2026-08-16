@@ -12,8 +12,9 @@ caller cannot see and which is strictly worse than the noise it was added to rem
 the rule is narrow on purpose:
 
 - **Impossible, so dropped.** An EMAIL with no `@`, a DATE with no digit, a CARD with
-  four digits. Nothing that is genuinely one of these can fail these checks, so dropping
-  costs no recall. This is where three of the four measured false positives die.
+  four digits, an IBAN of ten characters. Nothing that is genuinely one of these can
+  fail these checks, so dropping costs no recall. This is where three of the four
+  measured false positives die.
 - **Merely wrong, so kept and recorded.** An IBAN that fails mod-97, a card number that
   fails Luhn. A checksum failure is as likely to mean a typo, a test number, or a span
   the model got the boundary of, and all three of those are still personal data. Redact
@@ -23,6 +24,12 @@ The second half is the one worth defending, because a checksum is the strongest 
 here and not using it to drop looks like waste. It is not: `4111 1111 1111 1112` fails
 Luhn and is obviously still a card number to redact, and a span that clipped an IBAN's
 last character fails mod-97 while still carrying most of an account number.
+
+The two halves are about different questions and the IBAN appears in both, which is
+worth being precise about. Length is the first: under 15 characters it cannot be an
+IBAN under ISO 13616, so it is dropped. Mod-97 is the second: at a legal length and a
+failing checksum it is very likely an account number with something wrong with it, so it
+is kept and the record says the checksum did not pass.
 
 **PERSON has no shape and gets no check.** A name is any string. One of the four
 measured false positives was a PERSON and it survives this module, which is stated here
@@ -50,6 +57,12 @@ REJECTED_PREFIX: Final = "pii_shape_rejected_"
 UNVERIFIED_PREFIX: Final = "pii_checksum_failed_"
 
 _DIGITS: Final = re.compile(r"\d")
+
+#: ISO 13616: an IBAN is 15 to 34 characters. The floor is duplicated in
+#: `checksummed.py`, which needs it to scan raw text, and the two are pinned equal by a
+#: test rather than by a shared constant, so that neither module reaches into the other
+#: for a number the standard gives both of them.
+_IBAN_MIN: Final = 15
 #: An address needs a local part, an `@`, and a dot in the domain after it. Deliberately
 #: not a full RFC 5322 pattern: the question is whether this can be an address at all,
 #: and an over-strict pattern here would drop real addresses, which is the failure
@@ -85,8 +98,18 @@ def _digit_count(value: str) -> int:
     return sum(1 for character in value if character.isdigit())
 
 
-def _letter_count(value: str) -> int:
-    return sum(1 for character in value if character.isalpha())
+def _alnum_count(value: str) -> int:
+    """ASCII alphanumerics only, which is what ISO 13616 defines an IBAN over.
+
+    Normalised first so that a full-width digit or a non-breaking space cannot make a
+    span look shorter than it is. The false positives this floor exists to kill are full
+    of narrow no-break spaces, which are not alphanumeric either way.
+    """
+    return sum(
+        1
+        for character in unicodedata.normalize("NFKC", value)
+        if character.isascii() and character.isalnum()
+    )
 
 
 def luhn_ok(digits: str) -> bool:
@@ -164,10 +187,27 @@ def is_possible(entity: str, value: str) -> bool:
         # No card scheme in use has fewer than twelve digits.
         return _digit_count(core) >= 12
     if entity == "IBAN":
-        # Two letters for the country and at least four digits, which is shorter than
-        # any real IBAN and is meant to be: the length check belongs to iban_ok, and a
-        # span that clipped an IBAN should be redacted rather than dropped.
-        return _letter_count(core) >= 2 and _digit_count(core) >= 4
+        # ISO 13616 puts an IBAN between 15 and 34 characters, so anything shorter
+        # cannot be one. `checksummed.py` reads the same floor from the same standard.
+        #
+        # This deliberately reverses what stood here until 2026-08-16, which was two
+        # letters and four digits, on the stated grounds that "a span that clipped an
+        # IBAN should be redacted rather than dropped". Two things make the reversal
+        # safe, and the second is the one that matters:
+        #
+        # - Four digits is not a weak floor, it is no floor. It let `5000 mAh`, `6,5",
+        #   128 GB` and `mm x 80 mm x 45 mm` through as IBANs on ordinary product
+        #   descriptions, measured over 234 rows in 26 languages.
+        # - A real IBAN the model clipped is still redacted, because `checksummed.py`
+        #   scans the raw text for mod-97-valid runs without asking the model at all.
+        #   The clipped span dies here and the whole IBAN is found there. Verified end
+        #   to end in tests/test_entity_shapes.py rather than assumed.
+        #
+        # So the clipping argument was right about the risk and wrong about who bears
+        # it: the checksum pass is the guarantee, and this gate is free to be strict.
+        # Same division of labour as CARD, where the model is the recall net and Luhn
+        # is the guarantee.
+        return _alnum_count(core) >= _IBAN_MIN
     if entity == "NATIONAL_ID":
         # Every scheme in the 26 carries at least four digits, including the two that
         # carry no checksum. Malta's and Azerbaijan's are format-only, which is why this

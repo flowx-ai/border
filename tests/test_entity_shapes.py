@@ -178,3 +178,66 @@ def test_the_gate_is_case_insensitive_about_the_entity_name() -> None:
         assert not is_possible(name, "nine"), name
     for name in ("CARD", "card"):
         assert checksum_state(name, "4111 1111 1111 1111") is True, name
+
+
+def test_a_span_too_short_to_be_an_iban_is_dropped() -> None:
+    """The measured false positives, which were product descriptions and a battery.
+
+    Every one of these passed the rule that stood here until 2026-08-16, two letters and
+    four digits, because a dimension list has both. ISO 13616 puts the floor at 15
+    characters, so none of them can be an IBAN and dropping costs no recall.
+    """
+    for value in ("mm × 80 mm × 45 mm", "5000 mAh", '6,5", 128 GB'):
+        assert not is_possible("IBAN", value), value
+
+
+def test_a_real_iban_survives_the_length_floor() -> None:
+    """Both presentation forms, because the compact one is 24 characters and the spaced
+    one is 29, and a floor measured over the wrong alphabet would pass one and fail the
+    other."""
+    for value in ("RO49 AAAA 1B31 0075 9384 0000", "RO49AAAA1B31007593840000"):
+        assert is_possible("IBAN", value)
+        assert checksum_state("IBAN", value) is True
+
+
+def test_the_iban_floor_agrees_with_the_checksum_pass() -> None:
+    """The two modules read the same number off the same standard and must not drift.
+
+    `checksummed.py` needs the floor to scan raw text and this module needs it to judge
+    a span. Pinning them equal here rather than sharing a constant keeps each module
+    readable on its own, which is worth one test.
+    """
+    from flowx_border.detectors import checksummed
+    from flowx_border.detectors.entity_shapes import _IBAN_MIN
+
+    assert _IBAN_MIN == checksummed._IBAN_MIN == 15
+
+
+def test_dropping_a_clipped_iban_span_leaves_no_hole() -> None:
+    """The claim the length floor rests on, tested rather than asserted in a comment.
+
+    The floor reverses a decision that stood on the grounds that a span which clipped an
+    IBAN should be redacted rather than dropped. That was right about the risk. What
+    makes the reversal safe is that `checksummed.py` scans the raw text for mod-97-valid
+    runs without consulting the model, so the clipped span dies in `is_possible` and the
+    whole IBAN is found anyway.
+
+    Here the model is imagined to have tagged only `RO49 AAAA`, ten characters, which
+    the floor rejects. The account number still comes back covered.
+    """
+    from flowx_border.detectors.checksummed import supplement
+
+    iban = "RO49 AAAA 1B31 0075 9384 0000"
+    text = f"Send it to {iban} before Friday."
+    clipped = (text.index(iban), text.index(iban) + len("RO49 AAAA"))
+
+    assert not is_possible("IBAN", text[clipped[0] : clipped[1]])
+
+    # The gate has dropped it, so the model contributes nothing at all here.
+    found = supplement(text, {})
+    covered = [
+        (start, end)
+        for (start, end), (entity, _) in found.items()
+        if entity == "iban" and text[start:end] == iban
+    ]
+    assert covered, f"the checksum pass did not find {iban!r} in {text!r}"
