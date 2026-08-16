@@ -84,8 +84,10 @@ from flowx_border.detectors.base import INPUT, OUTPUT, Context, DetectorConfig
 from flowx_border.detectors.checksummed import supplement
 from flowx_border.detectors.entity_shapes import (
     REJECTED_PREFIX,
+    RELABELLED_PREFIX,
     UNVERIFIED_PREFIX,
     checksum_state,
+    corrected_label,
     is_possible,
 )
 from flowx_border.detectors.multilingual import LANGUAGES
@@ -500,6 +502,15 @@ class PiiDetector:
             if score < cfg.threshold:
                 continue
             value = text[span[0] : span[1]]
+            if validate:
+                # Before the gate, not after: a span corrected to `email` has to be
+                # judged as an email, and `person` passes any gate at all, so a
+                # correction applied afterwards would never be checked.
+                correction = corrected_label(entity, value)
+                if correction is not None:
+                    was = entity.lower()
+                    out.append(self._noted(f"{RELABELLED_PREFIX}{was}", span))
+                    entity = correction
             if validate and not is_possible(entity, value):
                 # Dropped, and recorded. A silently removed finding leaves a record
                 # indistinguishable from one where the model found nothing.

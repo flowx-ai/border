@@ -15,6 +15,7 @@ import pytest
 
 from flowx_border.detectors.entity_shapes import (
     checksum_state,
+    corrected_label,
     iban_ok,
     is_possible,
     luhn_ok,
@@ -241,3 +242,40 @@ def test_dropping_a_clipped_iban_span_leaves_no_hole() -> None:
         if entity == "iban" and text[start:end] == iban
     ]
     assert covered, f"the checksum pass did not find {iban!r} in {text!r}"
+
+
+def test_an_address_the_model_called_a_person_is_relabelled() -> None:
+    """The regression the adopted piiguard artifact introduced, in hr, sl and fr.
+
+    The span was always whole, so nothing leaked and the redactor removed the same
+    characters either way. What broke was the evidence record, which said a person where
+    an address was, and `output_leakage`, which looks for a leaked email by name.
+    """
+    for value in (
+        "ivan.horvat@primjer.hr",
+        "janez.novak@primer.si",
+        "marie.dubois@bank.fr",
+    ):
+        assert corrected_label("person", value) == "email"
+        assert corrected_label("national_id", value) == "email"
+
+
+def test_a_real_name_is_not_relabelled() -> None:
+    """Nothing without an address in it is touched, which is nearly every span."""
+    for value in ("Ivan Horvat", "Kovács Péter", "Bərdə", "14 March 2024", ""):
+        assert corrected_label("person", value) is None
+
+
+def test_a_sentence_containing_an_address_is_not_relabelled() -> None:
+    """Only a span that *is* an address, never one that merely contains one.
+
+    A span covering a whole clause is one whose boundaries the model got wrong, and
+    renaming it would move the `email` label onto text that is not the address. Left
+    alone, it stays a boundary problem rather than becoming a labelling lie.
+    """
+    sentence = "Ivan Horvat, e-posta ivan.horvat@primjer.hr"
+    assert corrected_label("person", sentence) is None
+
+
+def test_an_address_already_labelled_email_is_left_alone() -> None:
+    assert corrected_label("email", "ivan.horvat@primjer.hr") is None

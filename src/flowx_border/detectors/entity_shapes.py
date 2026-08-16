@@ -53,6 +53,12 @@ from typing import Final
 #: no-op this library treats as a vulnerability.
 REJECTED_PREFIX: Final = "pii_shape_rejected_"
 
+#: Reported when a span's type was corrected, one per span, at `log`, naming the type
+#: the model gave it. The record has to show the correction for the same reason it shows
+#: a drop: an evidence record that quietly disagrees with the model it attests is worse
+#: than one that says what happened.
+RELABELLED_PREFIX: Final = "pii_relabelled_from_"
+
 #: Reported when a span was kept despite failing its checksum, one per span, at `log`.
 UNVERIFIED_PREFIX: Final = "pii_checksum_failed_"
 
@@ -68,6 +74,12 @@ _IBAN_MIN: Final = 15
 #: and an over-strict pattern here would drop real addresses, which is the failure
 #: direction this module exists to avoid.
 _EMAIL: Final = re.compile(r"[^@\s]@[^@\s]*\.[^@\s]")
+
+#: The same shape anchored, for deciding that a span *is* an address rather than that it
+#: could contain one. `corrected_label` needs the stricter reading: renaming a whole
+#: sentence because an address sits inside it would move a label onto text that is not
+#: the address.
+_EMAIL_WHOLE: Final = re.compile(r"[^@\s]+@[^@\s]+\.[^@\s]+")
 
 #: Sentence punctuation that can sit against an entity without being part of it. A set
 #: of single characters, spelled out so that it reads as a set rather than as the string
@@ -146,6 +158,39 @@ def iban_ok(value: str) -> bool:
         else:
             return False
     return total == 1
+
+
+def corrected_label(entity: str, value: str) -> str | None:
+    """The type this span obviously is, when the model called it something else.
+
+    Added 2026-08-16, when the adopted piiguard artifact was found labelling
+    `ivan.horvat@primjer.hr` as `person` in Croatian and Slovenian. The span was whole
+    and the text was still redacted, so nothing leaked; what broke was the record, which
+    said a person where an address was, and `output_leakage`, which looks for a leaked
+    email by name.
+
+    It is the neighbour axis the held-out harness already measures: the mislabel appears
+    only where a person's name precedes the address, and Hungarian, English and German
+    are unaffected because their probe sentences put nothing in front of it.
+
+    **Only ever a relabel, never a drop and never a new span.** An address is not a
+    name, so this direction is safe in a way the reverse is not: turning `person` into
+    `email` on a string containing `@` cannot hide anything, while a rule that turned
+    `email` into something else could. The span is untouched, so a redactor removes
+    exactly the same characters either way and only the name in the record changes.
+
+    Returns None when there is nothing to correct, which is the overwhelmingly common
+    case.
+    """
+    if entity.upper() == "EMAIL":
+        return None
+    core = value.strip().strip(_TRAILING)
+    # The whole span has to be the address. A sentence that merely contains one is a
+    # span whose boundaries the model got wrong, and widening or renaming that would be
+    # guessing at which part it meant.
+    if core and _EMAIL_WHOLE.fullmatch(core):
+        return "email"
+    return None
 
 
 def is_possible(entity: str, value: str) -> bool:
