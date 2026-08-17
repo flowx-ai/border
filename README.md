@@ -225,7 +225,7 @@ column.**
 | `gibberish` | F1 | 0.966 | 0.870 | 276 positives |
 | `politeness` | F1 | 0.962 | 0.788 | 392 positives |
 | `toxicity` | F1 | 0.992 | 0.950 | 518 positives |
-| `bias` | F1 | 0.977 | 0.824 | 264 positives |
+| `bias` | F1 | 0.983 | 0.942 | 2064 positives |
 | `topic_scope` | top-1 accuracy | 0.865 | 0.375 | 175 evaluated |
 
 `groundedness` has no row because no model for it is adopted, and the one that used to
@@ -276,6 +276,13 @@ is no longer on that list.
 `bias` moved the same way on the same day, 0.957 to 0.977, and needed only a retrain: its
 corpus already carried the bands and the mundane registers from 2026-08-13, so the corpus was
 fixed and nothing had been trained on it.
+
+It moved again on 2026-08-17, to the 0.983 in the table above, on a corpus nine times the
+size: 36,407 rows against 4,901. **The score is not the point and the support is.** Twelve
+of the twenty-six languages previously rested on so few positives that one case moved the
+figure materially, and now one does. 0.977 was never wrong, it was unmeasurable. The larger
+corpus also made one weakness visible that had no measurable support before: text which
+deliberately uses inclusive language reads as bias about one time in ten.
 
 **`nsfw`'s 0.976 in the table above is the rebuild, and it is not what ships.** It was
 superseded twice: by a retrain on 2026-08-13 scoring 0.918, and by another on 2026-08-14

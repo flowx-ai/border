@@ -14,7 +14,7 @@ means the score is unverified rather than good or bad.
 | Detector | Tier | Status | Metric | Macro | Median | Worst | Test cases | n means |
 |---|---|---|---|---|---|---|---|---|
 | `banned_terms` | T1 | built | – | – | – | – | – | – |
-| `bias` | T2 | built | f1 | 0.977 | 1.000 | 0.824 | 264 | positive examples |
+| `bias` | T2 | built | f1 | 0.983 | 0.987 | 0.942 | 2064 | positive examples |
 | `code_present` | T1 | built | – | – | – | – | – | – |
 | `disclosure` | T0 | built | – | – | – | – | – | – |
 | `encoded_payload` | T1 | built | – | – | – | – | – | – |
@@ -46,7 +46,6 @@ means the score is unverified rather than good or bad.
 
 ## Caveats
 
-- **`bias`**: 12 of 26 languages have fewer than 10 positive examples: az, bg, da, de, el, fi, ga, hu, lv, mt, pl, sk. Their individual scores are indicative rather than measured.
 - **`gibberish`**: 2 of 26 languages have fewer than 10 positive examples: bg, en. Their individual scores are indicative rather than measured.
 - **`nsfw`**: 1 of 26 languages have fewer than 10 positive examples: ga. Their individual scores are indicative rather than measured.
 - **`topic_scope`**: 26 of 26 languages have fewer than 10 examples evaluated: az, bg, cs, da, de, el, en, es, et, fi, fr, ga, hr, hu, it, lt, lv, mt, nl, pl, pt, ro, sk, sl, sv, tr. Their individual scores are indicative rather than measured.

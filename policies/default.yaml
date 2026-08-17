@@ -257,17 +257,23 @@ detectors:
     threshold: 0.76
   bias:
     on_fail: flag
-    # 0.57 from the 2026-08-14 retrain's own validation split, macro F1 0.9711 against
-    # 0.9675 at the neutral 0.5. Replaces 0.84.
+    # 0.77 from the 2026-08-17 retrain's own validation split, macro F1 0.982 against
+    # 0.981 at the neutral 0.5. Replaces 0.57, which replaced 0.84.
     #
-    # Its corpus already carried the mundane registers and the length bands from 2026-08-13,
-    # so only the model was stale here: the corpus was fixed and nothing had been trained on
-    # it. Retrained, mean per-language F1 0.9565 -> 0.9771, export passed the flip gate at
-    # 0/300 with max drift 0.2414 and p99 probability drift 0.00629.
+    # That retrain is nine times the corpus, 36,407 rows against 4,901, same architecture
+    # and same hyperparameters so the difference is attributable. Mean per-language F1
+    # 0.9771 -> 0.9826 and worst language 0.824 -> 0.942, export 0/300 at p99 probability
+    # drift 0.00081.
     #
-    # 0 of 20 ordinary sentences at 0.84, at 0.57 and at 0.5, and 0 of 20 cut to 55
-    # characters.
-    threshold: 0.57
+    # **The support is the change and the score is not.** ~80 test examples per language
+    # against ~9, so a per-language figure now moves by a point where it moved by eleven.
+    # 0.9771 was never wrong, it was unmeasurable.
+    #
+    # One weakness the bigger corpus made visible: `inclusive_phrasing` has a false
+    # positive rate of 0.096, so text that deliberately uses inclusive language reads as
+    # bias about one time in ten. That register had no measurable support before, so this
+    # is newly visible rather than newly true. It is why this stays at `flag`.
+    threshold: 0.77
   politeness:
     enabled: false          # off by default: a style check that blocks is a support ticket
     on_fail: log

@@ -94,7 +94,7 @@ THRESHOLDS: dict[str, float] = {
     "nsfw": 0.76,
     # 0.81 from the 2026-08-14 retrain. Moves with the policy by design.
     "toxicity": 0.81,
-    "bias": 0.57,  # 0.57 from the 2026-08-14 retrain.
+    "bias": 0.77,  # the 2026-08-17 retrain on nine times the corpus.
     "politeness": 0.89,
     "gibberish": 0.37,
     "injection": 0.43,

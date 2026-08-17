@@ -153,9 +153,9 @@ MODELS: Final[dict[str, ModelSpec]] = {
     "bias": ModelSpec(
         model_id="flowxai/bias",
         repo="flowxai/bias",
-        revision="78a14104085c2703695f8c577d9b0b644423b721",
+        revision="82469a209703212bc54de29a346f6a28a222898e",
         filename="onnx/model.int8.onnx",
-        sha256="4a3abfec28762e23000de3e122d23d1e5c4e285c1d30ba6eee5e36a8921761a6",
+        sha256="70b49a9e3edfe0550c1e5738a6b79b94daa9a2924d7954013ef175f600c419b9",
         extra_files=("tokenizer.json", "config.json"),
         trained_max_length=96,
         trained_languages=frozenset(LANGUAGES),

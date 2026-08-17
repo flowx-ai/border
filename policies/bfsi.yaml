@@ -130,7 +130,7 @@ detectors:
     threshold: 0.5
   bias:
     on_fail: block
-    threshold: 0.5
+    threshold: 0.77
   politeness:
     enabled: true
     on_fail: flag

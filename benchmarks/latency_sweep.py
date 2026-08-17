@@ -50,8 +50,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "tests"))
 #:
 #: 87 is here because it is the only length in the range that already has a figure
 #: measured independently of this script: it is `REFERENCE_INPUT`, and CLAUDE.md's
-#: detector table records `pii` at 153 ms there. So the sweep has one point that can
-#: be checked against something rather than only believed, and a sweep that disagrees
+#: detector table records `pii` at 27.6 ms there, from the collector run of 2026-08-16
+#: on the M5 Max workstation. So the sweep has one point that can be checked against
+#: something rather than only believed, and a sweep that disagrees
 #: with the reference figure at the reference length is reporting on the machine it
 #: ran on rather than on the model.
 #:
@@ -87,7 +88,7 @@ TOKEN_LENGTHS = (16, 32, 48, 64, 80, 87, 94, 95, 128)
 #: agreement is not the expectation and a small gap is not evidence of anything. A
 #: large one is.
 REFERENCE_TOKENS = 87
-REFERENCE_P95_MS = 153.0
+REFERENCE_P95_MS = 27.6
 REFERENCE_TOLERANCE = 0.10
 
 #: Thread counts for the scaling pass, measured at `REFERENCE_TOKENS`.
