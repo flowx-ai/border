@@ -7,6 +7,7 @@ name = "flowx-border"
 version = "0.1.0"
 description = "Inspects the text going into and coming out of an LLM, returns a decision and an evidence record."
 requires-python = ">=3.11"
+readme = "README.md"
 license = "Apache-2.0"
 license-files = ["LICENSE"]
 authors = [{ name = "FlowX.AI" }]
@@ -51,7 +52,13 @@ sql = ["sqlglot>=25"]
 schema = ["jsonschema>=4.21"]
 
 [project.urls]
-Source = "https://github.com/flowx-ai/flowx-border"
+# flowx-ai/border, not flowx-ai/flowx-border. The distribution is named flowx-border and
+# the repository is not, and the wrong one was in here until 2026-08-17: it would have
+# been baked into the 0.1.0 metadata on PyPI, where a project URL cannot be corrected
+# without burning a version number.
+Source = "https://github.com/flowx-ai/border"
+Documentation = "https://github.com/flowx-ai/border/tree/main/docs"
+Issues = "https://github.com/flowx-ai/border/issues"
 
 [dependency-groups]
 dev = [
