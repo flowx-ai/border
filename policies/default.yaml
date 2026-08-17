@@ -143,6 +143,26 @@ detectors:
     # emitting a <script> tag is the product working rather than failing.
 
   # T2. May be disabled per policy.
+  moderation:
+    enabled: false          # see below: measured, and not ready to enforce
+    on_fail: flag
+    threshold: 0.84         # its own calibration, macro F1 0.931 against 0.923 at 0.5
+    # Published, pinned and available, and deliberately off.
+    #
+    # Measured 2026-08-17 on ten ordinary support questions: it fires on five of them at
+    # 0.90 to 0.98. Four account-access questions read as `cyber_intrusion`, including
+    # "How do I reset my password?" at 0.97, and "How do I report a suspicious message I
+    # received?" reads as `sexual_exploitation` at 0.90. That last one is a user trying
+    # to report abuse being labelled as the abuse.
+    #
+    # Its own evaluation says mean per-language F1 0.9919 and a 0.000 false positive rate
+    # on all three mundane registers, and both are true. The registers are informational,
+    # operational and transactional prose, and an account-access question is none of
+    # those. It is the same missing-register failure as `nsfw` at 55 percent of business
+    # prose and `injection` on git hashes, in a third place.
+    #
+    # So it ships available and off. Enabling it is one line for anyone who wants to
+    # evaluate it on their own traffic, and the corpus fix is the account-access register.
   injection:
     on_fail: block
     # Lower than the default: a missed injection costs more than a review. Calibrated

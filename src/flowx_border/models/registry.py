@@ -204,6 +204,32 @@ MODELS: Final[dict[str, ModelSpec]] = {
             "Single-digit per-language positives."
         ),
     ),
+    "moderation": ModelSpec(
+        model_id="flowxai/moderation",
+        repo="flowxai/moderation",
+        revision="0b445577dd9e11b33521a6c96dcee8b1d27af3ac",
+        filename="onnx/model.int8.onnx",
+        sha256="f7950676f8d29ae8553f6f5cabb4a230727eb602d88ee989e05d677d020c8f03",
+        extra_files=("tokenizer.json", "config.json"),
+        trained_max_length=96,
+        trained_languages=frozenset(LANGUAGES),
+        notes=(
+            "XLM-RoBERTa base, and a twelve-label head against a thirteen-label "
+            "taxonomy. `child_safety` is deliberately not trained: the label covers "
+            "sexualisation of minors and grooming, generating either synthetically is "
+            "not acceptable at any severity, and it needs a vetted source with "
+            "recorded "
+            "provenance instead. The corpus generator excludes it by name and a test "
+            "keeps it excluded. Trained 2026-08-17: mean per-language F1 0.9919, worst "
+            "language 0.966 (mt), calibrated threshold 0.84, 1 of 300 decisions moved "
+            "by the INT8 export and that one within 0.0003 of the threshold. Positives "
+            "score 0.984 to 1.000 per label and the false positives sit in the "
+            "near-miss registers, worst `fraud_deception_near_miss` at 0.058. All "
+            "three "
+            "mundane registers are at 0.000, which is the nsfw failure mode not "
+            "repeating: this corpus carried ordinary prose from the first run."
+        ),
+    ),
     "nsfw": ModelSpec(
         model_id="flowxai/nsfw",
         repo="flowxai/nsfw",
@@ -346,13 +372,6 @@ UNPUBLISHED: Final[dict[str, str]] = {
         "border_train.leak_check and the four tests in the library's tests/test_t3.py "
         "against any replacement: passing one and failing the other is what happened "
         "here and neither alone would have shown it."
-    ),
-    "moderation": (
-        "no artifact is published for moderation yet. The pipeline is in training/ and "
-        "ran end to end on an L4 on 2026-08-11, so what is missing is a corpus rather "
-        "than a method: the seed set is 1240 templated English rows and the model "
-        "reached macro-F1 0.472 on English with the other 25 languages untested. That "
-        "is a pipeline validation and not a model. See training/README.md."
     ),
     "semantic-mapper": (
         "flowxai/semantic-mapper is a 4B Qwen3 LoRA published as GGUF. It "

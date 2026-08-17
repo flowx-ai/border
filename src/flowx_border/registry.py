@@ -150,9 +150,10 @@ def _build() -> tuple[dict[str, Detector], frozenset[str]]:
     # present, so `assert_satisfiable` would let a policy enforce with it and the
     # failure would surface inside a scan instead of at policy load. Absent is the
     # honest answer, and it is the same shape as the `sql_injection` case above.
-    # Nothing here is published yet, so in practice these appear when
-    # FLOWX_BORDER_MODEL_DIR points at a directory of artifacts, and are absent
-    # otherwise with UNPUBLISHED explaining why by name.
+    # All eight are published as of 2026-08-17, so they appear on a fresh install once
+    # the weights are fetched. This comment said "nothing here is published yet" until
+    # then, which was true when written and is the kind of aside that outlives its
+    # subject: the condition below decides, not the prose.
     from flowx_border.detectors.classifier import ClassifierDetector
     from flowx_border.models.registry import available
 
@@ -164,6 +165,10 @@ def _build() -> tuple[dict[str, Detector], frozenset[str]]:
         "bias",
         "gibberish",
         "politeness",
+        # A twelve-label head against a thirteen-label taxonomy. `child_safety` is
+        # deliberately untrained and the registry note says why, so this reports twelve
+        # labels and the thirteenth is absent rather than scored zero.
+        "moderation",
     ):
         # The model id matches the detector id for all seven. They are separate concepts
         # and the loop keeps them separate, because a detector backed by a shared model

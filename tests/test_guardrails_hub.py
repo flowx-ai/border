@@ -291,46 +291,56 @@ def test_the_shipped_policies_stay_inside_core() -> None:
 # ------------------------------------------------------------------------ moderation
 
 
-def test_moderation_is_catalogued_and_ships_unavailable() -> None:
-    """Catalogued so the contract exists, absent so nothing pretends it runs.
+def test_moderation_is_available_and_is_twelve_labels_of_thirteen() -> None:
+    """Trained and published 2026-08-17, so the three tests here changed with it.
 
-    The pipeline in training/ produces this model and no artifact is published, which is
-    the same state `injection` and `groundedness` are in. Catalogued-and-absent is the
-    honest pair: a policy can name it, and the registry does not hand back a detector
-    that would return no findings.
+    They asserted the opposite until then: catalogued, absent, and an error explaining
+    that what was missing was a corpus rather than a method. All three were correct and
+    all three described a state that no longer exists, which is what a test asserting an
+    absence does the day the absence ends.
+
+    What replaces them is the claim worth holding: it is available, and it is twelve
+    labels against a thirteen-label taxonomy. `child_safety` is deliberately untrained
+    because the label covers sexualisation of minors and grooming. A head scoring zero
+    on it while looking complete is the failure the "never silently do nothing" rule
+    exists to prevent.
     """
-    from flowx_border.registry import loaded_detectors
+    from flowx_border.models.registry import MODELS, UNPUBLISHED, spec_for
 
     assert "moderation" in CATALOGUE
-    assert "moderation" not in loaded_detectors()
-
-
-def test_a_policy_asking_moderation_to_enforce_refuses_to_scan() -> None:
-    """The rule that makes an unavailable detector safe rather than silent.
-
-    A policy asking a missing detector to block would otherwise let text through as if
-    it had been checked, which is the failure CLAUDE.md calls a vulnerability.
-    """
-    from flowx_border.policy import DetectorPolicy, Policy
-    from flowx_border.registry import DetectorUnavailableError, assert_satisfiable
-
-    policy = Policy(
-        policy_id="moderation-enforcing",
-        version=1,
-        fail_mode=dict.fromkeys(("T0", "T1", "T2", "T3"), "open"),
-        detectors={"moderation": DetectorPolicy(enabled=True, on_fail="block")},
+    assert "moderation" in MODELS, "published on 2026-08-17, so it belongs in MODELS"
+    assert "moderation" not in UNPUBLISHED
+    spec = spec_for("moderation")
+    assert spec.repo == "flowxai/moderation"
+    assert spec.trained_languages is not None
+    assert len(spec.trained_languages) == 26
+    assert "child_safety" in spec.notes, (
+        "the registry note has to name the untrained label. A twelve-label head "
+        "described as a moderation classifier, with nothing saying which of the "
+        "thirteen is missing, is the omission this project refuses elsewhere."
     )
-    with pytest.raises(DetectorUnavailableError, match="moderation"):
-        assert_satisfiable(policy)
 
 
-def test_the_moderation_error_says_what_is_missing_is_data_not_a_method() -> None:
-    # The pipeline ran end to end. What it lacks is a corpus, and an error saying "no
-    # artifact" without that would send somebody to rebuild something that works.
-    from flowx_border.models.registry import ModelUnavailableError, spec_for
+def test_moderation_ships_disabled_in_both_policies() -> None:
+    """Available and off, which is a deliberate pair rather than an oversight.
 
-    with pytest.raises(ModelUnavailableError, match="corpus rather than a method"):
-        spec_for("moderation")
+    Measured the day it was published: it fires on 5 of 12 ordinary support questions at
+    0.90 to 0.98, reading "How do I reset my password?" as `cyber_intrusion` at 0.97 and
+    "How do I report a suspicious message I received?" as `sexual_exploitation` at 0.90.
+    See tests/test_support_questions.py, where that is a strict xfail.
+
+    So it is enabled by nobody until the corpus gains an account-access register, and a
+    caller who wants to evaluate it on their own traffic turns it on in one line. Pinned
+    because the tempting next step is to enable it now that it exists.
+    """
+    from flowx_border import load_policy
+
+    for name in ("default", "bfsi"):
+        policy = load_policy(f"policies/{name}.yaml")
+        assert not policy.enabled_for("moderation"), (
+            f"policies/{name}.yaml enables moderation, which fires on 5 of 12 ordinary "
+            "support questions. See tests/test_support_questions.py."
+        )
 
 
 def test_the_retrain_entries_point_at_the_detector_that_replaces_them() -> None:

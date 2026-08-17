@@ -12,10 +12,10 @@ from here. Regenerate with:
 | figure | value |
 |---|---|
 | detectors in the catalogue | 30 |
-| implemented in the library | 29 |
-| that run on a fresh install, with no model download | 28 |
+| implemented in the library | 30 |
+| that run on a fresh install, with no model download | 29 |
 | implemented but waiting on weights that are not published | 1 |
-| catalogued but not yet implemented | 1 |
+| catalogued but not yet implemented | 0 |
 | that need nothing beyond a CPU and the base install | 27 |
 | that need something more, and declare it | 3 |
 | supported languages | 26 |
@@ -55,7 +55,7 @@ one on, so a caller finds out when they enable it rather than in production.
 | `token_limit` | T1 | input, output | built | nothing beyond a CPU | rule | 5 ms | Text longer than the token budget of the model it is going to, counted with a tokenizer the policy names and pins: a local file, whose hash is reported as the revision, or an id already carrying a commit. A bare repo id is refused, because an unpinned count cannot be reproduced. |
 | `bias` | T2 | output | built | nothing beyond a CPU | classifier | 225 ms | Output carrying bias related to a protected characteristic. |
 | `injection` | T2 | input | built | nothing beyond a CPU | classifier | 225 ms | Attempts to talk the model out of its instructions. |
-| `moderation` | T2 | input, output | trained | nothing beyond a CPU | classifier | 150 ms | Thirteen hazard categories in one pass, from violent crime to election misinformation. Replaces the capability Llama Guard and ShieldGemma provide, with weights this project can ship. |
+| `moderation` | T2 | input, output | built | nothing beyond a CPU | classifier | 150 ms | Thirteen hazard categories in one pass, from violent crime to election misinformation. Replaces the capability Llama Guard and ShieldGemma provide, with weights this project can ship. |
 | `nsfw` | T2 | input, output | built | nothing beyond a CPU | classifier | 225 ms | Sexual or otherwise not-safe-for-work content. |
 | `politeness` | T2 | output | built | nothing beyond a CPU | classifier | 225 ms | Whether the tone of an answer is acceptable. |
 | `regulated_advice` | T2 | output | built | nothing beyond a CPU | classifier | 225 ms | Output that reads as regulated financial, legal or medical advice. |
