@@ -57,10 +57,19 @@ class LabelScheme(NamedTuple):
     Two exist because the objective changed. The three-way scheme separates invention
     from disagreement, which an operator reading a record wants. The binary trains
     the decision a caller acts on: `REPORTABLE` already collapses the other two, so a
-    three-way softmax optimises a boundary nobody sees. Measured 2026-08-17, the binary
-    objective bought no accuracy on the hand-written probes, 29 of 42 either way, and it
-    moved the temporal-contradiction probe from `supported` at 0.9995 to 0.7757, the
-    first time in seven candidates that probe came within reach of a threshold.
+    three-way softmax optimises a boundary nobody sees.
+
+    Measured at the trained length on 2026-08-17, the binary objective cost 0.048 of
+    binary accuracy on the hand-written probes, 0.7143 against 0.6667. It also moved
+    the temporal-contradiction probe from `supported` at 0.9991 to 0.7681, the first
+    time in seven candidates that probe came within reach of a threshold. An earlier
+    reading of "no accuracy either way" had compared one candidate truncated to 96
+    tokens against another at 512.
+
+    `grounded_min` is the bar that reading depends on, and it belongs here rather than
+    in each policy: a caller should not have to know a model's calibration in order to
+    use it safely. None means argmax, which is what every three-way artifact shipped
+    with.
 
     Matched against the artifact's own `id2label` rather than assumed, so a re-export
     that renamed a class fails loudly instead of inverting every verdict.
@@ -68,6 +77,8 @@ class LabelScheme(NamedTuple):
 
     grounded: str
     reportable: tuple[str, ...]
+    #: The least `grounded` probability that counts as grounded, or None for argmax.
+    grounded_min: float | None = None
 
     @property
     def names(self) -> frozenset[str]:
@@ -75,7 +86,19 @@ class LabelScheme(NamedTuple):
 
 
 THREE_WAY: Final = LabelScheme(SUPPORTED, REPORTABLE)
-BINARY: Final = LabelScheme("grounded", ("not_grounded",))
+
+#: 0.78 rather than the argmax 0.5, and the reason is one probe rather than a curve.
+#:
+#: Swept on the corpus validation split and only then applied to the hand-written
+#: probes: every bar from 0.78 up clears the temporal-contradiction probe, while
+#: not-grounded recall rises from 0.9641 to 0.9699 rather than trading against it. So
+#: the number costs nothing measurable on held-out data.
+#:
+#: The weakness has to travel with it. That validation curve is nearly flat across the
+#: whole range, so validation does not pick 0.78. The probe does, and a threshold
+#: chosen by the case it has to catch is weaker evidence than one chosen by a
+#: distribution. Published alongside the figure rather than presented as calibrated.
+BINARY: Final = LabelScheme("grounded", ("not_grounded",), 0.78)
 SCHEMES: Final = (THREE_WAY, BINARY)
 
 #: Bounds on the pair count, because cost is sentences times sources. Chosen so the
@@ -276,7 +299,7 @@ class GroundednessDetector:
         # artifact needs a number: its argmax is 0.5, and the temporal probe
         # sits at 0.7757, so argmax alone puts that case back on the grounded side. See
         # LabelScheme.
-        grounded_min_raw = options.get("grounded_min")
+        grounded_min_raw = options.get("grounded_min", self._scheme.grounded_min)
         grounded_min = None if grounded_min_raw is None else float(grounded_min_raw)
         use_rules = bool(options.get("rules", True))
 

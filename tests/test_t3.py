@@ -262,13 +262,32 @@ def test_a_verbatim_claim_is_supported(grounded: GroundednessDetector) -> None:
 def test_the_label_map_is_checked_against_what_this_detector_means(
     grounded: GroundednessDetector,
 ) -> None:
-    # A re-export that renamed `supported` would invert every verdict silently.
+    # A re-export that renamed `supported` would invert every verdict silently. Two
+    # label
+    # sets are legitimate now, so this asserts the loaded one is one of them rather than
+    # naming the three-way set: a binary artifact is not a broken three-way artifact.
+    from flowx_border.detectors.groundedness import SCHEMES
+
     assert grounded._labels is not None
-    assert set(grounded._labels.values()) == {
-        "supported",
-        "unsupported",
-        "contradicted",
-    }
+    named = frozenset(grounded._labels.values())
+    assert named in {scheme.names for scheme in SCHEMES}, (
+        f"the artifact declares {sorted(named)}, neither scheme"
+    )
+
+
+def is_grounded(grounded: GroundednessDetector, source: str, sentence: str) -> bool:
+    """The decision a caller acts on, whichever label set the artifact uses.
+
+    Every test below that cared about "supported" actually cared about this. Asserting
+    the string made them fail against a binary artifact for using two names rather than
+    three, which measures the vocabulary instead of the verdict.
+
+    The bar comes from the loaded scheme, so this is the decision the shipped
+    configuration would make: argmax for a three-way head, and 0.78 for the binary one,
+    which is where its temporal-contradiction probe sits.
+    """
+    scored = grounded.judge(source, sentence, 1)
+    return grounded._reads_grounded(scored, grounded._scheme.grounded_min)
 
 
 #: A source of the length the model was trained on, 163 to 1019 characters with a median
@@ -312,10 +331,19 @@ def test_the_cases_the_model_does_get_right(
     restatement reads supported at 0.9999, an invention reads unsupported, and a real
     contradiction reads contradicted. Whatever the corpus becomes, it has to keep these.
     """
+    from flowx_border.detectors.groundedness import THREE_WAY
+
     scored = grounded.judge(PROBE_SOURCE, sentence, 1)
-    assert max(scored, key=lambda label: scored[label]) == expected, (
+    want_grounded = expected == "supported"
+    assert is_grounded(grounded, PROBE_SOURCE, sentence) == want_grounded, (
         f"{case}: { ({k: round(v, 4) for k, v in scored.items()}) }"
     )
+    if grounded._scheme is THREE_WAY:
+        # Only a three-way artifact can be asked which kind of not-grounded it is, and
+        # that distinction is the reason the scheme exists, so it is still asserted.
+        assert max(scored, key=lambda label: scored[label]) == expected, (
+            f"{case}: { ({k: round(v, 4) for k, v in scored.items()}) }"
+        )
 
 
 @pytest.mark.xfail(
@@ -358,10 +386,10 @@ def test_a_hand_written_paraphrase_is_supported(grounded: GroundednessDetector) 
 def test_a_claim_weaker_than_the_source_is_supported(
     grounded: GroundednessDetector,
 ) -> None:
-    scored = grounded.judge(
-        PROBE_SOURCE, "There is a handling fee for early withdrawals.", 1
+    claim = "There is a handling fee for early withdrawals."
+    assert is_grounded(grounded, PROBE_SOURCE, claim), str(
+        {k: round(v, 4) for k, v in grounded.judge(PROBE_SOURCE, claim, 1).items()}
     )
-    assert max(scored, key=lambda label: scored[label]) == "supported"
 
     # Was a strict xfail until 2026-08-17, when `groundedness-scope` made it XPASS. The
     # marker is gone rather than inverted: a limitation that one candidate has
@@ -378,10 +406,10 @@ def test_a_claim_weaker_than_the_source_is_supported(
 def test_a_restatement_survives_losing_two_words(
     grounded: GroundednessDetector,
 ) -> None:
-    scored = grounded.judge(
-        PROBE_SOURCE, "Withdrawals are free of charge after twelve months.", 1
+    claim = "Withdrawals are free of charge after twelve months."
+    assert is_grounded(grounded, PROBE_SOURCE, claim), str(
+        {k: round(v, 4) for k, v in grounded.judge(PROBE_SOURCE, claim, 1).items()}
     )
-    assert max(scored, key=lambda label: scored[label]) == "supported"
 
 
 def test_a_source_far_shorter_than_the_trained_range_is_a_different_question(
@@ -396,12 +424,9 @@ def test_a_source_far_shorter_than_the_trained_range_is_a_different_question(
     separately from the style problem, because it is fixable by the caller.
     """
     sentence = "After twelve months have elapsed, withdrawals are free of charge."
-    long_source = grounded.judge(PROBE_SOURCE, sentence, 1)
-    short_source = grounded.judge(
-        "Withdrawals are free after twelve months.", sentence, 1
-    )
-    assert max(long_source, key=lambda k: long_source[k]) == "supported"
-    assert max(short_source, key=lambda k: short_source[k]) != "supported", (
+    short = "Withdrawals are free after twelve months."
+    assert is_grounded(grounded, PROBE_SOURCE, sentence)
+    assert not is_grounded(grounded, short, sentence), (
         "a one-sentence source now works, so this limitation has been fixed and the "
         "note in models/registry.py should be updated"
     )
@@ -613,17 +638,33 @@ def test_the_verdict_depends_on_the_source_it_was_given(
         "cel mult cincisprezece zile lucratoare de la aprobare."
     )
     contradiction = "Withdrawals are free from the day the account opens."
-    assert (
-        max(
-            (scored := grounded.judge(supporting, contradiction, 1)),
-            key=lambda label: scored[label],
-        )
-        == "contradicted"
+    # A source that states the candidate outright. The three sources together make this
+    # a test of comparison rather than of the sentence: one contradicts the candidate,
+    # one is irrelevant, and one supports it, so a model that reads only the sentence
+    # gives all three the same answer.
+    grounding = (
+        "Withdrawals are free from the day the account opens, with no handling fee at "
+        "any time and no minimum holding period."
     )
-    swapped = grounded.judge(unrelated, contradiction, 1)
-    assert max(swapped, key=lambda label: swapped[label]) != "contradicted", (
-        "a contradiction verdict survived swapping the source, so even the registers "
-        "that did compare have stopped comparing"
+
+    # Asserted as decisions rather than label names, so a binary artifact is judged on
+    # whether it compared and not on how many classes it names.
+    assert not is_grounded(grounded, supporting, contradiction), (
+        "the source contradicts this candidate and it read as grounded"
+    )
+    assert is_grounded(grounded, grounding, contradiction), (
+        "the source states this candidate outright and it read as not grounded, which "
+        "is the verdict inverted rather than merely wrong"
+    )
+
+    # The original form required the unrelated source to flip the verdict to grounded,
+    # and that was only coherent for a three-way head: swapping a source was meant to
+    # turn `contradicted` into `unsupported`, which a caller acts on identically. An
+    # unrelated passage genuinely does not ground a claim, so not-grounded is the right
+    # answer for it, and demanding otherwise tested the vocabulary. The supporting and
+    # contradicting pair above is what tests the property that was wanted.
+    assert not is_grounded(grounded, unrelated, contradiction), (
+        "an unrelated passage in another language grounded this candidate"
     )
 
     # Was a strict xfail until 2026-08-17, when `groundedness-scope` made it XPASS. The
