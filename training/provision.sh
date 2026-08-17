@@ -8,7 +8,10 @@
 # you expected and that it gets deleted.
 set -euo pipefail
 
-PROJECT="${FLOWX_PROJECT:-prj-ai-flowx-dev}"
+# No default. This carried a real project id until 2026-08-17, which is not a secret and
+# is still somebody's infrastructure naming in a public repository, and a default nobody
+# outside this organisation can use is worse than a required variable.
+PROJECT="${FLOWX_PROJECT:?set FLOWX_PROJECT to your GCP project id}"
 # europe-west1 rather than us-central1: this is an EU-language project and keeping the
 # training data in the EU is the smaller surprise. Quota checked 2026-08-11, 16 L4 in
 # both, none in use.

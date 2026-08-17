@@ -1,5 +1,5 @@
 {
-  "artifacts_read_from": "/Users/bogdanraduta/Dev/assay/training/artifacts_local",
+  "artifacts_read_from": "artifacts_local",
   "detectors": {
     "banned_terms": {
       "budget_ms": 5.0,

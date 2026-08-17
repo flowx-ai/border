@@ -21,6 +21,7 @@ someone had already published the result.
 from __future__ import annotations
 
 import json
+import os
 from pathlib import Path
 from typing import Any
 
@@ -348,9 +349,29 @@ def test_the_published_scores_still_match_the_reports_they_came_from(
     recorded = performance.get("artifacts_read_from")
     if not recorded:
         pytest.skip("the file names no artifacts directory, so nothing to check")
-    artifacts = Path(recorded)
-    if not artifacts.is_dir():
-        pytest.skip(f"{artifacts} is not present on this machine")
+
+    # `artifacts_read_from` is a directory name rather than a path, since 2026-08-17:
+    # it used to be absolute and put the operator's home directory into a published
+    # file. So it is resolved here against the places the directory actually is,
+    # which is the sibling training repository in the documented layout, the same
+    # relative walk tests/test_ordinary_text_sweep.py uses for the corpus.
+    #
+    # Resolving rather than skipping matters. This is the check that caught a
+    # published score describing a superseded artifact, and a version of it that
+    # quietly skipped would have let that through.
+    candidates = [
+        Path(recorded),
+        REPO.parent / "training" / recorded,
+    ]
+    override = os.environ.get("FLOWX_BORDER_MODEL_DIR")
+    if override:
+        candidates.insert(0, Path(override))
+    artifacts = next((path for path in candidates if path.is_dir()), None)
+    if artifacts is None:
+        pytest.skip(
+            f"the artifact directory {recorded!r} is not present on this machine; "
+            f"looked in {[str(c) for c in candidates]}"
+        )
 
     import sys
 

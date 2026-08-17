@@ -486,7 +486,12 @@ def collect(artifacts: Path | None) -> dict[str, Any]:
             "built has `metrics: null` rather than stale figures. `caveats` is not "
             "optional reading: it is where a score of 1.000 on four examples says so."
         ),
-        "artifacts_read_from": str(artifacts) if artifacts else None,
+        # The directory name, not the path. This recorded an absolute path until
+        # 2026-08-17, which put the operator's home directory and username into a
+        # published file for no gain: what a reader needs is which artifact set the
+        # scores came from, and tests/test_performance.py resolves it relative to the
+        # artifacts directory it is given rather than trusting the string.
+        "artifacts_read_from": artifacts.name if artifacts else None,
         "detectors": detectors,
         "latency": latency_for(loaded),
     }
