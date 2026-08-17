@@ -4,7 +4,7 @@
 Shares piiguard with `pii`. Not a second copy of the weights, not a second session: it
 calls the same `models.onnx.session_for` with the same model id, so the cache hands back
 what `pii` already loaded. 279 MB twice for one model would be a straightforward waste,
-and CLAUDE.md is explicit that this detector must not do it. There is a test that counts
+and this detector must not do it. There is a test that counts
 resident sessions.
 
 How this differs from running `pii` on the output

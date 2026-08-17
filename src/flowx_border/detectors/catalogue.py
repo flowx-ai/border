@@ -6,13 +6,14 @@ and filter it, and the policy loader needs to know which ids are real so an unkn
 is an error rather than a silently ignored typo. A policy that says `pii_detector:` when
 it means `pii:` would otherwise disable PII checking and report success.
 
-Seventeen entries as of 2026-08-11. Eight originally, thirteen on 2026-08-10 when the
+Thirty entries as of 2026-08-17. Eight originally, thirteen on 2026-08-10 when the
 Guardrails Hub classifiers were added, and four more when the cap on the detector set
-was lifted and the rule-based validators from that hub were ported. See constraint 3 in
-CLAUDE.md for the tradeoff each of those steps made, which the lifting overruled rather
-than refuted.
+was lifted and the rule-based validators from that hub were ported. Each step traded
+breadth against depth, and lifting the cap overruled that tradeoff rather than refuting
+it: what replaced the cap is the three requirements in CONTRIBUTING.md.
 
-The five added on 2026-08-11 are all rules, which is why they cost 5 ms rather than 75:
+The five added on 2026-08-11 are all rules, which is why they carry a 5 ms budget
+rather than an encoder-sized one:
 `banned_terms`, `system_prompt_leakage`, `markup_injection`, `internal_domains` and
 `output_format`. docs/porting-guardrails-validators.md records where each came from.
 
@@ -47,14 +48,22 @@ OUTPUT: Final = "output"
 class Spec(NamedTuple):
     tier: Tier
     sides: frozenset[str]
-    # The p95 ceiling from CLAUDE.md's table, at the reference input named there and in
-    # tests/test_budgets.py: 87 tokens, one thread, CPU, INT8. A budget with no input
-    # length attached is not a budget, which is why that reference is named everywhere
-    # this number appears.  Every encoder-backed detector carries the same 75 ms,
-    # because each is the same XLM-RoBERTa base and costs the same at the same length.
-    # The T1/T2 split decides when a detector runs and whether a policy may switch it
-    # off, not what it costs. Measured 2026-08-11: pii 51 ms, output_leakage 51 ms, 0.60
-    # ms per token.
+    # The p95 ceiling at the reference input named in tests/test_budgets.py: 87 tokens,
+    # one thread, CPU, INT8. A budget with no input length attached is not a budget,
+    # which is why that reference is named everywhere this number appears. Every
+    # encoder-backed detector carries the same ceiling, because each is the same
+    # XLM-RoBERTa base and costs the same at the same length. The T1/T2 split decides
+    # when a detector runs and whether a policy may switch it off, not what it costs.
+    #
+    # Measured figures are deliberately not restated here. Read them off
+    # docs/reference/performance.json, which benchmarks/collect.py produces, and the
+    # per-token slope off docs/reference/latency_sweep.json. This comment carried "the
+    # same 75 ms" and "pii 51 ms, output_leakage 51 ms, 0.60 ms per token" until
+    # 2026-08-17, and all four were withdrawn on 2026-08-12: 75 was 1.5x headroom over a
+    # 51 ms rate belonging to an INT8 export that lost an entity on 13 of 120 texts, and
+    # the per-token figure was re-taken after the original was found to average across a
+    # window boundary. The Spec values below have been correct throughout. A number that
+    # is read rather than restated cannot go stale on its own.
     budget_ms: float
 
     # What this detector needs from the machine it runs on, beyond a CPU and the base
@@ -142,10 +151,11 @@ CATALOGUE: Final[MappingProxyType[str, Spec]] = MappingProxyType(
         ),
         # The moderation model trained on 2026-08-11: a multi-label hazard classifier on
         # a Qwen3-0.6B base, replacing what llamaguard_7b and shieldgemma_2b provide
-        # without their weights. 150 ms rather than 75 because the base is 0.6B where
-        # the other classifiers are 278M, and it is a second architecture rather than a
-        # session shared with them. training/ has the pipeline; no artifact is published
-        # yet, so it ships unavailable.
+        # without their weights. A budget of its own rather than the encoder one because
+        # the base is 0.6B where the other classifiers are 278M, and it is a second
+        # architecture rather than a session shared with them. This comment read "150 ms
+        # rather than 75" until 2026-08-17; 75 was withdrawn on 2026-08-12 and the
+        # encoder budget is the 225.0 above. training/ has the pipeline.
         "moderation": Spec("T2", frozenset({INPUT, OUTPUT}), 150.0),
         "injection": Spec("T2", frozenset({INPUT}), 225.0),
         "regulated_advice": Spec("T2", frozenset({OUTPUT}), 225.0),

@@ -1,7 +1,8 @@
 # SPDX-License-Identifier: Apache-2.0
 """T0: is an AI disclosure present in the output?
 
-The narrow claim this detector supports, in the words CLAUDE.md permits: it detects
+The narrow claim this detector supports, in the words CONTRIBUTING.md permits: it
+detects
 whether a required disclosure is present in the output. It does not decide whether the
 disclosure is adequate, and a match here says nothing about anyone's obligations. That
 distinction is legally material, so it is repeated in the data file and in the finding

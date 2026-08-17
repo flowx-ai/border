@@ -13,7 +13,8 @@ is malformed, it is that a user talked the model into writing a second statement
 **This detector declares `requires={"dependency"}`.** It needs `sqlglot`, which is
 not in the base install, so it is absent unless the `sql` extra is installed, and
 `registry.deployment_notes` says so when a policy enables it. That is the packaging in
-CLAUDE.md working as intended rather than a caveat: a text-to-SQL product wants this and
+the packaging working as intended rather than a caveat: a text-to-SQL product wants
+this and
 takes the dependency, and everyone else neither pays for it nor hears about it.
 
 Why a parser rather than a pattern

@@ -21,7 +21,7 @@ recall. `pos_weight` per category corrects for it, computed from the training sp
 rather than guessed.
 
 This is the same failure this project has already seen from the other direction:
-CLAUDE.md records four detectors reporting F1 0.000 because their thresholds sat at 0.5
+Four detectors here reported F1 0.000 because their thresholds sat at 0.5
 while their scores separated well below it. Imbalance produces that shape of result, and
 it is why both `pos_weight` here and the threshold search in evaluate.py exist.
 """

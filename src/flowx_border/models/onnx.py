@@ -5,7 +5,7 @@ Three decisions here, each with a cost attached to getting it wrong.
 
 **One session per model id, process wide.** A session holds the weights, so a second
 session for the same model is another 279 MB of resident memory. `pii` and
-`output_leakage` both use piiguard, and CLAUDE.md is explicit that the second must reuse
+`output_leakage` both use piiguard, and the second must reuse
 the session the first loaded. That sharing is what this cache is for, and it is why the
 key is the model id rather than the detector id.
 

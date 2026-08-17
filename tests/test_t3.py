@@ -1,7 +1,8 @@
 # SPDX-License-Identifier: Apache-2.0
 """The two T3 detectors, and the escalation that decides whether they run at all.
 
-Real weights, no mocked sessions, per CLAUDE.md. Skipped with a readable reason when the
+Real weights, no mocked sessions, per CONTRIBUTING.md. Skipped with a readable reason
+when the
 artifacts are absent, which on a fresh clone is both of them.
 
 The file is in three parts. `topic_scope` works and is tested as working. `groundedness`

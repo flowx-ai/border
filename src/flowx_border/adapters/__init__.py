@@ -10,7 +10,8 @@ FastAPI in. A caller reaches for the one they need:
     from flowx_border.adapters.langgraph import guard_node
     from flowx_border.adapters.llm_guard_compat import scan_prompt
 
-None of them is a third public entry point in the sense CLAUDE.md restricts: each is a
+None of them is a third public entry point in the sense CONTRIBUTING.md restricts:
+each is a
 wrapper over `scan_input` and `scan_output`, holds no logic of its own, and would be
 correct to delete. BUILD_PLAN.md puts the ceiling at roughly 120 lines each, on the
 theory

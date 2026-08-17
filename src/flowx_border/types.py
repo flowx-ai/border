@@ -118,7 +118,7 @@ class Finding(_Strict):
 class FindingSummary(_Strict):
     """The redacted form of a Finding that goes into a record.
 
-    CLAUDE.md specifies finding_summary as a list of dicts with detector_id, label,
+    The specification calls finding_summary a list of dicts with detector_id, label,
     score and action. It is typed rather than left as a free dict so that the
     no-raw-text invariant is checkable. The serialised JSON is a list of objects with
     exactly those four keys, which is what the specified shape describes.

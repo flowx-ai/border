@@ -263,7 +263,7 @@ def test_a_score_outside_zero_to_one_is_rejected() -> None:
 
 
 def test_a_model_revision_must_be_a_commit_sha_not_a_branch() -> None:
-    # CLAUDE.md pins revisions to commit shas. "main" moving under us would break
+    # The registry pins revisions to commit shas. "main" moving under us would break
     # both determinism and the attestation.
     with pytest.raises(ValidationError):
         DetectorAttestation(id="pii", model_id="gliner-multi", revision="main")

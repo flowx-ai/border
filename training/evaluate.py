@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: Apache-2.0
 """The per-language table, and the per-category threshold search.
 
-CLAUDE.md requires a model-backed detector to report per-language numbers rather than
+A model-backed detector has to report per-language numbers rather than
 one
 aggregate, and gives the reason plainly: an aggregate hides the tail, and the tail is
 the
@@ -9,7 +9,7 @@ whole point of the project. So this prints a row per language including the ones
 test data, where it prints the absence rather than omitting the row. A language missing
 from a table reads as an oversight; a language showing "no data" reads as what it is.
 
-The threshold search is the other half. CLAUDE.md records four detectors that reported
+The threshold search is the other half. Four detectors in this project reported
 F1 0.000 in all 26 languages because their thresholds sat at 0.5 while their scores
 separated positives from negatives well below it. A threshold left at a plausible
 default
@@ -140,7 +140,7 @@ def main() -> None:
         )
         print(f"  {category:<24} {support:>8} {shown:>8}")
 
-    print("\nper language, the table CLAUDE.md requires:")
+    print("\nper language, the table this project requires:")
     print(f"  {'lang':<6} {'rows':>6} {'macro F1':>10}")
     for language in taxonomy["languages"]:
         mask = np.array([row["language"] == language for row in test])
@@ -159,7 +159,7 @@ def main() -> None:
     out.write_text(json.dumps(thresholds, indent=2))
     print(f"\nthresholds written to {out}")
     print(
-        "\nPublish the rows reading 'no data'. CLAUDE.md is explicit that a language "
+        "\nPublish the rows reading 'no data'. The rule is that a language "
         "which underperforms gets its number published rather than dropped from the "
         "table, and a language with no test data is that claim made earlier."
     )

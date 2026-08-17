@@ -6,18 +6,25 @@ ships 65 validators. This is what happened to each of them. The tables are rende
 the document cannot drift away from the decision. `tests/test_guardrails_hub.py` fails
 if it does.
 
-**Thirty-one validators became nine detectors. Twenty-five are already answered by a
-detector that exists. Nine are not built, and each says what it would need.**
+**Thirty-two validators became ten detectors. Twenty-five are already answered by a
+detector that exists. Eight are not built, and each says what it would need.**
 
-Of those nine, six need a local generative model that does not exist yet, two are
+Of those eight, five need a local generative model that does not exist yet, two are
 the Llama Guard and ShieldGemma retrains, and one is the vendor half of
 `valid_address`. Nothing is left that is declined for want of effort alone.
+
+These counts read thirty-one, nine and nine until 2026-08-17, when they were checked
+against the code for the first time since detectors were added. They are now asserted
+in `tests/test_guardrails_hub.py` against `PORTED` and `DECLINED`, so prose here fails
+the suite rather than drifting quietly, which is what the rendered tables below have
+always had and these sentences did not.
 
 That last group used to say "declined". It changed on 2026-08-11, when the constraints
 that blocked most of them stopped being prohibitions. A validator that needs a network
 round trip or a generative model is now a thing to build and tag, not a thing to refuse.
-See the packages section of `CLAUDE.md`: what a detector needs is declared in
-`Spec.requires`, and `registry.deployment_notes` tells the caller at policy load.
+What a detector needs is declared in `Spec.requires` in `detectors/catalogue.py`, and
+`registry.deployment_notes` tells the caller at policy load. `docs/detectors.md` lists
+every requirement per detector.
 
 ## What the port was for
 
@@ -55,14 +62,34 @@ English and merges real unrelated words in Romanian, Polish and Finnish.
 
 ## What each detector costs
 
-Six of the seven are rules rather than models, so they sit at T1 with a 5 ms budget
-rather than the 75 ms an encoder-backed detector carries, and none of them has weights.
-Measured p95 at the reference input: `banned_terms` 0.23, `system_prompt_leakage` 0.36,
-`markup_injection` 0.23, `internal_domains` 0.23, `output_format` 0.02 and
-`sql_injection` 0.22 ms. `tests/test_budgets.py` asserts them.
+**Every one of them is a rule and none has weights**, which is why they work on a machine
+that has never downloaded a model. Nine of the ten sit at T1 with a 5 ms budget, against the
+225 ms an encoder-backed detector carries. The tenth is `url_reachability`, which is T3 with
+a 3000 ms budget because it makes an HTTP request, and that figure is a deadline it enforces
+on itself rather than a measurement.
 
-Five of the seven are in `CORE` and work on a machine that has never downloaded a model
-and has no network. Two are not, and they are the worked examples of the packaging:
+Measured p95 at the reference input, from `docs/reference/performance.json`:
+
+| detector | p95 ms | | detector | p95 ms |
+|---|---|---|---|---|
+| `banned_terms` | 0.168 | | `output_format` | 0.001 |
+| `internal_domains` | 0.234 | | `repetition` | 0.497 |
+| `json_schema` | 0.001 | | `sql_injection` | 0.238 |
+| `markup_injection` | 0.239 | | `summary_support` | 0.921 |
+| `system_prompt_leakage` | 0.318 | | `url_reachability` | 0.007 |
+
+`tests/test_budgets.py` asserts them.
+
+This paragraph said "six of the seven" against "the 75 ms an encoder-backed detector
+carries" until 2026-08-17, and both were wrong. There are ten destinations, readable off
+`PORTED`, and 75 ms was a budget withdrawn on 2026-08-12. It also listed six of the ten and
+omitted `json_schema`, `repetition`, `summary_support` and `url_reachability`. Counts here
+come from the code for exactly this reason.
+
+Seven of the ten are in `CORE` and work on a machine that has never downloaded a model
+and has no network. Three are not, and they are the worked examples of the packaging.
+`json_schema` needs `jsonschema` and behaves exactly as `sql_injection` does below,
+shipping in the `schema` extra:
 
 - `sql_injection` needs the sqlglot parser, so it declares `requires={"dependency"}`,
   ships in the `sql` extra, and is absent from the registry rather than degraded to a
@@ -88,7 +115,7 @@ and both are disabled in the shipped policies.
 
 ## Ported
 
-Thirty-one validators, nine detectors. Two collapses do most of the work.
+Thirty-two validators, ten detectors. Two collapses do most of the work.
 
 `ban_list`, `contains_string`, `competitor_check`, `mentions_drugs` and `sky_validator`
 are one mechanism with a different list baked in, and the list in every case is the
@@ -212,9 +239,9 @@ compatible, and porting the code without the weights would be shipping a shell.
 The decision on 2026-08-11 was to keep the capability and train our own on a smaller
 Qwen base. Two things to get right when that happens, and neither is a reason not to:
 
-- **Pin decoding.** A generative detector declares `requires={"llm"}`, and entry 6 in
-  `CLAUDE.md` still holds: greedy decoding and a fixed seed, or the same input yields
-  two verdicts and the evidence record stops being evidence.
+- **Pin decoding.** A generative detector declares `requires={"llm"}`, and the
+  determinism requirement still holds: greedy decoding and a fixed seed, or the same
+  input yields two verdicts and the evidence record stops being evidence.
 - **Give it a budget it can meet.** The encoder detectors here are 278M and cost about
   151 ms at the reference input, against a 225 ms budget. A 1.6B generative pass on CPU
   is far past the 300 ms T3 ceiling, so it needs its own tier, its own budget, or

@@ -202,7 +202,7 @@ PER_LANGUAGE: dict[str, tuple[str, str]] = {
 
 
 def test_every_supported_language_has_a_case() -> None:
-    """English plus five is a bug, per CLAUDE.md. Asserted rather than assumed."""
+    """English plus five is a bug, per CONTRIBUTING.md. Asserted rather than assumed."""
     assert set(PER_LANGUAGE) == set(LANGUAGES)
 
 

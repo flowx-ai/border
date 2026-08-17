@@ -78,7 +78,7 @@ categories:
     description: Factually false information about voting procedures or eligibility.
 
 # The languages the model must be evaluated in, one table row each. This is not the list
-# of languages it is trained in, and the difference is the point: CLAUDE.md requires a
+# of languages it is trained in, and the difference is the point: this project requires a
 # per-language table rather than one aggregate, precisely so that a language with no
 # training data shows up as a low number instead of disappearing into an average.
 languages:

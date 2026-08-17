@@ -35,8 +35,9 @@ hard way when a verification step gated on the wrong reading and failed a model 
 answering correctly.
 
 Findings carry the label the model emits, lowercased, and the policy's action. One
-whose model is not published raises from `warm`, naming the repo, because CLAUDE.md
-requires an unavailable detector to fail loudly rather than return no findings.
+whose model is not published raises from `warm`, naming the repo, because an unavailable
+detector must fail loudly rather than return no findings: a silent no-op in a security
+library is a vulnerability rather than a rough edge.
 """
 
 from __future__ import annotations

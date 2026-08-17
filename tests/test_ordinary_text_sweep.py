@@ -286,7 +286,8 @@ def test_the_two_detectors_known_to_be_over_their_ceiling(
 def test_the_sweep_actually_covers_every_language(sweep: dict[str, object]) -> None:
     """A sweep that quietly ran on English only would pass everything above.
 
-    The failure this guards is the one CLAUDE.md names: English plus five is a bug. If
+    The failure this guards is the one CONTRIBUTING.md names: English plus five is a
+    bug. If
     the corpus moves or its registers are renamed, this fails rather than the suite
     silently narrowing to the 26 hand-written sentences.
     """

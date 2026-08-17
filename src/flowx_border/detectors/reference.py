@@ -62,7 +62,7 @@ BACKING: Final[MappingProxyType[str, str]] = MappingProxyType(
 )
 
 #: Why a catalogued detector is not loaded. Absent means it is.
-#: These are the states CLAUDE.md's table records, kept here in the vocabulary an
+#: These are the states the detector table records, kept here in the vocabulary an
 #: outside reader needs rather than the one the build plan uses.
 NOT_BUILT: Final[MappingProxyType[str, str]] = MappingProxyType(
     {

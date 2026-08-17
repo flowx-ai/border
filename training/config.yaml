@@ -39,7 +39,7 @@ train:
     target_modules: [q_proj, k_proj, v_proj, o_proj]
 
 eval:
-  # Chosen per category on the dev split rather than fixed at 0.5, because CLAUDE.md
+  # Chosen per category on the dev split rather than fixed at 0.5, because this project
   # records four detectors that reported F1 0.000 at 0.5 in all 26 languages: their
   # scores separated positives from negatives well below it. A threshold left at a
   # plausible default is how a detector becomes a no-op that still produces evidence.

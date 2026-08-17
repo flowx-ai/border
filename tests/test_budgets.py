@@ -34,7 +34,7 @@ withdrawn on 2026-08-12 with the published INT8 export, and the ratio they illus
 unchanged, which is exactly why nobody noticed: an example whose point survives its own
 figures going stale is the last place anyone greps.
 
-**Nothing is skipped by default.** CLAUDE.md says a change that blows a budget fails CI,
+**Nothing is skipped by default.** A change that blows a budget fails CI,
 so these run in the default suite. They skip only when the weights are absent, which is
 a different statement from passing.
 """
@@ -183,7 +183,7 @@ def p95(
     so the minimum across rounds is the estimate with the noise removed, and a single
     round that happens to land on a scheduler hiccup is not evidence about the code.
 
-    This does not weaken the ceiling, which is the thing CLAUDE.md protects. A genuine
+    This does not weaken the ceiling, which is the thing a budget protects. A genuine
     regression raises the floor as well as the spikes, so it shows up in every round and
     the minimum moves with it. What it removes is the failure mode where a real ceiling
     breach and somebody's video call are indistinguishable, because that is the failure
@@ -233,7 +233,7 @@ def leakage(pii: PiiDetector) -> OutputLeakageDetector:
 
 
 def test_the_reference_input_is_the_length_the_budgets_claim(pii: PiiDetector) -> None:
-    # If this drifts, every figure in CLAUDE.md's table describes a different input than
+    # If this drifts, every published figure describes a different input than
     # the one the table names, which is the exact failure this file exists to prevent.
     from flowx_border.detectors.pii import _tokenizer
 

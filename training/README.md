@@ -31,7 +31,7 @@ rather than a session shared with them.
 
     prepare_data.py   build the training set, write train/dev/test as JSONL
     train.py          fine-tune the head, and the base with LoRA
-    evaluate.py       the per-language table CLAUDE.md requires
+    evaluate.py       the per-language table this project requires
     export_onnx.py    ONNX plus INT8, the form the library loads
 
 Run them in that order. Every one takes `--config config.yaml`.
@@ -47,7 +47,7 @@ empirical question, which is why `evaluate.py` produces a row per language rathe
 an aggregate, and why a language with no training data is expected to show a low number
 rather than to disappear into an average.
 
-**Publish the bad rows.** CLAUDE.md is explicit: where a language underperforms, publish
+**Publish the bad rows.** The rule is explicit: where a language underperforms, publish
 the number and say so, do not drop the language from the table. A model card that shows
 26 rows with 9 good ones is worth more than one that shows a single macro-average.
 

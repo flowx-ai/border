@@ -49,8 +49,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "tests"))
 #: window boundary.
 #:
 #: 87 is here because it is the only length in the range that already has a figure
-#: measured independently of this script: it is `REFERENCE_INPUT`, and CLAUDE.md's
-#: detector table records `pii` at 27.6 ms there, from the collector run of 2026-08-16
+#: measured independently of this script: it is `REFERENCE_INPUT`, and
+#: docs/reference/performance.json records `pii` at 27.6 ms there, from the
+#: collector run of 2026-08-16
 #: on the M5 Max workstation. So the sweep has one point that can be checked against
 #: something rather than only believed, and a sweep that disagrees
 #: with the reference figure at the reference length is reporting on the machine it
@@ -172,8 +173,9 @@ MIN_IDLE_CPU = 0.70
 
 
 #: Read from the platform's own reporter rather than a dependency. `psutil` would be one
-#: package for one number in a script that is not part of the library, and CLAUDE.md is
-#: explicit that a new dependency has to buy something. This buys a subprocess instead.
+#: package for one number in a script that is not part of the library, and a new
+#: dependency in something other people embed has to buy something. This buys a
+#: subprocess instead.
 def _idle_fraction() -> float | None:
     """Share of CPU currently idle, or None if this platform cannot be asked.
 

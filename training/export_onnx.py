@@ -20,7 +20,8 @@ and the dynamo path with a proxy tracking error, with eager attention forced and
 without. Both were tried on the L4 on 2026-08-11 before this was written, which is
 why this names the errors rather than saying the exporter was unsuitable.
 
-The export is still verified against PyTorch afterwards. CLAUDE.md records a pipeline
+The export is still verified against PyTorch afterwards. This project recorded a
+pipeline
 that gated on the wrong reading of a head, sigmoid against argmax, and failed a model
 that was answering correctly, so the check compares the two on the same input.
 """

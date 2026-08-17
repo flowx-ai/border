@@ -8,7 +8,7 @@ Writes `docs/reference/performance.json` and `docs/reference/performance.md`.
 Why this exists
 ---------------
 
-CLAUDE.md's rule is that a number in the README must have a benchmark in the repo that
+The rule in CONTRIBUTING.md is that a number in the README must have a benchmark that
 produces it. Until now the numbers lived in commit messages and conversation, which is
 the one place they cannot be checked from.
 

@@ -1,7 +1,8 @@
 # SPDX-License-Identifier: Apache-2.0
 """Tests for the model runtime and the two T1 detectors.
 
-Real weights, no mocked sessions, per CLAUDE.md. Marked `slow` because they need the 555
+Real weights, no mocked sessions, per CONTRIBUTING.md. Marked `slow` because they
+need the 555
 MB fp16 artifact present, and skipped with a readable reason when it is not, so a fresh
 clone does not fail a suite it was never able to run.
 

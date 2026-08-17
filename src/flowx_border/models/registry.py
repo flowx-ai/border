@@ -17,7 +17,7 @@ second is the one that matters:
 
 Three detectors have no entry, and that is deliberate rather than unfinished:
 `injection`, `regulated_advice` and `groundedness` were trained but their artifacts are
-published yet. CLAUDE.md requires they ship unavailable and loudly, so the registry
+published yet. They ship unavailable and loudly, so the registry
 names the intended repo and `resolve` raises with that name in the message. There is no
 silent fallback to a smaller model, because a security library that quietly substitutes
 a different detector is worse than one that refuses to start.

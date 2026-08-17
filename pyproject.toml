@@ -22,13 +22,14 @@ classifiers = [
   "Typing :: Typed",
 ]
 
-# The full allowed runtime set is listed in CLAUDE.md. Only the two that phase 0
+# The base runtime set is pydantic, pyyaml, onnxruntime, tokenizers, huggingface-hub
+# and cryptography. Only the two that phase 0
 # needs are declared here. onnxruntime, tokenizers, huggingface-hub and
 # cryptography arrive with the phases that first use them.
 dependencies = [
   "pydantic>=2.7",
   "pyyaml>=6.0",
-  # Phase 3. All three are in the allowed runtime set in CLAUDE.md constraint 7, so no
+  # Phase 3. All three are in the base runtime set above, so no
   # approval was needed. onnxruntime runs the detectors, tokenizers is the fast tokenizer
   # whose character offsets make spans possible at all, and huggingface-hub fetches the
   # weights once. None of them is touched during a scan once a session is warm.

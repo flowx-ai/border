@@ -16,8 +16,9 @@ prompt that produced it, which is the `LanguageSame` question and needs `ctx.met
 `language_uncertain` when the text is too short or too mixed to call.
 
 None of those is a pass. A detector that quietly returns nothing on a five-word answer
-would be reporting "allowed" for a check that never ran, which CLAUDE.md's third rule
-forbids, so the uncertain case is a finding with a `log` action rather than silence.
+would be reporting "allowed" for a check that never ran, which the rule that a detector
+never silently does nothing forbids, so the uncertain case is a finding with a `log`
+action rather than silence.
 
 Why the uncertain case is the interesting one
 ----------------------------------------------

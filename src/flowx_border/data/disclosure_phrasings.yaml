@@ -9,7 +9,7 @@
 # What this file is for, precisely. The library detects whether a disclosure is present
 # in the output. It does not decide whether your disclosure is legally adequate, and
 # nothing here should be read as saying a matched phrase satisfies any obligation. See
-# the compliance language section of CLAUDE.md.
+# the compliance language section of CONTRIBUTING.md.
 #
 # Matching is on word boundaries, casefolded, over whitespace-collapsed text. Word
 # boundaries matter: a bare substring search for "ai" matches "said", "again" and

@@ -1,7 +1,8 @@
 # SPDX-License-Identifier: Apache-2.0
 """What the seven classifiers do to text that is nowhere near their boundary.
 
-Real weights, no mocked sessions, per CLAUDE.md. Skipped with a readable reason when
+Real weights, no mocked sessions, per CONTRIBUTING.md. Skipped with a readable reason
+when
 the artifacts are absent, which on a fresh clone is all of them.
 
 Why this file exists
@@ -43,7 +44,7 @@ rather than into silence. That is the same device `tests/test_t3.py` uses for th
 groundedness corpus.
 
 `MUNDANE` is the twenty sentences the original finding used, kept verbatim so the
-number in CLAUDE.md and the number here describe the same input.
+number recorded with the finding and the number here describe the same input.
 """
 
 from __future__ import annotations

@@ -3,7 +3,7 @@
 
 The public API is two scan functions and a policy loader, and that is the whole of it.
 Everything else in this package is an implementation detail or an adapter. If a task
-appears to need a third public entry point, stop and ask, see CLAUDE.md.
+appears to need a third public entry point, stop and ask: see CONTRIBUTING.md.
 
 Both scan functions raise NotImplementedError until phase 1 of BUILD_PLAN.md.
 """

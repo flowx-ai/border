@@ -9,8 +9,8 @@ keeps believing a check is happening. So that has its own tests, and so does the
 that the migration doc names every scanner the shim knows about.
 
 FastAPI and Starlette are dev-only. The tests that need them skip rather than fail when
-they are absent, because they are not runtime dependencies of the library and CLAUDE.md
-keeps the runtime set short.
+they are absent, because they are not runtime dependencies of the library and the
+runtime set is kept short.
 """
 
 from __future__ import annotations

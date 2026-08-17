@@ -19,7 +19,8 @@ Negatives are the part that goes wrong quietly
 -----------------------------------------------
 
 Four detectors in this project once reported F1 0.000 in all 26 languages, and the cause
-recorded in CLAUDE.md was a validation split with no positive examples. The mirror of
+recorded for this project was a validation split with no positive examples. The mirror
+of
 that failure is a training set whose negatives are all bland: a model trained on hazards
 versus "the weather is nice" learns to detect intensity rather than hazard, and then
 fires on any strongly worded complaint.
@@ -231,7 +232,7 @@ def check(splits: dict[str, list[Example]], categories: list[str]) -> None:
     """Refuse to write a split that cannot measure what it claims to.
 
     A validation split with no positives for a category reports F1 0.000 for it whatever
-    the model does, and CLAUDE.md records four detectors that shipped in exactly that
+    the model does, and four detectors here shipped in exactly that
     state. Failing here is the cheap place to find it.
     """
     problems = []

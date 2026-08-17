@@ -60,7 +60,10 @@ FLAG = DetectorConfig(on_fail="flag", threshold=0.5)
 
 
 def test_a_sentence_is_written_for_every_supported_language() -> None:
-    """English plus five is a bug, per CLAUDE.md. All 26 or the file is incomplete."""
+    """English plus five is a bug, per CONTRIBUTING.md.
+
+    All 26 or the file is incomplete.
+    """
     assert set(SENTENCES) == set(LANGUAGES)
 
 
@@ -100,7 +103,7 @@ def test_an_unsupported_language_is_uncertain_rather_than_the_nearest_of_26() ->
 
 
 def test_it_never_returns_nothing() -> None:
-    """CLAUDE.md's third rule. Unconfigured is a finding, not silence."""
+    """A detector never silently does nothing: unconfigured is a finding."""
     detector = LanguageIdDetector()
     detector.warm()
 

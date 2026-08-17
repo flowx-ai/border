@@ -17,7 +17,7 @@ from pathlib import Path
 
 import pytest
 
-from flowx_border.detectors.catalogue import CATALOGUE
+from flowx_border.detectors.catalogue import CATALOGUE, CORE
 from flowx_border.detectors.guardrails_hub import (
     DECLINED,
     PORTED,
@@ -346,3 +346,77 @@ def test_moderation_ships_disabled_in_both_policies() -> None:
 def test_the_retrain_entries_point_at_the_detector_that_replaces_them() -> None:
     for name in ("llamaguard_7b", "shieldgemma_2b"):
         assert DECLINED[name].reason == "retrain"
+
+
+# ------------------------------------------------------- the counts stated in prose
+
+
+def test_the_documents_prose_counts_match_the_code() -> None:
+    """The assertion this file was missing, and the drift it would have
+    caught.
+
+    The three tables in the document are rendered from `PORTED`, `DECLINED` and
+    `REASONS` and asserted verbatim above, so they cannot go stale. The sentences around
+    them were maintained by hand, and by 2026-08-17 they said thirty-one became nine
+    detectors with nine not built, when the code said thirty-two, ten and eight. Also
+    "five of the seven are in CORE" when seven of the ten are.
+
+    Every number a reader would quote is now checked, spelled the way the document
+    spells it, because a count in prose that nothing verifies is the exact failure this
+    repository has recorded most often.
+    """
+    text = DOC.read_text(encoding="utf-8")
+    destinations = {port.detector for port in PORTED.values()}
+    not_built = [name for name, entry in DECLINED.items() if entry.reason != "covered"]
+    covered = [name for name, entry in DECLINED.items() if entry.reason == "covered"]
+    in_core = {name for name in destinations if name in CORE}
+
+    words = {
+        5: "five",
+        7: "seven",
+        8: "eight",
+        9: "nine",
+        10: "ten",
+        25: "twenty-five",
+        31: "thirty-one",
+        32: "thirty-two",
+        33: "thirty-three",
+    }
+
+    def stated(number: int) -> str:
+        word = words[number]
+        return f"{word[0].upper()}{word[1:]}"
+
+    expected = [
+        (
+            f"{stated(len(PORTED))} validators became "
+            f"{words[len(destinations)]} detectors",
+            "the ported total and how many detectors absorbed them",
+        ),
+        (f"{stated(len(covered))} are already answered", "the covered count"),
+        (f"{stated(len(not_built))} are not built", "the not-built count"),
+        (
+            f"{words[len(in_core)].capitalize()} of the "
+            f"{words[len(destinations)]} are in `CORE`",
+            "how many destinations need nothing beyond a CPU",
+        ),
+        (
+            f"{stated(len(PORTED))} validators, {words[len(destinations)]} detectors",
+            "the restatement above the ported table",
+        ),
+    ]
+    missing = [
+        f"{why}: expected the document to say {phrase!r}"
+        for phrase, why in expected
+        if phrase not in text
+    ]
+    assert not missing, (
+        "docs/porting-guardrails-validators.md states counts the code contradicts:\n  "
+        + "\n  ".join(missing)
+    )
+
+
+def test_every_port_destination_is_a_real_detector() -> None:
+    """A destination naming a detector that does not exist makes the table fiction."""
+    unknown = sorted({p.detector for p in PORTED.values()} - set(CATALOGUE))
+    assert not unknown, f"ported to detectors that are not catalogued: {unknown}"
