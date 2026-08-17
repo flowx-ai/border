@@ -412,6 +412,35 @@ def _rule_detector(detector_id: str) -> object:
     }[detector_id]()
 
 
+def _skip_if_the_tokenizer_cannot_be_reached(detector_id: str) -> None:
+    """`token_limit` counts with a tokenizer the policy pins, and has to fetch it.
+
+    Every other detector here is pure rules and needs nothing. This one needs the
+    piiguard tokenizer, so on a checkout with no model cache and no network it raises
+    rather than measuring, and the failure is about the machine rather than about the
+    code.
+
+    Found on 2026-08-17 by running the suite the way CI does, in a fresh checkout with
+    an empty HOME. It passed locally and would have turned the first public CI run red,
+    which is the reason to test a clone rather than a working tree.
+    """
+    if detector_id != "token_limit":
+        return
+    from huggingface_hub.errors import LocalEntryNotFoundError
+
+    from flowx_border.models.onnx import tokenizer_for
+    from flowx_border.models.registry import ModelUnavailableError
+
+    try:
+        tokenizer_for("piiguard")
+    except (ModelUnavailableError, LocalEntryNotFoundError, OSError) as error:
+        pytest.skip(
+            "token_limit counts with the pinned piiguard tokenizer and it is not "
+            f"reachable here: {type(error).__name__}. Every other detector here needs "
+            "nothing but a CPU."
+        )
+
+
 @pytest.mark.parametrize(
     ("detector_id", "cfg", "ctx"),
     [(name, cfg, ctx) for name, _, cfg, ctx in RULE_DETECTORS],
@@ -419,6 +448,7 @@ def _rule_detector(detector_id: str) -> object:
 def test_a_ported_rule_detector_is_within_budget(
     detector_id: str, cfg: DetectorConfig, ctx: Context
 ) -> None:
+    _skip_if_the_tokenizer_cannot_be_reached(detector_id)
     detector = _rule_detector(detector_id)
     detector.warm()  # type: ignore[attr-defined]
     budget = CATALOGUE[detector_id].budget_ms * SCALE
@@ -450,6 +480,7 @@ def test_a_ported_rule_detector_finds_nothing_in_the_reference_input(
     prose, and any of these firing on it would be a false positive in the language the
     reference input happens to be written in.
     """
+    _skip_if_the_tokenizer_cannot_be_reached(detector_id)
     detector = _rule_detector(detector_id)
     assert detector.run(REFERENCE_INPUT, cfg, ctx) == []  # type: ignore[attr-defined]
 

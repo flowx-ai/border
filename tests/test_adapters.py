@@ -128,11 +128,23 @@ def test_decision_for_returns_the_real_object() -> None:
 
 def test_t0_runs_even_though_the_caller_did_not_ask_for_it() -> None:
     # T0 cannot be disabled. It reports rather than enforces here, so a migration does
-    # not
-    # start blocking traffic llm-guard was allowing.
+    # not start blocking traffic llm-guard was allowing.
     decision = decision_for("my key is AKIAIOSFODNN7EXAMPLE", "input", ["Toxicity"])
-    assert [f.detector_id for f in decision.findings] == ["secrets"]
+    substantive = [
+        f.detector_id for f in decision.findings if f.label != "detector_error"
+    ]
+    assert substantive == ["secrets"]
     assert decision.verdict == "flag"
+
+    # `detector_error` findings are allowed above and are not incidental. The caller
+    # asked for Toxicity, whose weights are not cached on a fresh checkout, and
+    # fail_mode open records that as a finding at `log` rather than passing quietly.
+    # Asserting the exact list failed on a fresh clone and passed on a machine with the
+    # cache, which is the least useful way for a test to be wrong: it made the library
+    # doing the right thing look like a regression.
+    errors = [f for f in decision.findings if f.label == "detector_error"]
+    for finding in errors:
+        assert finding.action == "log"
 
 
 def test_the_compat_policy_disables_what_was_not_requested() -> None:

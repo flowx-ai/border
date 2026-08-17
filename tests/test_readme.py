@@ -95,9 +95,15 @@ def test_no_marketing_superlatives(readme: str) -> None:
 
 
 def test_no_em_dash(readme: str) -> None:
-    """Written with a code point rather than the character, so this file cannot match
-    itself."""
-    assert "—" not in readme, "the README contains an em-dash"
+    """The character is built from its code point on purpose.
+
+    Written as a literal first, which put an em-dash in this file and would have failed
+    the repository's own style job on the first public CI run. The rule is checked by
+    grep across every source file, so a test that spells the character it forbids
+    matches itself.
+    """
+    em_dash = chr(0x2014)
+    assert em_dash not in readme, "the README contains an em-dash"
 
 
 # ----------------------------------------------------------------------------- the API

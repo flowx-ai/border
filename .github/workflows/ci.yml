@@ -53,7 +53,7 @@ jobs:
           if grep -rn "$(printf '\u2014')" \
               --include="*.py" --include="*.md" --include="*.yaml" \
               --include="*.yml" --include="*.toml" .; then
-            echo "Em-dash found. See the writing style section of CLAUDE.md."
+            echo "Em-dash found. Use a comma, a colon, parentheses or a full stop."
             exit 1
           fi
 
