@@ -124,6 +124,12 @@ Not every catalogued detector runs on a fresh install. `docs/detectors.md` is ge
 from the code and says which, and the numbers in `docs/reference/performance.md` come
 from `benchmarks/collect.py`.
 
+## Contributing
+
+[CONTRIBUTING.md](CONTRIBUTING.md) has the setup, the test markers and what a change has
+to satisfy. Please do not put real personal data in an issue: this library exists to find
+it, so send a synthetic equivalent with the same shape.
+
 ## Licence
 
 Apache-2.0.
