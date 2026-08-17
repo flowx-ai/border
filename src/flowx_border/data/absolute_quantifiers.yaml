@@ -1,0 +1,131 @@
+# SPDX-License-Identifier: Apache-2.0
+#
+# Absolute quantifiers: words that turn a qualified statement into an unconditional one.
+# Used by detectors/claim_conflict.py, which reports `scope_widened` when the only content
+# word a candidate adds to its source is one of these.
+#
+# Why an incomplete list is safe here, which is not true of every data file in this package.
+# This file is only ever matched against, never generated from. A word that is missing means
+# a widened claim goes unreported, which is exactly the behaviour without the rule at all. A
+# word that is wrongly present would cause a false `scope_widened`, so the lists are kept to
+# words whose absolute sense is unambiguous rather than made exhaustive.
+#
+# `reviewed: true` means a native speaker has checked the list. Everything except English is
+# false, and the honest reading of that is that the rule is strongest in English today. Do
+# not infer from `reviewed: false` that the entries are wrong, only that nobody has confirmed
+# they are complete.
+#
+# Deliberately excluded, and worth recording so they are not added later by reflex:
+#   - "only", "just": these narrow rather than widen, so their appearance is the opposite
+#     signal and belongs to a different rule.
+#   - "most", "many", "usually", "generally": hedges, not absolutes. A source saying
+#     "usually free" and a candidate saying "free" is a real conflict, but it is the
+#     dropped-qualifier shape, which lexical containment cannot settle. See the module
+#     docstring for why that direction was refused.
+
+version: 1
+
+languages:
+  en:
+    reviewed: true
+    words: [all, every, always, never, none, any, each, entirely, wholly, fully,
+            unconditionally, unlimited, absolutely, invariably, whatsoever]
+  bg:
+    reviewed: false
+    words: [всички, всеки, всяка, всяко, винаги, никога, никакви, изцяло, напълно,
+            неограничен, безусловно]
+  hr:
+    reviewed: false
+    words: [svi, sve, svaki, svaka, uvijek, nikad, nikada, nijedan, potpuno, u
+            potpunosti, neograničeno, bezuslovno]
+  cs:
+    reviewed: false
+    words: [všechny, všechen, každý, každá, vždy, nikdy, žádný, zcela, úplně,
+            neomezeně, bezpodmínečně]
+  da:
+    reviewed: false
+    words: [alle, alt, hver, hvert, altid, aldrig, ingen, intet, helt, fuldstændigt,
+            ubegrænset, betingelsesløst]
+  nl:
+    reviewed: false
+    words: [alle, alles, elke, elk, ieder, iedere, altijd, nooit, geen, volledig,
+            geheel, onbeperkt, onvoorwaardelijk]
+  et:
+    reviewed: false
+    words: [kõik, iga, alati, mitte kunagi, ükski, täielikult, piiramatult,
+            tingimusteta]
+  fi:
+    reviewed: false
+    words: [kaikki, jokainen, aina, koskaan, ei mikään, täysin, kokonaan,
+            rajoittamaton, ehdoitta]
+  fr:
+    reviewed: false
+    words: [tous, toutes, tout, chaque, toujours, jamais, aucun, aucune,
+            entièrement, totalement, illimité, inconditionnellement]
+  de:
+    reviewed: false
+    words: [alle, alles, jede, jeder, jedes, immer, nie, niemals, kein, keine,
+            vollständig, völlig, unbegrenzt, bedingungslos]
+  el:
+    reviewed: false
+    words: [όλα, όλες, όλοι, κάθε, πάντα, ποτέ, κανένα, κανείς, πλήρως, εντελώς,
+            απεριόριστα, ανεπιφύλακτα]
+  hu:
+    reviewed: false
+    words: [minden, mindegyik, mindig, soha, semmilyen, teljesen, teljes mértékben,
+            korlátlan, feltétel nélkül]
+  ga:
+    reviewed: false
+    words: [gach, uile, i gcónaí, riamh, aon, go hiomlán, go huile, neamhteoranta]
+  it:
+    reviewed: false
+    words: [tutti, tutte, tutto, ogni, sempre, mai, nessun, nessuna, interamente,
+            completamente, illimitato, incondizionatamente]
+  lv:
+    reviewed: false
+    words: [visi, visas, katrs, katra, vienmēr, nekad, neviens, pilnībā, pilnīgi,
+            neierobežots, bez nosacījumiem]
+  lt:
+    reviewed: false
+    words: [visi, visos, kiekvienas, kiekviena, visada, niekada, nė vienas,
+            visiškai, pilnai, neribotas, be išlygų]
+  mt:
+    reviewed: false
+    words: [kollha, kull, dejjem, qatt, ebda, kompletament, għal kollox, illimitat,
+            bla kundizzjoni]
+  pl:
+    reviewed: false
+    words: [wszystkie, wszystkich, każdy, każda, zawsze, nigdy, żaden, żadna,
+            całkowicie, w pełni, nieograniczony, bezwarunkowo]
+  pt:
+    reviewed: false
+    words: [todos, todas, todo, cada, sempre, nunca, nenhum, nenhuma, inteiramente,
+            completamente, ilimitado, incondicionalmente]
+  ro:
+    reviewed: false
+    words: [toate, toți, toate, fiecare, întotdeauna, niciodată, niciun, nicio,
+            complet, în întregime, nelimitat, necondiționat]
+  sk:
+    reviewed: false
+    words: [všetky, všetok, každý, každá, vždy, nikdy, žiadny, žiadna, úplne,
+            celkom, neobmedzene, bezpodmienečne]
+  sl:
+    reviewed: false
+    words: [vsi, vse, vsak, vsaka, vedno, nikoli, noben, nobena, popolnoma, v
+            celoti, neomejeno, brezpogojno]
+  es:
+    reviewed: false
+    words: [todos, todas, todo, cada, siempre, nunca, jamás, ningún, ninguna,
+            enteramente, completamente, ilimitado, incondicionalmente]
+  sv:
+    reviewed: false
+    words: [alla, allt, varje, alltid, aldrig, ingen, inget, helt, fullständigt,
+            obegränsat, villkorslöst]
+  tr:
+    reviewed: false
+    words: [tüm, bütün, her, her zaman, asla, hiçbir, hiç, tamamen, tümüyle,
+            sınırsız, koşulsuz]
+  az:
+    reviewed: false
+    words: [bütün, hər, hər zaman, heç vaxt, heç bir, tamamilə, tam, limitsiz,
+            şərtsiz]
