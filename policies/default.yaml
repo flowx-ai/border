@@ -310,5 +310,30 @@ detectors:
     on_fail: flag
     threshold: 0.45
   groundedness:
+    enabled: false          # published and available, deliberately off. See below.
     on_fail: flag
-    threshold: 0.5
+    options:
+      grounded_min: 0.78    # the scheme's own bar; see below for what picked it
+    # Published at flowxai/groundedness on 2026-08-17 and disabled the same day, which is
+    # not a contradiction: what earned it publication is not its accuracy.
+    #
+    # Against 42 hand-written probes, with the deterministic rule layer in front, it is
+    # right 0.7381 of the time. Roughly one call in four is wrong, against one in twenty
+    # on its generator's own held-out split, and the gap between those two numbers is the
+    # honest state of this detector rather than a range to pick from.
+    #
+    # It was published because it is the only one of seven candidates whose verdict
+    # depends on the source it was given. Same candidate, three sources: 0.7681 against a
+    # source that contradicts it, 0.0070 against an unrelated passage in another language,
+    # 0.8365 against one that states it outright. The best three-way candidate answered
+    # 0.9991, 0.9994 and 0.0007 to those, which is inverted and source-blind.
+    #
+    # The failure direction is toward caution. A claim weaker than its source reads
+    # not_grounded at 0.8625, so a caller who enables this gets false alarms rather than
+    # missed contradictions. That is the right way round for a guardrail and still a cost,
+    # which is why the default is off and the recommendation is to measure it on your own
+    # traffic before turning it on.
+    #
+    # grounded_min supersedes `threshold` for this detector, so no `threshold` is set
+    # here: setting both would be two bars with contradictory meanings, and a sentence
+    # just under the grounded bar has a correspondingly small not-grounded score.

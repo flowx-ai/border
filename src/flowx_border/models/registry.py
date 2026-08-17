@@ -20,17 +20,19 @@ it. `resolve` checks `MODELS` first, so an id in both would load fine while its
 `UNPUBLISHED` note went on saying the opposite, unread and unfalsifiable. Six ids were
 in both once, and their notes carried pre-retrain scores for months.
 
-One detector has no entry, and that is deliberate rather than unfinished. `groundedness`
-was trained and its artifacts are not published, so it ships unavailable and loudly: the
-note names what is missing and `resolve` raises with that name in the message. There is
-no silent fallback to a smaller model, because a security library that quietly
-substitutes a different detector is worse than one that refuses to start.
-
-This paragraph named `injection` and `regulated_advice` alongside it until 2026-08-17.
-Both have been in `MODELS` since the wiring on 2026-08-16, so it was describing a state
-two commits old. The other two `UNPUBLISHED` entries are not detectors: `cee-pii` is a
+**Every detector in the catalogue now has an entry**, `groundedness` included as of
+2026-08-17. Neither remaining `UNPUBLISHED` id is a detector: `cee-pii` is a
 policy-selectable alternative for `pii` with no ONNX export yet, and `semantic-mapper`
 is the 4B generative model `topic_scope` was going to use before it got its own encoder.
+Where a detector's weights cannot be obtained, `resolve` raises with the repo id in
+the message rather than falling back to a smaller model, because a security library
+that quietly substitutes a different detector is worse than one that refuses to start.
+
+This paragraph has been wrong twice in one day, which is worth leaving visible. It named
+`injection` and `regulated_advice` as unpublished after both were wired on 2026-08-16,
+and it named `groundedness` as unpublished for the hour between being corrected and that
+model being published. A sentence counting entries goes stale; the count itself is
+asserted in `tests/test_reference.py` against the computation.
 """
 
 from __future__ import annotations
@@ -220,6 +222,43 @@ MODELS: Final[dict[str, ModelSpec]] = {
             "Single-digit per-language positives."
         ),
     ),
+    "groundedness": ModelSpec(
+        model_id="flowxai/groundedness",
+        repo="flowxai/groundedness",
+        revision="9e665d59f99f953ce2ee5fc35566241ce1ad0091",
+        # fp16 rather than int8, and the earlier int8 attempt for this detector is why
+        # the loader accepts either name. int8 was refused at a p99 probability drift of
+        # 0.07591 against a 0.05 ceiling; this fp16 export moved 0 of 300 decisions at a
+        # p99 of 0.03351, verified at the 0.78 bar it ships with rather than at argmax.
+        filename="onnx/model.fp16.onnx",
+        sha256="d3113d45d2b2570eb37d8fdbcdb4477a5bf6f2b7d515ff3bd1f15fa2398d315b",
+        extra_files=("tokenizer.json", "config.json"),
+        # 512, and it is the one entry here where the wrong value was silently wrong
+        # rather than loud: the local override defaulted this to 96 until 2026-08-17,
+        # and a 512-token pair truncated to 96 made the model answer a question at
+        # 0.9216 instead of 0.7681. Every graph has a dynamic sequence axis, so nothing
+        # raised.
+        trained_max_length=512,
+        trained_languages=frozenset(LANGUAGES),
+        notes=(
+            "XLM-RoBERTa base cross-encoder over (source, candidate), two classes: "
+            "grounded and not_grounded. Use it at 0.78 rather than argmax. Corpus "
+            "held-out accuracy 0.9471 at that bar, not-grounded recall 0.9612, pair "
+            "accuracy 0.8991, per-language 0.887 (pl) to 1.000. Against 42 "
+            "hand-written "
+            "probes it is 0.6905 alone and 0.7381 with detectors/claim_conflict.py in "
+            "front, so roughly one call in four is wrong on a set no generator made "
+            "against one in twenty on the generator's own split. Both are real and the "
+            "gap is the point. It is the only one of seven candidates whose verdict "
+            "depends on the source: the same candidate reads 0.7681 against a source "
+            "that contradicts it, 0.0070 against an unrelated passage, 0.8365 against "
+            "one that states it, where the best three-way candidate answered 0.9991, "
+            "0.9994 and 0.0007, which is inverted and source-blind. Known weakness is "
+            "false not_grounded on claims weaker than their source, 0.8625 on the "
+            "clearest case, which is the safe direction for a guardrail and still a "
+            "cost. Disabled in both shipped policies for that reason."
+        ),
+    ),
     "moderation": ModelSpec(
         model_id="flowxai/moderation",
         repo="flowxai/moderation",
@@ -354,40 +393,6 @@ UNPUBLISHED: Final[dict[str, str]] = {
         "flowxai/cee-pii is published but has no ONNX export, only "
         "pytorch_model.bin. It is a GLiNER model with 34 labels weighted toward "
         "central and eastern Europe. Wiring it means doing the ONNX export first."
-    ),
-    "groundedness": (
-        "no ONNX artifact is published for groundedness, and neither trained model "
-        "should be. Two attempts, and the second is the more useful failure.\n\n"
-        "The first leaked. Its corpus named a register on the candidate sentence and "
-        "asked for ten items of one label per request, so each class came out "
-        "stylistically uniform and the model classified the style: judging test "
-        "examples against an unrelated source in another language left the verdict "
-        "unchanged for four of eight registers and identical for paraphrase. It "
-        "reported 0.882 exact-match accuracy, and that number was measuring the "
-        "generator rather than the task. It does, however, get hand-written probes "
-        "right: near-verbatim support reads supported at 0.9999, invention reads "
-        "unsupported, a real contradiction reads contradicted.\n\n"
-        "The second was rebuilt as source-side pairs, so the same sentence appears "
-        "against a source that supports it and one that does not and style cannot "
-        "predict the label by construction. That worked on the thing it targeted: the "
-        "leak check went from a verdict that survived an unrelated source to one that "
-        "does not, and overall retention fell to 0.40. Accuracy fell with it, 0.882 to "
-        "0.819, which is the honest direction because the task is now harder to cheat "
-        "at.\n\n"
-        "It is still not adopted, because it regressed on the cases the first model got"
-        " right. Against the same 500 character source, a near-verbatim restatement now"
-        " reads unsupported at 0.9994 and a contradiction reads unsupported at 0.6393. "
-        "It has learned to doubt rather than to compare.\n\n"
-        "So the pair design is necessary and not sufficient, which is the finding worth"
-        " keeping. The corpus is at data/groundedness_*.jsonl and the model is parked "
-        "at artifacts_local/groundedness-pairs-v2-not-adopted. What the next attempt "
-        "needs is both: the pair structure, and enough near-verbatim and multi-sentence"
-        " support that the model learns what support looks like rather than only what "
-        "it is not. Two of three SUPPORT_RELATIONS in the generator ask for support in "
-        "different words, which on this evidence is too few clear positives. Run "
-        "border_train.leak_check and the four tests in the library's tests/test_t3.py "
-        "against any replacement: passing one and failing the other is what happened "
-        "here and neither alone would have shown it."
     ),
     "semantic-mapper": (
         "flowxai/semantic-mapper is a 4B Qwen3 LoRA published as GGUF. It "

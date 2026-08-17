@@ -13,8 +13,8 @@ from here. Regenerate with:
 |---|---|
 | detectors in the catalogue | 30 |
 | implemented in the library | 30 |
-| that run on a fresh install, with no model download | 29 |
-| implemented but waiting on weights that are not published | 1 |
+| that run on a fresh install, with no model download | 30 |
+| implemented but waiting on weights that are not published | 0 |
 | catalogued but not yet implemented | 0 |
 | that need nothing beyond a CPU and the base install | 27 |
 | that need something more, and declare it | 3 |

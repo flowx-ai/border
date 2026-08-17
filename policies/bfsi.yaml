@@ -150,6 +150,21 @@ detectors:
     on_fail: block
     threshold: 0.45
   groundedness:
-    always: true            # every outbound claim, every time
+    enabled: false          # the intent below is kept, and it is not ready to enforce
+    always: true            # every outbound claim, every time, once it can be trusted
     on_fail: block
-    threshold: 0.5
+    options:
+      grounded_min: 0.78
+    # The one entry in this file whose intent and setting disagree, on purpose.
+    #
+    # A policy for regulated financial output wants every outbound claim checked against
+    # its source, and this is the detector for that. It is off because the available model
+    # is right 0.7381 of the time on hand-written probes and its errors run toward false
+    # not_grounded: a claim weaker than its source reads not_grounded at 0.8625. With
+    # `on_fail: block` and `always: true` that is a policy which refuses roughly one
+    # legitimate claim in four, which is worse for a bank than not checking.
+    #
+    # Kept configured rather than deleted so the intent survives the model: when a
+    # candidate clears the hand-written probe set, this becomes a one-line change and the
+    # reason it was ever off stays readable. See policies/default.yaml for the full
+    # measurement.
