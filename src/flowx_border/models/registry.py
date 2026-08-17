@@ -15,12 +15,22 @@ second is the one that matters:
 2. Integrity. A truncated download and a substituted file look alike to a loader that
    only checks the path exists. `resolve` compares and refuses.
 
-Three detectors have no entry, and that is deliberate rather than unfinished:
-`injection`, `regulated_advice` and `groundedness` were trained but their artifacts are
-published yet. They ship unavailable and loudly, so the registry
-names the intended repo and `resolve` raises with that name in the message. There is no
-silent fallback to a smaller model, because a security library that quietly substitutes
-a different detector is worse than one that refuses to start.
+`MODELS` and `UNPUBLISHED` are disjoint, and `tests/test_registry_weights.py` asserts
+it. `resolve` checks `MODELS` first, so an id in both would load fine while its
+`UNPUBLISHED` note went on saying the opposite, unread and unfalsifiable. Six ids were
+in both once, and their notes carried pre-retrain scores for months.
+
+One detector has no entry, and that is deliberate rather than unfinished. `groundedness`
+was trained and its artifacts are not published, so it ships unavailable and loudly: the
+note names what is missing and `resolve` raises with that name in the message. There is
+no silent fallback to a smaller model, because a security library that quietly
+substitutes a different detector is worse than one that refuses to start.
+
+This paragraph named `injection` and `regulated_advice` alongside it until 2026-08-17.
+Both have been in `MODELS` since the wiring on 2026-08-16, so it was describing a state
+two commits old. The other two `UNPUBLISHED` entries are not detectors: `cee-pii` is a
+policy-selectable alternative for `pii` with no ONNX export yet, and `semantic-mapper`
+is the 4B generative model `topic_scope` was going to use before it got its own encoder.
 """
 
 from __future__ import annotations
@@ -48,6 +58,12 @@ class ModelUnavailableError(RuntimeError):
     """
 
 
+#: The length assumed when an artifact does not declare one. Named rather than
+#: inline so the fallback in `_local_trained_length` can cite the same value it
+#: warns about.
+DEFAULT_TRAINED_MAX_LENGTH: Final = 96
+
+
 @dataclass(frozen=True)
 class ModelSpec:
     """One model: where it lives, which commit, and what its bytes should hash to."""
@@ -68,7 +84,7 @@ class ModelSpec:
     local: bool = False
     # The token length the model was trained at. Windowing uses it, and the latency
     # figures quoted anywhere have to say which length they describe.
-    trained_max_length: int = 96
+    trained_max_length: int = DEFAULT_TRAINED_MAX_LENGTH
     # Languages these particular weights were trained on, or None when that cannot be
     # established. A property of the artifact, exactly as `trained_max_length` is.
     #
@@ -517,6 +533,7 @@ def _build_local_spec(model_id: str) -> ModelSpec | None:
         candidate = _weights_in(root / folder / "onnx")
         if candidate is not None:
             digest = sha256_of(candidate)
+            length, length_source = _local_trained_length(model_id, root / folder)
             return ModelSpec(
                 model_id=f"local/{model_id}",
                 repo=str(root / folder),
@@ -524,12 +541,61 @@ def _build_local_spec(model_id: str) -> ModelSpec | None:
                 filename=str(candidate),
                 sha256=digest,
                 local=True,
+                trained_max_length=length,
                 notes=(
                     f"loaded from {candidate}, not from the hub. Unreleased "
-                    "weights, see the held-back note in UNPUBLISHED."
+                    "weights, see the held-back note in UNPUBLISHED. "
+                    f"trained_max_length {length} from {length_source}."
                 ),
             )
     return None
+
+
+def _local_trained_length(model_id: str, folder: Path) -> tuple[int, str]:
+    """The length this artifact was trained at, read rather than assumed.
+
+    This defaulted to the dataclass's 96 until 2026-08-17, and the cost was silent.
+    Every
+    ONNX graph here has a dynamic sequence axis, so feeding a model a length it never
+    saw
+    raises nothing at all: it answers, differently. `groundedness` trains at 512, so
+    under
+    the override its 512-token pairs were truncated to 96, and the temporal-
+    contradiction
+    probe read 0.9216 truncated against 0.7757 at full length. Every figure this project
+    recorded for that probe through the library was measured on a truncated source.
+
+    Order of preference, most specific first:
+
+    1. `run.json`, which the training repo writes next to the weights and which records
+    the
+       `max_length` the run actually used. An artifact describing itself.
+    2. The published `MODELS` entry for the same id, when there is one, because a local
+       re-export of a published model is nearly always the same length.
+    3. The dataclass default, and the notes say so, so a reader of an evidence record
+    can
+       see that the length was assumed rather than read.
+    """
+    import json
+
+    run = folder / "run.json"
+    if run.exists():
+        try:
+            declared = json.loads(run.read_text(encoding="utf-8")).get("max_length")
+        except (OSError, ValueError):
+            declared = None
+        if isinstance(declared, int) and declared > 0:
+            return declared, "run.json"
+
+    published = MODELS.get(model_id)
+    if published is not None:
+        return published.trained_max_length, f"the published {model_id} spec"
+
+    return DEFAULT_TRAINED_MAX_LENGTH, (
+        "the default, because this artifact carries no run.json and the id is not in "
+        "MODELS. If the model was not trained at that length, it is being fed a length "
+        "it never saw"
+    )
 
 
 def local_folder(model_id: str) -> Path | None:

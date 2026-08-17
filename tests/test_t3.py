@@ -661,3 +661,80 @@ def test_a_supported_verdict_does_not_survive_an_unrelated_source(
     assert max(scored, key=lambda label: scored[label]) != "supported", (
         f"p(supported)={scored['supported']:.4f} against an unrelated source"
     )
+
+
+# ------------------------------------------------- label schemes and the rule layer
+
+
+def test_the_two_label_schemes_are_disjoint_and_name_their_grounded_label() -> None:
+    """A scheme whose labels overlapped another's would make matching ambiguous."""
+    from flowx_border.detectors.groundedness import BINARY, SCHEMES, THREE_WAY
+
+    assert THREE_WAY.grounded == "supported"
+    assert BINARY.grounded == "grounded"
+    for scheme in SCHEMES:
+        assert scheme.grounded not in scheme.reportable
+        assert scheme.reportable, "a scheme with nothing reportable can never fire"
+    names = [s.names for s in SCHEMES]
+    assert len(set(names)) == len(names), "two schemes share a label set"
+
+
+def test_an_unknown_label_set_is_refused_and_names_both_schemes() -> None:
+    """Silence here would invert verdicts, so it raises and says what it accepts."""
+    import json
+    from unittest import mock
+
+    from flowx_border.detectors.groundedness import GroundednessDetector
+
+    detector = GroundednessDetector()
+    payload = json.dumps({"id2label": {"0": "yes", "1": "no"}})
+    with (
+        mock.patch("flowx_border.models.registry.companion") as companion,
+        pytest.raises(RuntimeError) as raised,
+    ):
+        companion.return_value = mock.MagicMock(
+            read_text=mock.MagicMock(return_value=payload)
+        )
+        detector._read_config()
+    message = str(raised.value)
+    assert "supported" in message and "grounded" in message
+
+
+def test_grounded_min_supersedes_the_policy_threshold() -> None:
+    """Two thresholds with contradictory meanings, and the first version applied both.
+
+    On a two-class head a sentence just under the grounded bar has a
+    correspondingly small not-grounded score. The temporal probe failed the bar
+    at 0.7681 and was then dropped for scoring only 0.2319 against a 0.5
+    threshold, so the detector found nothing while disagreeing with the source.
+    Failing the bar and failing it hard enough are not two questions.
+    """
+    from flowx_border.detectors.groundedness import BINARY, GroundednessDetector
+
+    detector = GroundednessDetector()
+    detector._scheme = BINARY
+    scored = {"grounded": 0.7681, "not_grounded": 0.2319}
+
+    # Below the bar, so not grounded, even though grounded is still the argmax.
+    assert not detector._reads_grounded(scored, 0.78)
+    assert detector._verdict(scored, 0.78) == "not_grounded"
+    # And with no bar set, argmax stands, which is what every three-way artifact
+    # shipped with.
+    assert detector._reads_grounded(scored, None)
+    assert detector._verdict(scored, None) == "grounded"
+
+
+def test_the_rule_layer_is_reachable_from_the_detector() -> None:
+    """The wiring, asserted without weights.
+
+    `claim_conflict` measured 9 for 9 on the hand-written probes, and that is
+    worth nothing to a caller if the detector never calls it.
+    """
+    from flowx_border.detectors import groundedness
+
+    assert groundedness.conflict is not None
+    found = groundedness.conflict(
+        "The fixed rate of 4.2 percent applies for the first five years.",
+        "The fixed rate of 4.3 percent applies for the first five years.",
+    )
+    assert found is not None and found[0] == "numeric_conflict"

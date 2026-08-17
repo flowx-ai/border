@@ -16,7 +16,10 @@ hypothetical one. Choosing between them silently would put a file nobody chose i
 
 from __future__ import annotations
 
+import json
+import os
 from pathlib import Path
+from unittest import mock
 
 import pytest
 
@@ -111,3 +114,72 @@ def test_the_trained_length_is_the_models_own_not_a_default() -> None:
     assert MODELS["topic_scope"].trained_max_length == 128
     for model_id in ("piiguard", "bias", "injection", "nsfw", "politeness", "toxicity"):
         assert MODELS[model_id].trained_max_length == 96, model_id
+
+
+# --------------------------------------- the length a local artifact was trained at
+
+
+def test_a_local_artifact_declares_its_own_trained_length(tmp_path: Path) -> None:
+    """The bug this guards was silent, which is why it lasted.
+
+    Every ONNX graph here has a dynamic sequence axis, so feeding a model a
+    length it was never trained at raises nothing: it answers, differently.
+    `_build_local_spec` never set `trained_max_length`, so a local override took
+    the 96 default. `groundedness` trains at 512, and under the override its
+    512-token pairs were truncated to 96. The temporal-contradiction probe read
+    0.9216 truncated against 0.7681 at full length, a gap of 0.15 where the
+    export gate's own p99 drift is 0.03351, so every figure recorded for that
+    probe through the library before 2026-08-17 describes a truncated source.
+    """
+    from flowx_border.models.registry import LOCAL_DIR_ENV, local_spec_for
+
+    folder = tmp_path / "groundedness-full"
+    (folder / "onnx").mkdir(parents=True)
+    (folder / "onnx" / "model.fp16.onnx").write_bytes(b"not a real graph")
+    (folder / "run.json").write_text(json.dumps({"max_length": 512}), encoding="utf-8")
+
+    with mock.patch.dict(os.environ, {LOCAL_DIR_ENV: str(tmp_path)}):
+        spec = local_spec_for("groundedness")
+    assert spec is not None
+    assert spec.trained_max_length == 512, "the length did not come from run.json"
+    assert "run.json" in spec.notes, "the notes must say where the length came from"
+
+
+def test_a_local_artifact_without_run_json_uses_the_published_length(
+    tmp_path: Path,
+) -> None:
+    """A local re-export of a published model is nearly always the same length."""
+    from flowx_border.models.registry import LOCAL_DIR_ENV, MODELS, local_spec_for
+
+    folder = tmp_path / "gibberish-full"
+    (folder / "onnx").mkdir(parents=True)
+    (folder / "onnx" / "model.int8.onnx").write_bytes(b"not a real graph")
+
+    with mock.patch.dict(os.environ, {LOCAL_DIR_ENV: str(tmp_path)}):
+        spec = local_spec_for("gibberish")
+    assert spec is not None
+    # gibberish trains at 32, the case where the 96 default would be wrong.
+    assert spec.trained_max_length == MODELS["gibberish"].trained_max_length == 32
+
+
+def test_an_assumed_length_says_so_in_the_notes(tmp_path: Path) -> None:
+    """With nothing declaring a length, the spec has to admit it is guessing.
+
+    An evidence record carries these notes, and "assumed" and "read from the
+    artifact" are different claims about how the model was fed.
+    """
+    from flowx_border.models.registry import (
+        DEFAULT_TRAINED_MAX_LENGTH,
+        LOCAL_DIR_ENV,
+        local_spec_for,
+    )
+
+    folder = tmp_path / "groundedness-full"
+    (folder / "onnx").mkdir(parents=True)
+    (folder / "onnx" / "model.fp16.onnx").write_bytes(b"not a real graph")
+
+    with mock.patch.dict(os.environ, {LOCAL_DIR_ENV: str(tmp_path)}):
+        spec = local_spec_for("groundedness")
+    assert spec is not None
+    assert spec.trained_max_length == DEFAULT_TRAINED_MAX_LENGTH
+    assert "never saw" in spec.notes, "a guessed length must be visibly a guess"
