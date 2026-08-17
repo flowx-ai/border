@@ -25,3 +25,23 @@ models_cache/
 # Worktrees created by the agent harness. Each is a full checkout of this
 # repository; committing one would nest the repo inside itself.
 .claude/worktrees/
+
+# Internal working documents. Kept on disk, deliberately not published.
+#
+# The repository goes public, and these are the files that would embarrass or mislead a
+# reader rather than help one: agent instructions, a phase plan for work already done, a
+# website design brief, and a session brief. None of them describes the library.
+#
+# `CLAUDE.md` is the one with a consequence: tests/test_reference.py checks that the
+# detector count it states matches the count computed from the catalogue, which is what
+# caught two stale figures. That test now skips when the file is absent, so it keeps
+# working for whoever has it and does not fail a public checkout that never will.
+CLAUDE.md
+BUILD_PLAN.md
+LANDING_PAGE.md
+STYLE.md
+GUARDRAILS_PORT.md
+border-logo-concepts.svg
+docs/proposed-detectors.md
+docs/release-readiness.md
+.DS_Store

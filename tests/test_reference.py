@@ -99,6 +99,16 @@ def test_claude_md_states_the_computed_number_of_real_detectors() -> None:
     said 13 of 21 when the answer was 12 of 21, because the number was incremented by
     hand each time a detector landed and once it was incremented twice.
     """
+    if not CLAUDE_MD.exists():
+        # Untracked as of 2026-08-17, when the repository was prepared to go public:
+        # it is agent instructions rather than documentation of the library. Kept on
+        # disk by whoever has it, so this test still guards the figure where the figure
+        # lives, and skipped rather than failed on a checkout that never carries it.
+        #
+        # Skipping is right here and would be wrong for docs/detectors.md below, and the
+        # difference is worth stating: that file is published, generated from the code,
+        # and a reader can be misled by it. This one is a private note.
+        pytest.skip(f"{CLAUDE_MD.name} is not part of the published tree")
     numbers = counts()
     match = re.search(r"v1 is (\d+) of (\d+) detectors real", CLAUDE_MD.read_text())
     assert match, "CLAUDE.md no longer states the count in the expected form"
