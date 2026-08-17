@@ -343,16 +343,17 @@ def test_a_hand_written_paraphrase_is_supported(grounded: GroundednessDetector) 
     )
     assert max(scored, key=lambda label: scored[label]) == "supported"
 
+    # Was a strict xfail until 2026-08-17, when `groundedness-scope` made it XPASS. The
+    # marker is gone rather than inverted: a limitation that one candidate has
+    # demonstrably cleared is a requirement for the next one, not a permanent property
+    # of the task. That candidate is still not adopted, for a different probe.
+    # was recorded as: @pytest.mark.xfail( reason=( "Same root cause as the paraphrase
+    # failure and the case an operator meets most " "often, a summary that says less
+    # than its source. The source states that early " "withdrawals incur a handling fee;
+    # a sentence asserting only that a fee exists " "reads contradicted." ),
+    # strict=True, )
 
-@pytest.mark.xfail(
-    reason=(
-        "Same root cause as the paraphrase failure and the case an operator meets most "
-        "often, a summary that says less than its source. The source states that early "
-        "withdrawals incur a handling fee; a sentence asserting only that a fee exists "
-        "reads contradicted."
-    ),
-    strict=True,
-)
+
 def test_a_claim_weaker_than_the_source_is_supported(
     grounded: GroundednessDetector,
 ) -> None:
@@ -361,17 +362,18 @@ def test_a_claim_weaker_than_the_source_is_supported(
     )
     assert max(scored, key=lambda label: scored[label]) == "supported"
 
+    # Was a strict xfail until 2026-08-17, when `groundedness-scope` made it XPASS. The
+    # marker is gone rather than inverted: a limitation that one candidate has
+    # demonstrably cleared is a requirement for the next one, not a permanent property
+    # of the task. That candidate is still not adopted, for a different probe.
+    # was recorded as: @pytest.mark.xfail( reason=( "Dropping two words flips the
+    # verdict. 'After twelve months have elapsed, " "withdrawals are free of charge'
+    # reads supported at 0.9999; the same claim as " "'Withdrawals are free of charge
+    # after twelve months' reads contradicted at " "0.0002. Same source, same meaning,
+    # two fewer words. It is the same root cause " "as the paraphrase failure, in its
+    # smallest form." ), st
 
-@pytest.mark.xfail(
-    reason=(
-        "Dropping two words flips the verdict. 'After twelve months have elapsed, "
-        "withdrawals are free of charge' reads supported at 0.9999; the same claim as "
-        "'Withdrawals are free of charge after twelve months' reads contradicted at "
-        "0.0002. Same source, same meaning, two fewer words. It is the same root cause "
-        "as the paraphrase failure, in its smallest form."
-    ),
-    strict=True,
-)
+
 def test_a_restatement_survives_losing_two_words(
     grounded: GroundednessDetector,
 ) -> None:
@@ -623,22 +625,18 @@ def test_the_verdict_depends_on_the_source_it_was_given(
         "that did compare have stopped comparing"
     )
 
+    # Was a strict xfail until 2026-08-17, when `groundedness-scope` made it XPASS. The
+    # marker is gone rather than inverted: a limitation that one candidate has
+    # demonstrably cleared is a requirement for the next one, not a permanent property
+    # of the task. That candidate is still not adopted, for a different probe.
+    # was recorded as: @pytest.mark.xfail( reason=( "The leak itself, quantified in the
+    # docstring above. A supported verdict for a " "paraphrase survives swapping the
+    # source for an unrelated passage in another " "language, which means it was never a
+    # judgement about the source. The corpus " "needs the same candidate sentence to
+    # appear against both a source that " "supports it and one that does not, so that
+    # style cannot p
 
-@pytest.mark.xfail(
-    reason=(
-        "The leak itself, quantified in the docstring above. A supported verdict for a "
-        "paraphrase survives swapping the source for an unrelated passage in another "
-        "language, which means it was never a judgement about the source. The corpus "
-        "needs the same candidate sentence to appear against both a source that "
-        "supports it and one that does not, so that style cannot predict the label by "
-        "construction. That also needs two changes to the harness: Corpus.add rejects "
-        "the same sentence twice as a label_conflict, which is right for a single-text "
-        "task and backwards for a relational one, and Corpus.write strata by language "
-        "and register, which would put the two halves of such a pair in different "
-        "splits."
-    ),
-    strict=True,
-)
+
 def test_a_supported_verdict_does_not_survive_an_unrelated_source(
     grounded: GroundednessDetector,
 ) -> None:
