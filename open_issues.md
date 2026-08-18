@@ -6,7 +6,7 @@ a wish list.
 
 Ordered by what a caller would notice first, not by effort.
 
-Last reviewed 2026-08-18, at `flowx-border` 0.2.1. Six open, one closed.
+Last reviewed 2026-08-18, at `flowx-border` 0.2.1. Eight open, one closed.
 
 ---
 
@@ -207,7 +207,32 @@ correctly. One written Finnish date exists across the 26,455 rows of `pii_frames
   typed F1 0.0000 with every gold span missed on held-out frames, and a multi-token date is
   the thing it had never seen.
 
-## 7. Local `.git` still holds the pre-rewrite objects
+## 7. No retrain delta in this project has a measured noise floor
+
+A seed control was run for the first time on 2026-08-18: the same `moderation` corpus, the
+same hyperparameters, seed 42 against seed 1337. Per-label F1 moved by a mean of 0.0073 and a
+maximum of **0.0188** between two runs differing in nothing but the seed.
+
+Every retrain judgement in this project predates that measurement. The 2026-08-14 table in
+`CLAUDE.md` records `nsfw` +0.0158 and `bias` +0.0206 in mean per-language F1, both at or
+under that maximum, and `toxicity` +0.0311 above it. No seed control was run for any of the
+three.
+
+This does not say those retrains failed. It says a single run cannot distinguish an effect
+from a reseed, and every comparison so far has been a single run. The concrete case is the one
+to hold: on the enriched `moderation` corpus, seed 42 reads the weakest language as `mt`
+0.9744 against the shipped 0.9655, which reads as the corpus fixing Maltese, and seed 1337
+reads `mt` 0.9580. The two straddle the baseline.
+
+- **Where**: `border_train.compare_runs`, and `reports/moderation_seed_control.json`.
+- **Fix**: two seeds per retrain before reporting a delta. It doubles the GPU cost of a
+  10-minute run, which is the cheapest thing on this list.
+- **Not transferable as a number.** It was measured on a 12-label head with roughly 130 test
+  positives per label. `nsfw` and `gibberish` hold 9 to 12 per language, so their floor is
+  plausibly higher, which is the wrong direction for comfort. Re-measure per detector rather
+  than reusing 0.0188.
+
+## 8. Local `.git` still holds the pre-rewrite objects
 
 Minor, and the only remnant of what was issue 7. The training repository now has a private
 remote at `flowx-ai/border-training`, 117 commits, and a fresh clone is 60 MB.
