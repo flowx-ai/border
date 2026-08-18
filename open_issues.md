@@ -180,16 +180,32 @@ the 0.600 is as likely to be the sample as the language.
   Needs the generation endpoint, so it queues behind the groundedness corpus.
 - **Not a fix**: reading the minima as ceilings. Reach for the corpus before the architecture.
 
-## 6. `pii` frames, and two data files the generator needs
+## 6. `pii` frames still need regenerating with varied surfaces
 
-- **Regenerate the PII frames with varied surfaces.** Frame is what the label actually
-  depends on: `CARD` scored 100% in the generator's own template, 32.5% with the neighbouring
-  IBAN clause removed, and 18.3% in a sentence the generator never wrote. Template diversity
-  first, then slots that vary independently.
-- **A per-locale month name table**, so dates can be written as words. Every `DATE` in the
-  frame corpus is a single numeric token, and held-out frames write `14 March 2024`, which is
-  three. A tagger that has never seen a multi-token date cannot emit a multi-token span.
-- **Greek and Bulgarian person names in their own script.**
+Frame is what the label actually depends on: `CARD` scored 100% in the generator's own
+template, 32.5% with the neighbouring IBAN clause removed, and 18.3% in a sentence the
+generator never wrote. Template diversity first, then slots that vary independently.
+
+**The two data files this issue also asked for are built and wired**, so the regeneration is
+all that is left and it will pick them up:
+
+| | what it does | where |
+|---|---|---|
+| month names | dates written as words in 26 languages, so `DATE` is a multi-token span at all | `border_train/month_names.py`, called by `pii_fill.make_date` at a 0.5 share |
+| names in script | Greek and Bulgarian people written in Greek and Cyrillic, surname agreeing in gender | `_IN_SCRIPT_NAMES` and `make_person` in `border_train/pii_fill.py` |
+
+Both were listed here as outstanding until 2026-08-18 and both had landed. The month table
+had no test until then either, and writing one found that Finnish generated `14. maaliskuu
+2024` half the time, a bare nominative no Finnish writer produces, because the partitive was
+built in the template over the nominative stem while the genitive column already held it
+correctly. One written Finnish date exists across the 26,455 rows of `pii_frames` and
+`piiguard`, so the fix precedes any corpus that uses it.
+
+- **Where**: `tests/test_month_names.py` and `tests/test_person_names.py` in the training
+  repo, 459 and the person set respectively, parametrised over all 26.
+- **Fix**: regenerate the frames. `DATE` is the type to read afterwards, since it scored
+  typed F1 0.0000 with every gold span missed on held-out frames, and a multi-token date is
+  the thing it had never seen.
 
 ## 7. Local `.git` still holds the pre-rewrite objects
 
