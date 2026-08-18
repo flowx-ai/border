@@ -208,38 +208,48 @@ MODELS: Final[dict[str, ModelSpec]] = {
     "injection": ModelSpec(
         model_id="flowxai/injection",
         repo="flowxai/injection",
-        # The v4 corpus retrain, published 2026-08-18. This pin moved because the old
-        # artifact scored well and was unusable at its own shipped setting: same
-        # architecture and hyperparameters, 9,325 train rows to 35,025, and 18 registers
-        # where the old corpus had no technical text and almost no imperative benign
-        # requests.
-        revision="2591da13fb79808e51f0069e59f686b1714a7bf8",
+        # The v5 corpus retrain, published 2026-08-18, hours after v4. Both pins moved
+        # for
+        # the same reason and v5 finishes the job: v4 took ordinary support questions
+        # from 7
+        # of 12 to 1, and v5 takes them to 0 by adding one register,
+        # `mundane_account_access`, to the corpus generator's shared mundane set.
+        #
+        # Not a clean sweep. A bare UUID reads direct_injection at 0.944 under v5,
+        # clearing
+        # the shipped 0.43 where v4 had it at zero, and staying under 0.95. Net across
+        # both
+        # shapes v5 is ahead and the regression is recorded rather than netted away.
+        revision="e2dd543f8373c0a35786f4b5b85ce615a3d0ad7c",
         filename="onnx/model.int8.onnx",
-        sha256="5e4efa126f83be40357424363517de1c296b74614953af6581f49551b152edfa",
+        sha256="560567f9bf77f41e972d82da7333d39a30d621c029b569db8bd76a2fc7991886",
         extra_files=("tokenizer.json", "config.json"),
         trained_max_length=96,
         trained_languages=frozenset(LANGUAGES),
         notes=(
             "XLM-RoBERTa base, three independent labels: direct_injection, "
             "indirect_injection, jailbreak. Held out at the shipped 0.43, per-label F1 "
-            "0.9737, 0.9710 and 0.9593 with FPR 0.0057, 0.0040 and 0.0085. Mean "
-            "per-language F1 0.9855, weakest mt 0.8367, then ga 0.9762 and cs 0.9767. "
-            "Corpus 43,679 examples, 28.1 percent attacks, 26 languages at 1,656 to "
-            "1,690 rows each. "
-            "What the retrain bought, measured through the shipped configuration: "
-            "ordinary support questions it fires on went from 7 of 12 to 1 of 12, and "
-            "technical identifiers from 4 of 4 to 0 of 4, while the three canonical "
-            "attacks are still caught. The old model read a bare UUID, a git commit "
+            "0.9738, 0.9804 and 0.9603 with FPR 0.0057, 0.0021 and 0.0077. Mean "
+            "per-language F1 0.9891, weakest mt 0.8817, then ga 0.9762 and cs 0.9767. "
+            "Corpus 45,541 examples, 27.0 percent attacks, 26 languages, 19 registers. "
+            "What the retrains bought, measured through the shipped configuration: "
+            "ordinary support questions it fires on went 7 of 12, "
+            "then 1, then 0 across "
+            "v3, v4 and v5, and technical identifiers 4 of 4 to 0 at 0.95, while the "
+            "three canonical attacks are still caught. The old model read a "
+            "bare UUID, a git commit "
             "hash, a data URI and a sha256 digest as jailbreak or direct_injection, "
             "and "
             "read 'Someone is using my account, how do I lock it?' as direct_injection "
             "at 0.98. Both came from one corpus property: every benign register was "
             "conversational prose, so an imperative request and a high-entropy "
             "identifier were equally out of distribution. "
-            "One residual, and it is a corpus gap rather than a threshold: 'Please "
-            "cancel my subscription.' reads direct_injection at 0.9775 and scores the "
-            "same at 0.43 and 0.95. Two rows of 35,025 match account-access phrasing, "
-            "so the fix is a benign register for it. "
+            "The residual v4 could not reach is gone. 'Please cancel my subscription.' "
+            "read direct_injection at 0.9775 under v4, identical at 0.43 and 0.95, and "
+            "two rows of 35,025 matched that phrasing; v5 has 1,862 "
+            "account-access rows "
+            "and 16 carrying it as benign. What remains is a bare UUID at 0.944, over "
+            "0.43 and under 0.95. "
             "The calibrated 0.02 from this run is deliberately not adopted: its own "
             "report flags it as the lowest value in the sweep, which compresses scores "
             "toward zero, and macro F1 is 0.9671 even at 0.95, so the sweep is a "

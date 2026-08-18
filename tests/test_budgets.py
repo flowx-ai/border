@@ -26,7 +26,8 @@ backtracking.
 **Absolute ceilings with headroom, always on.** 225 ms against a measured 23 ms is
 roughly ten times, which is more headroom than the ceilings were set with: they were
 budgeted against the M3-era measurements and the M5 workstation with the loader fix is
-far faster. The decoration bound below is what keeps a ceiling honest either way. `FLOWX_BUDGET_SCALE` multiplies every ceiling for a runner known
+far faster. The decoration bound below is what keeps a ceiling honest either way.
+`FLOWX_BUDGET_SCALE` multiplies every ceiling for a runner known
 to be slower, so the honest response to slow hardware is a documented environment
 variable rather than a quietly loosened number.
 

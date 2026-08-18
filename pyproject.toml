@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "flowx-border"
-version = "0.2.0"
+version = "0.2.1"
 description = "Inspects the text going into and coming out of an LLM, returns a decision and an evidence record."
 requires-python = ">=3.11"
 readme = "README.md"

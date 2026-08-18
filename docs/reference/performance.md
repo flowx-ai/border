@@ -20,7 +20,7 @@ means the score is unverified rather than good or bad.
 | `encoded_payload` | T1 | built | – | – | – | – | – | – |
 | `gibberish` | T1 | built | f1 | 0.966 | 0.958 | 0.870 | 276 | positive examples |
 | `groundedness` | T3 | built | – | – | – | – | – | – |
-| `injection` | T2 | built | f1 | 0.986 | 0.988 | 0.837 | 1080 | positive examples |
+| `injection` | T2 | built | f1 | 0.989 | 1.000 | 0.882 | 1080 | positive examples |
 | `internal_domains` | T1 | built | – | – | – | – | – | – |
 | `invisible_text` | T0 | built | – | – | – | – | – | – |
 | `json_schema` | T1 | built | – | – | – | – | – | – |
@@ -57,33 +57,33 @@ At a 396 character reference input, 1 thread, CPUExecutionProvider. Romanian pro
 
 | Detector | p95 ms | Budget ms | note |
 |---|---|---|---|
-| `banned_terms` | 0.159 | 5.0 | – |
-| `bias` | 18.629 | 225.0 | – |
-| `code_present` | 0.008 | 5.0 | – |
+| `banned_terms` | 0.163 | 5.0 | – |
+| `bias` | 18.392 | 225.0 | – |
+| `code_present` | 0.007 | 5.0 | – |
 | `disclosure` | 0.028 | 5.0 | – |
-| `encoded_payload` | 0.192 | 5.0 | – |
-| `gibberish` | 26.283 | 225.0 | – |
+| `encoded_payload` | 0.194 | 5.0 | – |
+| `gibberish` | 26.301 | 225.0 | – |
 | `groundedness` | – | 300.0 | weights unavailable |
-| `injection` | 18.481 | 225.0 | – |
-| `internal_domains` | 0.160 | 5.0 | – |
-| `invisible_text` | 0.026 | 5.0 | – |
+| `injection` | 18.450 | 225.0 | – |
+| `internal_domains` | 0.158 | 5.0 | – |
+| `invisible_text` | 0.025 | 5.0 | – |
 | `json_schema` | 0.001 | 5.0 | – |
-| `language_id` | 0.222 | 5.0 | – |
-| `markup_injection` | 0.170 | 5.0 | – |
-| `moderation` | 18.476 | 150.0 | – |
-| `nsfw` | 18.478 | 225.0 | – |
+| `language_id` | 0.227 | 5.0 | – |
+| `markup_injection` | 0.173 | 5.0 | – |
+| `moderation` | 18.313 | 150.0 | – |
+| `nsfw` | 18.394 | 225.0 | – |
 | `output_format` | 0.001 | 5.0 | – |
-| `output_leakage` | 23.122 | 225.0 | – |
-| `pii` | 23.161 | 225.0 | – |
+| `output_leakage` | 23.491 | 225.0 | – |
+| `pii` | 23.408 | 225.0 | – |
 | `politeness` | – | 225.0 | weights unavailable |
 | `postal_code` | 0.001 | 5.0 | – |
-| `regulated_advice` | 18.530 | 225.0 | – |
-| `repetition` | 0.297 | 5.0 | – |
+| `regulated_advice` | 18.490 | 225.0 | – |
+| `repetition` | 0.287 | 5.0 | – |
 | `secrets` | 0.029 | 1.0 | – |
 | `sql_injection` | 0.144 | 5.0 | – |
-| `summary_support` | 0.562 | 5.0 | – |
-| `system_prompt_leakage` | 0.193 | 5.0 | the unconfigured path |
+| `summary_support` | 0.551 | 5.0 | – |
+| `system_prompt_leakage` | 0.191 | 5.0 | the unconfigured path |
 | `token_limit` | 0.001 | 5.0 | the unconfigured path |
 | `topic_scope` | – | 300.0 | weights unavailable |
-| `toxicity` | 18.746 | 225.0 | – |
-| `url_reachability` | 0.005 | 3000.0 | the unconfigured path |
+| `toxicity` | 18.369 | 225.0 | – |
+| `url_reachability` | 0.004 | 3000.0 | the unconfigured path |

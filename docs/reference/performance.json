@@ -403,149 +403,149 @@
         "best": 1.0,
         "languages_evaluated": 26,
         "languages_without_a_count": [],
-        "macro": 0.9855,
-        "median": 0.9882,
+        "macro": 0.9891,
+        "median": 1.0,
         "metric": "f1",
         "n_means": "positive examples",
         "per_language": {
           "az": {
             "n": 42,
-            "n_evaluated": 167,
+            "n_evaluated": 174,
             "score": 1.0
           },
           "bg": {
             "n": 41,
-            "n_evaluated": 165,
+            "n_evaluated": 172,
             "score": 1.0
           },
           "cs": {
             "n": 42,
-            "n_evaluated": 167,
+            "n_evaluated": 174,
             "score": 0.9767
           },
           "da": {
             "n": 41,
-            "n_evaluated": 166,
+            "n_evaluated": 173,
             "score": 0.988
           },
           "de": {
             "n": 42,
-            "n_evaluated": 167,
+            "n_evaluated": 174,
             "score": 1.0
           },
           "el": {
             "n": 42,
-            "n_evaluated": 166,
+            "n_evaluated": 173,
             "score": 1.0
           },
           "en": {
             "n": 41,
-            "n_evaluated": 166,
-            "score": 0.988
+            "n_evaluated": 173,
+            "score": 1.0
           },
           "es": {
             "n": 40,
-            "n_evaluated": 165,
-            "score": 1.0
+            "n_evaluated": 172,
+            "score": 0.9877
           },
           "et": {
             "n": 41,
-            "n_evaluated": 166,
+            "n_evaluated": 173,
             "score": 1.0
           },
           "fi": {
             "n": 42,
-            "n_evaluated": 167,
+            "n_evaluated": 174,
             "score": 1.0
           },
           "fr": {
             "n": 41,
-            "n_evaluated": 166,
-            "score": 0.9877
+            "n_evaluated": 173,
+            "score": 1.0
           },
           "ga": {
             "n": 42,
-            "n_evaluated": 167,
+            "n_evaluated": 174,
             "score": 0.9762
           },
           "hr": {
             "n": 42,
-            "n_evaluated": 167,
-            "score": 0.9767
+            "n_evaluated": 174,
+            "score": 0.9882
           },
           "hu": {
             "n": 42,
-            "n_evaluated": 167,
+            "n_evaluated": 174,
             "score": 0.9767
           },
           "it": {
             "n": 42,
-            "n_evaluated": 167,
+            "n_evaluated": 174,
             "score": 1.0
           },
           "lt": {
             "n": 42,
-            "n_evaluated": 167,
+            "n_evaluated": 174,
             "score": 1.0
           },
           "lv": {
             "n": 41,
-            "n_evaluated": 166,
+            "n_evaluated": 173,
             "score": 0.988
           },
           "mt": {
             "n": 42,
-            "n_evaluated": 167,
+            "n_evaluated": 174,
             "notes": [
               "absent from the base model's pretraining corpus, which is worth knowing but has not been shown to bound the score: nsfw went from 0.000 to 1.000 here on more examples"
             ],
-            "score": 0.8367
+            "score": 0.8817
           },
           "nl": {
             "n": 41,
-            "n_evaluated": 166,
-            "score": 0.988
+            "n_evaluated": 173,
+            "score": 0.9877
           },
           "pl": {
             "n": 41,
-            "n_evaluated": 166,
+            "n_evaluated": 173,
             "score": 1.0
           },
           "pt": {
             "n": 42,
-            "n_evaluated": 167,
+            "n_evaluated": 174,
             "score": 0.9882
           },
           "ro": {
             "n": 42,
-            "n_evaluated": 166,
+            "n_evaluated": 173,
             "score": 0.9882
           },
           "sk": {
             "n": 41,
-            "n_evaluated": 166,
+            "n_evaluated": 173,
             "score": 1.0
           },
           "sl": {
             "n": 42,
-            "n_evaluated": 167,
+            "n_evaluated": 174,
             "score": 0.9882
           },
           "sv": {
             "n": 41,
-            "n_evaluated": 166,
+            "n_evaluated": 173,
             "score": 1.0
           },
           "tr": {
             "n": 42,
-            "n_evaluated": 167,
-            "score": 0.9767
+            "n_evaluated": 174,
+            "score": 1.0
           }
         },
         "threshold": 0.02,
         "threshold_chosen_by": "recall_at_fpr",
         "total_examples": 1080,
-        "worst": 0.8367
+        "worst": 0.8817
       },
       "requires": {},
       "sides": [
@@ -1799,58 +1799,58 @@
   "latency": {
     "per_detector_ms": {
       "banned_terms": {
-        "p95": 0.159
+        "p95": 0.163
       },
       "bias": {
-        "p95": 18.629
+        "p95": 18.392
       },
       "code_present": {
-        "p95": 0.008
+        "p95": 0.007
       },
       "disclosure": {
         "p95": 0.028
       },
       "encoded_payload": {
-        "p95": 0.192
+        "p95": 0.194
       },
       "gibberish": {
-        "p95": 26.283
+        "p95": 26.301
       },
       "groundedness": {
         "error": "flowxai/groundedness is not in the local cache and the hub is unreachable because HF_HUB_OFFLINE is set.\n  repo      flo"
       },
       "injection": {
-        "p95": 18.481
+        "p95": 18.45
       },
       "internal_domains": {
-        "p95": 0.16
+        "p95": 0.158
       },
       "invisible_text": {
-        "p95": 0.026
+        "p95": 0.025
       },
       "json_schema": {
         "p95": 0.001
       },
       "language_id": {
-        "p95": 0.222
+        "p95": 0.227
       },
       "markup_injection": {
-        "p95": 0.17
+        "p95": 0.173
       },
       "moderation": {
-        "p95": 18.476
+        "p95": 18.313
       },
       "nsfw": {
-        "p95": 18.478
+        "p95": 18.394
       },
       "output_format": {
         "p95": 0.001
       },
       "output_leakage": {
-        "p95": 23.122
+        "p95": 23.491
       },
       "pii": {
-        "p95": 23.161
+        "p95": 23.408
       },
       "politeness": {
         "error": "flowxai/politeness is not in the local cache and the hub is unreachable because HF_HUB_OFFLINE is set.\n  repo      flowx"
@@ -1859,10 +1859,10 @@
         "p95": 0.001
       },
       "regulated_advice": {
-        "p95": 18.53
+        "p95": 18.49
       },
       "repetition": {
-        "p95": 0.297
+        "p95": 0.287
       },
       "secrets": {
         "p95": 0.029
@@ -1871,11 +1871,11 @@
         "p95": 0.144
       },
       "summary_support": {
-        "p95": 0.562
+        "p95": 0.551
       },
       "system_prompt_leakage": {
         "describes": "the path where the detector reported leakage_unverifiable rather than the path where it does its work, because the reference configuration does not give it what it needs",
-        "p95": 0.193
+        "p95": 0.191
       },
       "token_limit": {
         "describes": "the path where the detector reported token_limit_unconfigured rather than the path where it does its work, because the reference configuration does not give it what it needs",
@@ -1885,11 +1885,11 @@
         "error": "flowxai/topic-scope is not in the local cache and the hub is unreachable because HF_HUB_OFFLINE is set.\n  repo      flow"
       },
       "toxicity": {
-        "p95": 18.746
+        "p95": 18.369
       },
       "url_reachability": {
         "describes": "the path where there was nothing to fetch. The reference input contains no URLs, and the suite blocks outbound connections, so this figure excludes the request that is the whole cost of the detector. Its budget is a deadline it enforces on itself rather than a measurement, because it depends on a network the library does not control",
-        "p95": 0.005
+        "p95": 0.004
       }
     },
     "provider": "CPUExecutionProvider",
