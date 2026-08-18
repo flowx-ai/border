@@ -6,11 +6,81 @@ a wish list.
 
 Ordered by what a caller would notice first, not by effort.
 
-Last reviewed 2026-08-18, at `flowx-border` 0.2.1. Nine open, one closed.
+Last reviewed 2026-08-18, at `flowx-border` 0.2.1. Seven open, one closed.
+
+**Restructured 2026-08-18, and the count is the reason.** The list opened at seven items and
+reached nine in a day, which reads as work going backwards. It was not: both additions were
+things already true and merely unmeasured, and two sub-items closed inside what is now item 2.
+But four separate items named four symptoms of one cause, a corpus that is thin in places and
+the wrong shape in others, so they are now one item with four measured parts. Nothing was
+dropped, and item 1 was added because the largest caller-visible number in the project was
+recorded only in `CLAUDE.md` and in two strict xfails, and not here.
 
 ---
 
-## 1. `moderation` reads account access as intrusion
+## 1. `pii` removes text from ordinary business prose, on 16.2 percent of rows
+
+The largest caller-visible number in the project, and it was not on this list until 2026-08-18.
+`pii` is enabled in both shipped policies, so this is behaviour a caller gets by default rather
+than a figure in a report.
+
+Measured by `tests/test_ordinary_text_sweep.py` over 234 ordinary rows in 26 languages, running
+the whole shipped configuration on both sides:
+
+| | |
+|---|---|
+| rows where something is blocked or redacted | **0.162** |
+| `pii` fires | 0.261 against a 0.25 ceiling |
+| block or redact findings | 109 over 234 rows |
+| leaked tokens | **0**, on every measurement to date |
+
+The last row is what keeps this an over-redaction problem rather than a disclosure. Nothing
+sensitive reaches a caller unredacted; the cost is text a caller wanted, removed.
+
+**It was 0.756 on 2026-08-16 and the drop to 0.162 was three changes in a day**, none of them a
+stoplist: `date: flag` in `policies/default.yaml`, an ISO 13616 minimum length on the IBAN rule,
+and adopting the retrain that was already sitting in `artifacts_dates`. `person` went 0.581 to
+0.128 and `national_id` 0.064 to 0.017.
+
+**What remains is place names, and that is a different problem from the one that was fixed.**
+The calendar words are gone: `Friday` and `Maerz` are no longer people. The residue, read off
+the sweep:
+
+| what it tags | as | in |
+|---|---|---|
+| `Regensburg`, `Passau`, `Straubing`, `Plattling`, `Vilshofen` | `person` | a German rail timetable |
+| `Karlovo`, `Florenc`, `Fučíkovo`, `Stenløsevej`, `Midtjylland` | `person` | towns, districts, a street, a region |
+| `„Академик Пейо Яворов“` | `person` | a Bulgarian school named after the poet, so arguably right |
+| `800 123 456` | `phone` | a Czech freephone support line |
+
+**`piiguard` has seven entity types and none of them is LOCATION**: CARD, DATE, EMAIL, IBAN,
+NATIONAL_ID, PERSON, PHONE. So a place name has nowhere correct to go, and `PERSON` is the
+nearest thing to a proper noun the label set offers. That reframes the fix as a choice rather
+than a bug to squash:
+
+- **Toponyms as entity-free text in the corpus**, the same shape as the calendar-word fix that
+  worked. Cheapest, and it does not change the label set or the policy surface.
+- **A LOCATION type.** Arguably more correct, since a street in a delivery notice really is
+  personal data in context, and it would let a policy decide. It is a new entity type, so it is
+  policy-visible and a bigger decision than a corpus change.
+
+- **Where**: `tests/test_ordinary_text_sweep.py`, two strict xfails carrying the numbers, split
+  from the enforcing test so a `toxicity` or `nsfw` regression still fails something.
+- **Not a stoplist.** `entity_shapes.py` refuses to drop a span, and the reason holds: a person
+  really can be called April or Regensburg, and turning a visible over-redaction into an
+  invisible hole is the wrong trade in a redactor.
+- **The Czech freephone row is its own question**: whether a company's published support line is
+  personal data at all. That is a taxonomy decision, not a model error.
+
+## 2. The corpora, four measured gaps and one generation campaign
+
+These were items 1, 2, 5 and 6 until 2026-08-18. They are one item because they are one cause:
+a corpus that is thin in places and the wrong shape in others. Every part needs the generation
+endpoint, so they queue rather than compete, and a single campaign addresses all four.
+
+The four, ordered by what a caller would notice:
+
+### `moderation` reads account access as intrusion
 
 **Fires on 5 of 12 ordinary support questions**, at 0.90 to 0.98. Four account-access
 questions read as `cyber_intrusion`, including "How do I reset my password?" at 0.97, and
@@ -28,7 +98,7 @@ registers are informational, operational and transactional prose.
 - **Meanwhile**: disabled in both shipped policies, with the measurement in the policy
   comment.
 
-## 2. `moderation`'s verification pass disagrees with itself in three different ways
+### The verification pass disagrees with itself in three different ways
 
 29,812 rows checked against a local `gpt-oss-safeguard:20b`. `border_train.read_disagreements`
 classifies every row against the full verdict store rather than the report's 500-row sample:
@@ -107,46 +177,7 @@ The verifier deliberately edits nothing, so the disagreement list is the artifac
 it is the work. The report's own `disagreements` list is a 500-row stratified sample, so its
 shares are within that sample; the table above is corpus totals from the full store.
 
-## 3. `injection` still reads one imperative as an override
-
-**1 of 12 ordinary support questions**, down from 7 of 12 in 0.1.0. The survivor is "Please
-cancel my subscription." at `direct_injection` 0.9775, and it scores the same at 0.43 and at
-0.95, so no threshold reaches it.
-
-An imperative request to act on an account looks on the surface like an instruction
-override, and the corpus has almost nothing of the shape: **2 rows of 35,025** match
-account-access phrasing.
-
-- **Where**: `tests/test_support_questions.py`, strict xfail.
-- **Fix**: the same account-access benign register as issue 1, so the two should be done
-  together.
-
-## 4. `groundedness` is published, disabled, and one call in four is wrong
-
-0.7381 on 42 hand-written probes with the rule layer in front, against 0.9471 on the
-generator's own held-out split. Both are real and the gap is the point.
-
-It was published because it is the only one of seven candidates whose verdict depends on the
-source: 0.7681 against a source that contradicts the candidate, 0.0070 against an unrelated
-passage, 0.8365 against one that states it, where the best three-way candidate answered
-0.9991, 0.9994 and 0.0007 and was therefore inverted and source-blind.
-
-Two corpus registers are the route to adoptable, and neither exists:
-
-- **`unit_conversion`**: `24 months` against `two years`. Values match only after a
-  conversion, which is why digitising the probes does not fix them. This is the only
-  surviving hypothesis for the `paraphrase_support` failure, 1 of 6, after four others were
-  eliminated by measurement.
-- **`temporal_replacement`**: the shape of the blocking probe. 3,888 existing sources
-  already carry both a time expression and a condition word, about 150 per language, so this
-  register needs no new sources.
-
-Known weakness meanwhile: false `not_grounded` on claims weaker than their source, 0.8625 on
-the clearest case. Safe direction for a guardrail, still a cost, hence disabled.
-
-- **Design**: `docs/groundedness-redesign.md` in the training repository.
-
-## 5. Three detectors rest on fewer than 20 test positives per language
+### Three detectors rest on fewer than 20 test positives per language
 
 Counted per language in the test split, because that is what a per-language F1 rests on.
 `toxicity` set the bar at 19 to 20 when it came off this list on 2026-08-14, and three
@@ -179,14 +210,14 @@ it must not be quoted as a score.
 
 The diagnosis is unchanged and is in fact what the spread demonstrates: 10 positives cannot
 support a per-language figure. What changed is that the number naming the problem cannot be
-used to state it. See `reports/SEED_CONTROL.md` and issue 7.
+used to state it. See `reports/SEED_CONTROL.md` and issue 5.
 
 - **Where**: `data/{nsfw,gibberish,politeness}_test.jsonl`, counted by `labels` being non-empty.
 - **Fix**: regenerate all three at the density `toxicity` and `bias` now have, then retrain.
   Needs the generation endpoint, so it queues behind the groundedness corpus.
 - **Not a fix**: reading the minima as ceilings. Reach for the corpus before the architecture.
 
-## 6. `pii` frames still need regenerating with varied surfaces
+### `pii` frames still need regenerating with varied surfaces
 
 Frame is what the label actually depends on: `CARD` scored 100% in the generator's own
 template, 32.5% with the neighbouring IBAN clause removed, and 18.3% in a sentence the
@@ -213,7 +244,46 @@ correctly. One written Finnish date exists across the 26,455 rows of `pii_frames
   typed F1 0.0000 with every gold span missed on held-out frames, and a multi-token date is
   the thing it had never seen.
 
-## 7. No retrain delta in this project has a measured noise floor
+## 3. `injection` still reads one imperative as an override
+
+**1 of 12 ordinary support questions**, down from 7 of 12 in 0.1.0. The survivor is "Please
+cancel my subscription." at `direct_injection` 0.9775, and it scores the same at 0.43 and at
+0.95, so no threshold reaches it.
+
+An imperative request to act on an account looks on the surface like an instruction
+override, and the corpus has almost nothing of the shape: **2 rows of 35,025** match
+account-access phrasing.
+
+- **Where**: `tests/test_support_questions.py`, strict xfail.
+- **Fix**: the same account-access benign register as item 2's first part, so the two should be done
+  together.
+
+## 4. `groundedness` is published, disabled, and one call in four is wrong
+
+0.7381 on 42 hand-written probes with the rule layer in front, against 0.9471 on the
+generator's own held-out split. Both are real and the gap is the point.
+
+It was published because it is the only one of seven candidates whose verdict depends on the
+source: 0.7681 against a source that contradicts the candidate, 0.0070 against an unrelated
+passage, 0.8365 against one that states it, where the best three-way candidate answered
+0.9991, 0.9994 and 0.0007 and was therefore inverted and source-blind.
+
+Two corpus registers are the route to adoptable, and neither exists:
+
+- **`unit_conversion`**: `24 months` against `two years`. Values match only after a
+  conversion, which is why digitising the probes does not fix them. This is the only
+  surviving hypothesis for the `paraphrase_support` failure, 1 of 6, after four others were
+  eliminated by measurement.
+- **`temporal_replacement`**: the shape of the blocking probe. 3,888 existing sources
+  already carry both a time expression and a condition word, about 150 per language, so this
+  register needs no new sources.
+
+Known weakness meanwhile: false `not_grounded` on claims weaker than their source, 0.8625 on
+the clearest case. Safe direction for a guardrail, still a cost, hence disabled.
+
+- **Design**: `docs/groundedness-redesign.md` in the training repository.
+
+## 5. No retrain delta in this project has a measured noise floor
 
 A seed control was run for the first time on 2026-08-18: the same `moderation` corpus, the
 same hyperparameters, seed 42 against seed 1337. Per-label F1 moved by a mean of 0.0073 and a
@@ -254,7 +324,7 @@ Thirteen times wider on the widest cell. Two further consequences, both concrete
   differ by an order of magnitude across detectors, so re-measure per detector rather than
   reusing 0.0188 or 0.3294.
 
-## 8. Four published models cannot be re-verified against a stricter export gate
+## 6. Four published models cannot be re-verified against a stricter export gate
 
 Re-checking a quantised export needs both halves, fp32 and quantised. `CLAUDE.md` already
 records this for `groundedness`: "an artifact whose fp32 is gone cannot be re-verified when the
@@ -282,14 +352,15 @@ drift was added.
 - **Where**: `artifacts_local/<detector>-full/model.safetensors`, and `registry.MODELS` for
   what is published.
 - **Fix, three of the four for free**: `gibberish` and `politeness` are on the retrain list in
-  issue 5 and `moderation` on the one in issue 1, and a retrain writes both halves. `topic_scope`
+  item 2 and `moderation` on the one beside it, and a retrain writes both halves. `topic_scope`
   is on no list and is the one that needs a deliberate decision.
 - **Then keep them.** A run writes `model.safetensors` and `run.json` at the artifact root
   today, so this is a retention habit rather than a code gap. About 1 GB per model.
 
-## 9. Local `.git` still holds the pre-rewrite objects
+## 7. Local `.git` still holds the pre-rewrite objects
 
-Minor, and the only remnant of what was issue 7. The training repository now has a private
+Minor, and the only remnant of the repository-and-remote item this list opened with. The
+training repository now has a private
 remote at `flowx-ai/border-training`, 117 commits, and a fresh clone is 60 MB.
 
 Getting there meant stripping committed model weights from history: `.git` had reached 15 GB
