@@ -6,7 +6,7 @@ a wish list.
 
 Ordered by what a caller would notice first, not by effort.
 
-Last reviewed 2026-08-18, at `flowx-border` 0.2.0.
+Last reviewed 2026-08-18, at `flowx-border` 0.2.0. Six open, one closed.
 
 ---
 
@@ -28,14 +28,38 @@ registers are informational, operational and transactional prose.
 - **Meanwhile**: disabled in both shipped policies, with the measurement in the policy
   comment.
 
-## 2. `moderation` has two labels whose positives came back empty
+## 2. `moderation`'s verification pass disagrees with itself in two different ways
 
-`election_integrity` and `defamation` returned empty positives in the verification pass, 78
-and 60 rows in the stratified sample. A label that trains on nothing is a label the detector
-cannot report, and the aggregate does not show it.
+29,812 rows checked against a local `gpt-oss-safeguard:20b`, overall agreement 0.8598. The
+aggregate hides two separate failures, and this issue described only the smaller one until
+2026-08-18.
 
-- **Fix**: regenerate those two labels and re-verify before trusting any per-label figure
-  for them.
+**The checker almost never confirms `extremism`.** Per-label agreement, from
+`reports/moderation_verification.json`:
+
+| label | agree | differ | agreement |
+|---|---|---|---|
+| `extremism` | 54 | 1,285 | **0.040** |
+| `sexual_exploitation` | 547 | 790 | 0.409 |
+| `violent_facilitation` | 733 | 619 | 0.542 |
+| `election_integrity` | 1,194 | 158 | 0.883 |
+| `defamation` | 1,249 | 103 | 0.924 |
+
+Only 9 of `extremism`'s 221 recorded disagreements are the checker returning nothing, so it is
+not failing to see anything: it is naming something else. That is a taxonomy question rather
+than a corpus one. Our 13 labels are ours, the checker reads a policy given at inference, and
+where the two carve the space differently the disagreement is the mapping and not the row.
+Worth resolving before any `extremism` figure is published, because a label the verifier and
+the generator do not agree on is a label neither of them is measuring.
+
+**`election_integrity` and `defamation` do have the empty-positives problem**, and it is the
+opposite shape: 78 of 108 and 60 of 72 of their recorded disagreements are rows the generator
+labelled and the checker read as carrying nothing. 1,819 rows corpus-wide are positives called
+empty. Those are the ones to regenerate.
+
+The verifier deliberately edits nothing, so the disagreement list is the artifact and reading
+it is the work. Note that the recorded list is a 500-row stratified sample of the
+disagreements, so the counts above are shares within it and not corpus totals.
 
 ## 3. `injection` still reads one imperative as an override
 
@@ -96,36 +120,27 @@ list on 2026-08-14 at 197 to 209 positives per language.
   three. A tagger that has never seen a multi-token date cannot emit a multi-token span.
 - **Greek and Bulgarian person names in their own script.**
 
-## 7. The training repository has no off-machine copy
+## 7. Local `.git` still holds the pre-rewrite objects
 
-112 commits, and the findings in them cost GPU runs to establish. **The obstacle is not the
-69 GB on disk.**
+Minor, and the only remnant of what was issue 7. The training repository now has a private
+remote at `flowx-ai/border-training`, 117 commits, and a fresh clone is 60 MB.
 
-| | |
-|---|---|
-| repository total | 69 G |
-| `.git` | 15 G |
-| `artifacts_local`, mostly untracked | 41 G |
-| files git tracks | 4.8 G |
+Getting there meant stripping committed model weights from history: `.git` had reached 15 GB
+because `exports/piiguard/model.onnx` at 1,058 MB was committed twice, and GitHub rejects any
+file over 100 MB, so the repository could not have had a remote at all. Nothing was lost,
+because every one of those weights is published on Hugging Face and pinned by revision and
+sha256, which says which bytes ran where a git blob only says somebody committed a file.
 
-`.git` is 15 G because model weights were committed: `exports/piiguard/model.onnx` at 1,058
-MB, twice, plus safetensors of the same size. GitHub rejects any file over 100 MB, so a push
-fails on those blobs regardless of the artifact directory.
+What remains is housekeeping. The local `.git` is still 15 GB: the old objects are unreachable
+but retained via the reflog, deliberately, as the undo path for the rewrite. Once nobody wants
+that undo:
 
-Three routes, and the weights are all on Hugging Face now, so none of them loses anything
-that is not already published:
+```sh
+git reflog expire --expire=now --all && git gc --prune=now
+```
 
-1. **Rewrite history** to drop `exports/` and `*.safetensors`, then push. Keeps all 112
-   commits. Invasive, and the commits are the valuable part, so this is the one worth doing
-   properly rather than quickly.
-2. **A fresh repository from the current tree.** Cheap, and loses the history, which is the
-   only thing worth backing up.
-3. **A non-git copy** to a bucket. Cheapest risk reduction today, needs no decision about
-   history, and does not give code review or diffs.
-
-Until one of these happens, one disk failure loses the record of what was tried and why.
-
----
+`artifacts_local/` is about 41 GB on disk, untracked, and some candidates there are the only
+copy, so never `git clean -fdx` in that repository.
 
 ## Closed while writing this
 
