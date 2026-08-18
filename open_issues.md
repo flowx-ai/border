@@ -100,14 +100,39 @@ the clearest case. Safe direction for a guardrail, still a cost, hence disabled.
 
 - **Design**: `docs/groundedness-redesign.md` in the training repository.
 
-## 5. Three detectors rest on single-digit per-language positives
+## 5. Three detectors rest on fewer than 20 test positives per language
 
-`politeness`, `bias` and `gibberish`. Read their per-language scores as understated rather
-than as ceilings, and reach for the corpus before the architecture.
+Counted per language in the test split, because that is what a per-language F1 rests on.
+`toxicity` set the bar at 19 to 20 when it came off this list on 2026-08-14, and three
+detectors are still below it:
 
-The precedent: `nsfw` Maltese went from 0.000 to 1.000 on corpus size alone, after this
-project had blamed the base model's pretraining in three places. `toxicity` came off this
-list on 2026-08-14 at 197 to 209 positives per language.
+| detector | test positives per language | mean F1 | worst language | languages under 0.90 |
+|---|---|---|---|---|
+| `nsfw` | **9 to 10** | 0.9337 | `mt` 0.600 | 4 of 26 |
+| `gibberish` | **9 to 12** | 0.9664 | `cs` 0.8696 | 1 of 26 |
+| `politeness` | **15 to 16** | 0.9619 | `ga` 0.7879 | 2 of 26 |
+| `toxicity` | 19 to 20 | 0.9915 | `sv` 0.9500 | 0 of 26 |
+| `regulated_advice` | 23 to 24 | not scored here | | |
+| `injection` | 40 to 42 | 0.9891 | `mt` 0.8817 | 1 of 26 |
+| `moderation` | 58 to 60 | not scored here | | |
+| `bias` | 76 to 80 | 0.9826 | `mt` 0.9419 | 0 of 26 |
+
+**This issue named `bias` and omitted `nsfw` until 2026-08-18, and both halves of that were
+wrong.** `bias` was retrained on the v2 corpus, 36,407 rows at 606 to 621 train positives per
+language, and its thinnest language now carries 76 test positives. `nsfw` was left off because
+its false-positive problem was fixed and its sample size was never separately tracked, so the
+thinnest corpus in the set is the one this list did not mention. `CLAUDE.md` carried a third
+version of the list naming `injection`, which has 40 to 42.
+
+The figure worth acting on is `nsfw` Maltese: **0.600 on 10 test positives**, where one item
+moves the score by 10 points. That is the same cell that went 0.000 to 1.000 on corpus size
+alone in August after this project had blamed the base model's pretraining in three places, so
+the 0.600 is as likely to be the sample as the language.
+
+- **Where**: `data/{nsfw,gibberish,politeness}_test.jsonl`, counted by `labels` being non-empty.
+- **Fix**: regenerate all three at the density `toxicity` and `bias` now have, then retrain.
+  Needs the generation endpoint, so it queues behind the groundedness corpus.
+- **Not a fix**: reading the minima as ceilings. Reach for the corpus before the architecture.
 
 ## 6. `pii` frames, and two data files the generator needs
 
