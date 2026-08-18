@@ -124,6 +124,12 @@ Not every catalogued detector runs on a fresh install. `docs/detectors.md` is ge
 from the code and says which, and the numbers in `docs/reference/performance.md` come
 from `benchmarks/collect.py`.
 
+## Known issues
+
+[open_issues.md](open_issues.md) lists what is measured, unfixed and why, with the
+number attached to each. Four detectors have documented false positives on ordinary
+text, and two of them are disabled in the shipped policies for that reason.
+
 ## Contributing
 
 [CONTRIBUTING.md](CONTRIBUTING.md) has the setup, the test markers and what a change has

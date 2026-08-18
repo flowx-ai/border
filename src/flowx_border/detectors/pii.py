@@ -57,7 +57,7 @@ Linear in tokens *within a window*, and a step at each window boundary. This sai
 what the cost does. A window holds `trained_max_length - 2` content tokens, 94 here,
 because every window is wrapped in bos and eos. So 94 tokens is one forward pass at
 161.60 ms and 95 is two at 198.53: a step of 36.93 ms for one more token, measured
-2026-08-14 and reproducible. Inside a window the slope is 1.636 ms/token; averaged
+2026-08-14 and reproducible. Inside a window the slope is 1.663 ms/token; averaged
 across the boundary it reads 2.011, which is that second pass reported as per-token
 cost.
 
