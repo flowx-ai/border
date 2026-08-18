@@ -6,7 +6,7 @@ a wish list.
 
 Ordered by what a caller would notice first, not by effort.
 
-Last reviewed 2026-08-18, at `flowx-border` 0.2.0. Six open, one closed.
+Last reviewed 2026-08-18, at `flowx-border` 0.2.1. Six open, one closed.
 
 ---
 
@@ -28,10 +28,25 @@ registers are informational, operational and transactional prose.
 - **Meanwhile**: disabled in both shipped policies, with the measurement in the policy
   comment.
 
-## 2. `moderation`'s verification pass disagrees with itself in two different ways
+## 2. `moderation`'s verification pass disagrees with itself in three different ways
 
-29,812 rows checked against a local `gpt-oss-safeguard:20b`, overall agreement 0.8598. The
-aggregate hides two separate failures, and this issue described only the smaller one until
+29,812 rows checked against a local `gpt-oss-safeguard:20b`. `border_train.read_disagreements`
+classifies every row against the full verdict store rather than the report's 500-row sample:
+
+| kind | rows | share | what it costs |
+|---|---|---|---|
+| agree | 25,901 | 0.8688 | |
+| `label_replaced` | 1,898 | 0.0637 | a training signal, and a reader has to settle each one |
+| `positive_called_empty` | 1,819 | 0.0610 | a hazard label on text that carries no hazard |
+| `negative_given_a_label` | **183** | 0.0061 | **a hazard in the corpus as benign** |
+| `label_added` | 11 | 0.0004 | nothing, these were applied |
+
+Agreement reads 0.8688 here against the 0.8598 in
+`reports/moderation_verification.json`, a difference of exactly 268 rows, which is
+`rows_enriched` in `reports/moderation_enrichment.json`. The report is a snapshot from before
+those enrichments and the module recomputes against the corpus as it stands.
+
+Only the third kind is a safety question, and it is the one this issue did not mention until
 2026-08-18.
 
 **The checker almost never confirms `extremism`.** Per-label agreement, from
@@ -57,9 +72,40 @@ opposite shape: 78 of 108 and 60 of 72 of their recorded disagreements are rows 
 labelled and the checker read as carrying nothing. 1,819 rows corpus-wide are positives called
 empty. Those are the ones to regenerate.
 
+**The 183 rows the checker calls hazardous and the corpus calls benign are a definitional
+split, not a checker error.** 74 of them sit in a `mundane_*` register, the generator's own
+name for plainly benign prose, and 64 of those 74 are `fraud_deception`. The rows are
+phishing-shaped: a security-update pretext with a same-day deadline and a `ResetPassword.it`
+lookalike domain, a utility notice closing with "to avoid service interruption" and a phone
+number, a plaintext server-room password. Ordinary transactional prose and a phishing lure
+have the same surface form, so a register that asks for one produces the other.
+
+The generator says which definition it applied, in its own `why` field: `keine Hilfsanfrage`,
+`nessuna richiesta di aiuto`, `pas de demande d'aide`. It labels by whether the text **asks
+for help with** a hazard, and 1,934 of 6,227 mundane rows justify themselves that way, so it
+is the operative rule rather than an aside. `docs/moderation-taxonomy-proposal.md` defines
+`fraud_deception` as "scams, phishing, social engineering, forged documents, money
+laundering", which is a statement about content, and the checker reads it that way.
+
+The library settles which reading has to hold. `moderation` declares `sides` of input and
+output, and on the output side "does this ask for help" is not a coherent question, because an
+LLM's output is not a request. So the generator's rule cannot be right for half of what the
+detector does, and the 74 rows are corpus errors under the only reading that covers both
+sides.
+
+- **Where**: `uv run python -m border_train.read_disagreements --dump rows.json` in the
+  training repo, which reads `reports/moderation_verify.gpt-oss-safeguard-20b.jsonl`.
+- **Fix**: the mundane registers need a spec that forbids the phishing surface form, since
+  asking for ordinary transactional prose is what produced it. The `*_near_miss` half of the
+  183, 109 rows, is expected behaviour for a register whose job is to sit near the boundary
+  and is a lower priority than the 74.
+- **Owner decision, the same one `extremism` needs**: whether these 13 labels are about what
+  a text contains or about what it asks for. Both halves of the corpus assume an answer and
+  they assume different ones.
+
 The verifier deliberately edits nothing, so the disagreement list is the artifact and reading
-it is the work. Note that the recorded list is a 500-row stratified sample of the
-disagreements, so the counts above are shares within it and not corpus totals.
+it is the work. The report's own `disagreements` list is a 500-row stratified sample, so its
+shares are within that sample; the table above is corpus totals from the full store.
 
 ## 3. `injection` still reads one imperative as an override
 
