@@ -387,13 +387,13 @@
       "caveats": [],
       "in_core": true,
       "metrics": null,
+      "metrics_note": "no evaluation artifact was available at collection time. A rules-based detector has none by nature; a model-backed one missing this is a gap.",
       "requires": {},
       "sides": [
         "output"
       ],
-      "status": "not built",
-      "tier": "T3",
-      "why_not_built": "weights are not published yet and no local override provides them"
+      "status": "built",
+      "tier": "T3"
     },
     "injection": {
       "budget_ms": 225.0,
@@ -403,149 +403,149 @@
         "best": 1.0,
         "languages_evaluated": 26,
         "languages_without_a_count": [],
-        "macro": 0.9703,
-        "median": 0.9828,
+        "macro": 0.9855,
+        "median": 0.9882,
         "metric": "f1",
         "n_means": "positive examples",
         "per_language": {
           "az": {
-            "n": 14,
-            "n_evaluated": 44,
-            "score": 0.963
+            "n": 42,
+            "n_evaluated": 167,
+            "score": 1.0
           },
           "bg": {
-            "n": 13,
-            "n_evaluated": 43,
+            "n": 41,
+            "n_evaluated": 165,
             "score": 1.0
           },
           "cs": {
-            "n": 13,
-            "n_evaluated": 43,
-            "score": 0.96
+            "n": 42,
+            "n_evaluated": 167,
+            "score": 0.9767
           },
           "da": {
-            "n": 14,
-            "n_evaluated": 44,
-            "score": 0.9655
+            "n": 41,
+            "n_evaluated": 166,
+            "score": 0.988
           },
           "de": {
-            "n": 14,
-            "n_evaluated": 44,
-            "score": 0.9655
+            "n": 42,
+            "n_evaluated": 167,
+            "score": 1.0
           },
           "el": {
-            "n": 14,
-            "n_evaluated": 44,
+            "n": 42,
+            "n_evaluated": 166,
             "score": 1.0
           },
           "en": {
-            "n": 14,
-            "n_evaluated": 44,
-            "score": 0.9655
+            "n": 41,
+            "n_evaluated": 166,
+            "score": 0.988
           },
           "es": {
-            "n": 12,
-            "n_evaluated": 42,
+            "n": 40,
+            "n_evaluated": 165,
             "score": 1.0
           },
           "et": {
-            "n": 14,
-            "n_evaluated": 44,
-            "score": 0.9655
+            "n": 41,
+            "n_evaluated": 166,
+            "score": 1.0
           },
           "fi": {
-            "n": 14,
-            "n_evaluated": 44,
-            "score": 0.9655
+            "n": 42,
+            "n_evaluated": 167,
+            "score": 1.0
           },
           "fr": {
-            "n": 13,
-            "n_evaluated": 43,
-            "score": 0.9231
+            "n": 41,
+            "n_evaluated": 166,
+            "score": 0.9877
           },
           "ga": {
-            "n": 14,
-            "n_evaluated": 44,
-            "score": 1.0
+            "n": 42,
+            "n_evaluated": 167,
+            "score": 0.9762
           },
           "hr": {
-            "n": 13,
-            "n_evaluated": 43,
-            "score": 1.0
+            "n": 42,
+            "n_evaluated": 167,
+            "score": 0.9767
           },
           "hu": {
-            "n": 14,
-            "n_evaluated": 44,
-            "score": 1.0
+            "n": 42,
+            "n_evaluated": 167,
+            "score": 0.9767
           },
           "it": {
-            "n": 14,
-            "n_evaluated": 44,
+            "n": 42,
+            "n_evaluated": 167,
             "score": 1.0
           },
           "lt": {
-            "n": 13,
-            "n_evaluated": 43,
+            "n": 42,
+            "n_evaluated": 167,
             "score": 1.0
           },
           "lv": {
-            "n": 14,
-            "n_evaluated": 44,
-            "score": 1.0
+            "n": 41,
+            "n_evaluated": 166,
+            "score": 0.988
           },
           "mt": {
-            "n": 14,
-            "n_evaluated": 44,
+            "n": 42,
+            "n_evaluated": 167,
             "notes": [
               "absent from the base model's pretraining corpus, which is worth knowing but has not been shown to bound the score: nsfw went from 0.000 to 1.000 here on more examples"
             ],
-            "score": 0.7273
+            "score": 0.8367
           },
           "nl": {
-            "n": 14,
-            "n_evaluated": 44,
-            "score": 1.0
+            "n": 41,
+            "n_evaluated": 166,
+            "score": 0.988
           },
           "pl": {
-            "n": 14,
-            "n_evaluated": 44,
+            "n": 41,
+            "n_evaluated": 166,
             "score": 1.0
           },
           "pt": {
-            "n": 14,
-            "n_evaluated": 44,
-            "score": 0.9333
+            "n": 42,
+            "n_evaluated": 167,
+            "score": 0.9882
           },
           "ro": {
-            "n": 14,
-            "n_evaluated": 44,
-            "score": 0.9655
+            "n": 42,
+            "n_evaluated": 166,
+            "score": 0.9882
           },
           "sk": {
-            "n": 14,
-            "n_evaluated": 44,
-            "score": 0.963
-          },
-          "sl": {
-            "n": 14,
-            "n_evaluated": 44,
+            "n": 41,
+            "n_evaluated": 166,
             "score": 1.0
           },
+          "sl": {
+            "n": 42,
+            "n_evaluated": 167,
+            "score": 0.9882
+          },
           "sv": {
-            "n": 14,
-            "n_evaluated": 44,
+            "n": 41,
+            "n_evaluated": 166,
             "score": 1.0
           },
           "tr": {
-            "n": 14,
-            "n_evaluated": 44,
-            "score": 0.9655
+            "n": 42,
+            "n_evaluated": 167,
+            "score": 0.9767
           }
         },
-        "threshold": 0.19,
+        "threshold": 0.02,
         "threshold_chosen_by": "recall_at_fpr",
-        "total_examples": 357,
-        "worst": 0.7273
+        "total_examples": 1080,
+        "worst": 0.8367
       },
       "requires": {},
       "sides": [
@@ -628,15 +628,161 @@
       "budget_ms": 150.0,
       "caveats": [],
       "in_core": true,
-      "metrics": null,
+      "metrics": {
+        "best": 1.0,
+        "languages_evaluated": 26,
+        "languages_without_a_count": [],
+        "macro": 0.9919,
+        "median": 0.9917,
+        "metric": "f1",
+        "n_means": "positive examples",
+        "per_language": {
+          "az": {
+            "n": 60,
+            "n_evaluated": 108,
+            "score": 0.9831
+          },
+          "bg": {
+            "n": 60,
+            "n_evaluated": 108,
+            "score": 0.9831
+          },
+          "cs": {
+            "n": 60,
+            "n_evaluated": 108,
+            "score": 1.0
+          },
+          "da": {
+            "n": 60,
+            "n_evaluated": 108,
+            "score": 0.9916
+          },
+          "de": {
+            "n": 60,
+            "n_evaluated": 108,
+            "score": 0.9916
+          },
+          "el": {
+            "n": 60,
+            "n_evaluated": 108,
+            "score": 1.0
+          },
+          "en": {
+            "n": 59,
+            "n_evaluated": 107,
+            "score": 0.9916
+          },
+          "es": {
+            "n": 59,
+            "n_evaluated": 107,
+            "score": 0.9915
+          },
+          "et": {
+            "n": 60,
+            "n_evaluated": 108,
+            "score": 1.0
+          },
+          "fi": {
+            "n": 60,
+            "n_evaluated": 108,
+            "score": 1.0
+          },
+          "fr": {
+            "n": 59,
+            "n_evaluated": 107,
+            "score": 1.0
+          },
+          "ga": {
+            "n": 60,
+            "n_evaluated": 108,
+            "score": 0.9672
+          },
+          "hr": {
+            "n": 58,
+            "n_evaluated": 106,
+            "score": 0.9915
+          },
+          "hu": {
+            "n": 60,
+            "n_evaluated": 108,
+            "score": 1.0
+          },
+          "it": {
+            "n": 59,
+            "n_evaluated": 107,
+            "score": 1.0
+          },
+          "lt": {
+            "n": 60,
+            "n_evaluated": 107,
+            "score": 0.9917
+          },
+          "lv": {
+            "n": 60,
+            "n_evaluated": 108,
+            "score": 0.9831
+          },
+          "mt": {
+            "n": 59,
+            "n_evaluated": 107,
+            "notes": [
+              "absent from the base model's pretraining corpus, which is worth knowing but has not been shown to bound the score: nsfw went from 0.000 to 1.000 here on more examples"
+            ],
+            "score": 0.9655
+          },
+          "nl": {
+            "n": 60,
+            "n_evaluated": 108,
+            "score": 0.9916
+          },
+          "pl": {
+            "n": 60,
+            "n_evaluated": 108,
+            "score": 1.0
+          },
+          "pt": {
+            "n": 60,
+            "n_evaluated": 108,
+            "score": 0.9836
+          },
+          "ro": {
+            "n": 60,
+            "n_evaluated": 108,
+            "score": 1.0
+          },
+          "sk": {
+            "n": 60,
+            "n_evaluated": 108,
+            "score": 0.9916
+          },
+          "sl": {
+            "n": 59,
+            "n_evaluated": 107,
+            "score": 1.0
+          },
+          "sv": {
+            "n": 60,
+            "n_evaluated": 108,
+            "score": 1.0
+          },
+          "tr": {
+            "n": 60,
+            "n_evaluated": 108,
+            "score": 0.9917
+          }
+        },
+        "threshold": 0.84,
+        "threshold_chosen_by": "macro_f1",
+        "total_examples": 1552,
+        "worst": 0.9655
+      },
       "requires": {},
       "sides": [
         "input",
         "output"
       ],
-      "status": "not built",
-      "tier": "T2",
-      "why_not_built": "weights are not published yet and no local override provides them"
+      "status": "built",
+      "tier": "T2"
     },
     "nsfw": {
       "budget_ms": 225.0,
@@ -1653,92 +1799,97 @@
   "latency": {
     "per_detector_ms": {
       "banned_terms": {
-        "p95": 0.168
+        "p95": 0.159
       },
       "bias": {
-        "p95": 21.327
+        "p95": 18.629
       },
       "code_present": {
-        "p95": 0.009
+        "p95": 0.008
       },
       "disclosure": {
-        "p95": 0.038
+        "p95": 0.028
       },
       "encoded_payload": {
-        "describes": "the reference input has no encoded run in it, so this times the candidate scan and the two whole-text transforms and never reaches a decode. That is the common case; a text carrying a blob pays one bounded decode more.",
-        "p95": 0.205
+        "p95": 0.192
       },
       "gibberish": {
-        "p95": 27.528
+        "p95": 26.283
+      },
+      "groundedness": {
+        "error": "flowxai/groundedness is not in the local cache and the hub is unreachable because HF_HUB_OFFLINE is set.\n  repo      flo"
       },
       "injection": {
-        "p95": 27.622
+        "p95": 18.481
       },
       "internal_domains": {
-        "p95": 0.234
+        "p95": 0.16
       },
       "invisible_text": {
-        "p95": 0.038
+        "p95": 0.026
       },
       "json_schema": {
         "p95": 0.001
       },
       "language_id": {
-        "p95": 0.362
+        "p95": 0.222
       },
       "markup_injection": {
-        "p95": 0.239
+        "p95": 0.17
+      },
+      "moderation": {
+        "p95": 18.476
       },
       "nsfw": {
-        "p95": 27.544
+        "p95": 18.478
       },
       "output_format": {
         "p95": 0.001
       },
       "output_leakage": {
-        "p95": 27.991
+        "p95": 23.122
       },
       "pii": {
-        "p95": 27.636
+        "p95": 23.161
       },
       "politeness": {
-        "p95": 30.319
+        "error": "flowxai/politeness is not in the local cache and the hub is unreachable because HF_HUB_OFFLINE is set.\n  repo      flowx"
       },
       "postal_code": {
-        "p95": 0.002
+        "p95": 0.001
       },
       "regulated_advice": {
-        "p95": 30.43
+        "p95": 18.53
       },
       "repetition": {
-        "p95": 0.497
+        "p95": 0.297
       },
       "secrets": {
-        "p95": 0.048
+        "p95": 0.029
       },
       "sql_injection": {
-        "p95": 0.238
+        "p95": 0.144
       },
       "summary_support": {
-        "p95": 0.921
+        "p95": 0.562
       },
       "system_prompt_leakage": {
         "describes": "the path where the detector reported leakage_unverifiable rather than the path where it does its work, because the reference configuration does not give it what it needs",
-        "p95": 0.318
+        "p95": 0.193
       },
       "token_limit": {
         "describes": "the path where the detector reported token_limit_unconfigured rather than the path where it does its work, because the reference configuration does not give it what it needs",
         "p95": 0.001
       },
       "topic_scope": {
-        "p95": 46.298
+        "error": "flowxai/topic-scope is not in the local cache and the hub is unreachable because HF_HUB_OFFLINE is set.\n  repo      flow"
       },
       "toxicity": {
-        "p95": 27.224
+        "p95": 18.746
       },
       "url_reachability": {
         "describes": "the path where there was nothing to fetch. The reference input contains no URLs, and the suite blocks outbound connections, so this figure excludes the request that is the whole cost of the detector. Its budget is a deadline it enforces on itself rather than a measurement, because it depends on a network the library does not control",
-        "p95": 0.007
+        "p95": 0.005
       }
     },
     "provider": "CPUExecutionProvider",

@@ -208,18 +208,45 @@ MODELS: Final[dict[str, ModelSpec]] = {
     "injection": ModelSpec(
         model_id="flowxai/injection",
         repo="flowxai/injection",
-        revision="e837ff99cb68909142f36d7eee4b177997e44cac",
+        # The v4 corpus retrain, published 2026-08-18. This pin moved because the old
+        # artifact scored well and was unusable at its own shipped setting: same
+        # architecture and hyperparameters, 9,325 train rows to 35,025, and 18 registers
+        # where the old corpus had no technical text and almost no imperative benign
+        # requests.
+        revision="2591da13fb79808e51f0069e59f686b1714a7bf8",
         filename="onnx/model.int8.onnx",
-        sha256="b360035204ffca5a5a534bc6dfd54979d0810879130e99752b4896117767fec6",
+        sha256="5e4efa126f83be40357424363517de1c296b74614953af6581f49551b152edfa",
         extra_files=("tokenizer.json", "config.json"),
         trained_max_length=96,
         trained_languages=frozenset(LANGUAGES),
         notes=(
-            "XLM-RoBERTa base, 3 labels. The v3 artifact, adopted for "
-            "firing on 0 of 20 mundane sentences where its predecessor "
-            "fired on 1, accepting a worse Maltese tail for that. Policy "
-            "threshold 0.43 sits deliberately above the calibrated 0.26. "
-            "Single-digit per-language positives."
+            "XLM-RoBERTa base, three independent labels: direct_injection, "
+            "indirect_injection, jailbreak. Held out at the shipped 0.43, per-label F1 "
+            "0.9737, 0.9710 and 0.9593 with FPR 0.0057, 0.0040 and 0.0085. Mean "
+            "per-language F1 0.9855, weakest mt 0.8367, then ga 0.9762 and cs 0.9767. "
+            "Corpus 43,679 examples, 28.1 percent attacks, 26 languages at 1,656 to "
+            "1,690 rows each. "
+            "What the retrain bought, measured through the shipped configuration: "
+            "ordinary support questions it fires on went from 7 of 12 to 1 of 12, and "
+            "technical identifiers from 4 of 4 to 0 of 4, while the three canonical "
+            "attacks are still caught. The old model read a bare UUID, a git commit "
+            "hash, a data URI and a sha256 digest as jailbreak or direct_injection, "
+            "and "
+            "read 'Someone is using my account, how do I lock it?' as direct_injection "
+            "at 0.98. Both came from one corpus property: every benign register was "
+            "conversational prose, so an imperative request and a high-entropy "
+            "identifier were equally out of distribution. "
+            "One residual, and it is a corpus gap rather than a threshold: 'Please "
+            "cancel my subscription.' reads direct_injection at 0.9775 and scores the "
+            "same at 0.43 and 0.95. Two rows of 35,025 match account-access phrasing, "
+            "so the fix is a benign register for it. "
+            "The calibrated 0.02 from this run is deliberately not adopted: its own "
+            "report flags it as the lowest value in the sweep, which compresses scores "
+            "toward zero, and macro F1 is 0.9671 even at 0.95, so the sweep is a "
+            "plateau "
+            "rather than a peak. A missed injection costs more than a review. "
+            "INT8 Gather-only: 0 of 300 decisions changed, probability drift p99 "
+            "0.00004, max 0.00767."
         ),
     ),
     "groundedness": ModelSpec(

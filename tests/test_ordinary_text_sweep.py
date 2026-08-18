@@ -109,7 +109,18 @@ KNOWN_OVER: dict[str, float] = {
 
 #: Labels that are a detector reporting it could not run, rather than a finding about
 #: the text. These are the third rule working and are counted separately.
-NON_FINDING = ("_unconfigured", "_unverifiable", "_no_source", "unknown", "uncertain")
+#: The label the engine records when a detector raises under `fail_mode: open`.
+#: Not in NON_FINDING on purpose: it must stop the sweep rather than be filtered
+#: out of it, because a sweep missing a detector is not a smaller sweep.
+DETECTOR_ERROR = "detector_error"
+
+NON_FINDING = (
+    "_unconfigured",
+    "_unverifiable",
+    "_no_source",
+    "unknown",
+    "uncertain",
+)
 
 
 def ordinary_rows() -> list[tuple[str, str]]:
@@ -152,13 +163,45 @@ def sweep() -> dict[str, object]:
     # shipped configuration does, so a partial configuration is not a smaller version of
     # it. Every model-backed detector is held back until release, so a fresh clone lands
     # here and is told what to set rather than left with a green run.
+    probe = "A parcel was delivered to the office this morning."
     try:
-        scan_output("A parcel was delivered to the office this morning.", policy)
+        scan_output(probe, policy)
     except DetectorUnavailableError as unavailable:
         pytest.skip(
             f"the default policy needs detectors this install cannot provide, so the "
             f"sweep would measure a subset and report it as the whole: {unavailable}. "
             "Point FLOWX_BORDER_MODEL_DIR at the artifact directory to run it."
+        )
+
+    # A detector that raised from `warm` does not reach the check above, because T1 and
+    # T2
+    # are `fail_mode: open` and the engine records the failure as a finding instead of
+    # letting it propagate. That finding then counts as a fire on every row, and the
+    # ceiling assertion reports it as a false positive rate of 1.000.
+    #
+    # Which is how "injection fires on 100 percent of ordinary text" was really "the
+    # registry pin moved ahead of the local model cache", on 2026-08-18. A load failure
+    # reported as a perfect false positive rate is worse than a crash: it names the
+    # wrong
+    # cause and the number looks like a measurement.
+    #
+    # Both sides, because a detector can be input-only: `injection` is, and the original
+    # probe only scanned output, so it saw nothing wrong.
+    broken = sorted(
+        {
+            finding.detector_id
+            for scan in (scan_input, scan_output)
+            for finding in scan(probe, policy).findings
+            if finding.label == DETECTOR_ERROR
+        }
+    )
+    if broken:
+        pytest.skip(
+            f"these detectors could not run and the engine recorded {DETECTOR_ERROR!r} "
+            f"for them: {', '.join(broken)}. The sweep would count that as firing on "
+            "every row. Usually the registry pins a revision this machine has not "
+            "fetched, so run a scan once with network access, or point "
+            "FLOWX_BORDER_MODEL_DIR at the artifact directory."
         )
 
     # Counted per row, not per finding. A product description naming four entities is
