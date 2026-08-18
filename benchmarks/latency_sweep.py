@@ -89,7 +89,7 @@ TOKEN_LENGTHS = (16, 32, 48, 64, 80, 87, 94, 95, 128)
 #: agreement is not the expectation and a small gap is not evidence of anything. A
 #: large one is.
 REFERENCE_TOKENS = 87
-REFERENCE_P95_MS = 27.6
+REFERENCE_P95_MS = 23.2
 REFERENCE_TOLERANCE = 0.10
 
 #: Thread counts for the scaling pass, measured at `REFERENCE_TOKENS`.

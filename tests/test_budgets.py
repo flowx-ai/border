@@ -23,9 +23,10 @@ machine-independent and they catch the regressions that actually matter: an acci
 quadratic windowing loop, a model loaded on the scan path, a T0 rule with catastrophic
 backtracking.
 
-**Absolute ceilings with headroom, always on.** 225 ms against a measured 153 ms is
-about 1.5 times, which survives a moderately slower runner and still catches a detector
-that got twice as slow. `FLOWX_BUDGET_SCALE` multiplies every ceiling for a runner known
+**Absolute ceilings with headroom, always on.** 225 ms against a measured 23 ms is
+roughly ten times, which is more headroom than the ceilings were set with: they were
+budgeted against the M3-era measurements and the M5 workstation with the loader fix is
+far faster. The decoration bound below is what keeps a ceiling honest either way. `FLOWX_BUDGET_SCALE` multiplies every ceiling for a runner known
 to be slower, so the honest response to slow hardware is a documented environment
 variable rather than a quietly loosened number.
 
@@ -68,22 +69,20 @@ REFERENCE_INPUT = (
     "sucursala din centru și aș dori câteva lămuriri suplimentare. "
 )
 
-#: Measured p95 on an Apple M-series laptop, one thread, CPU provider, INT8, 2026-08-11.
-#: Recorded so a future reading can be compared against the figures the budgets were set
-#: from, rather than only against the ceilings.
+#: Measured p95 on the Apple M5 Max workstation, one thread, CPU provider, 2026-08-18,
+#: from benchmarks/collect.py. Recorded so a future reading can be compared against a
+#: real prior measurement rather than only against the ceilings. Entries the latest
+#: collector run did not measure keep their previous figure and say so inline.
 MEASURED_MS = {
     "secrets": 0.04,
     "disclosure": 0.04,
     "invisible_text": 0.04,
-    # 153 rather than the 51 these two measured until 2026-08-12, and the cause is a
-    # correctness fix rather than a regression. piiguard's published INT8 was 266 MB and
-    # had never been checked against its own weights: measured on 120 texts it lost an
-    # entity on 13 of them, which is a hole in a redaction the caller cannot see.
-    # Re-exported with the Gather-only recipe the classifiers use, it loses none, and it
-    # is 533 MB and three times the latency. A PII redactor that silently misses an
-    # entity is worse than a slow one.
-    "pii": 153.0,
-    "output_leakage": 153.0,
+    # These two read 51 until 2026-08-12 (a withdrawn export that lost entities), 153
+    # after the span-safe re-export on the M3 laptop, and 23 now: the M5 workstation
+    # plus the loader fix that had been loading the wrong int8 paths. The history is
+    # kept because each move had a cause worth remembering, and none was a regression.
+    "pii": 23.2,
+    "output_leakage": 23.1,
     # The four ported from the Guardrails Hub, measured 2026-08-11 on the same machine
     # and the same reference input. All four are rules over folded text, so they cost
     # roughly what the T0 rules cost rather than what an encoder pass costs. The 5 ms
@@ -127,25 +126,22 @@ MEASURED_MS = {
     # token. A realistic statement is measured separately below, because a budget taken
     # only on the cheap path is not a budget.
     "sql_injection": 0.22,
-    # The seven sequence classifiers, measured 2026-08-11 on the same machine and input.
-    # Three times the cost of pii on the same base model at the same length, and the
-    # reason is the quantisation recipe rather than the head: INT8 over all ops changed
-    # 51 of 300 decisions, so the export quantises the embedding matrix only and leaves
-    # the encoder in fp32. That is 511 MB against piiguard's 266 and 151 ms against its
-    # 51. Recovering it means finding the op subset that quantises without moving a
-    # decision, which is queued on the training side.  One figure for all seven because
-    # they are the same base at the same length and the differences between them were
-    # inside the noise on a busy machine.
-    "injection": 151.0,
-    "regulated_advice": 151.0,
-    "toxicity": 151.0,
-    "nsfw": 151.0,
-    "bias": 151.0,
-    "gibberish": 151.0,
+    # The sequence classifiers, per detector now rather than one figure for all:
+    # on the M5 workstation the spread (18.5 to 26.3) is no longer inside the noise,
+    # and gibberish's longer tokenised inputs show. moderation joined the set with
+    # the 0.2.0 release.
+    "injection": 18.5,
+    "regulated_advice": 18.5,
+    "toxicity": 18.7,
+    "nsfw": 18.5,
+    "bias": 18.6,
+    "gibberish": 26.3,
+    # Not measured by the 2026-08-18 collector run; last measured 2026-08-11 on the
+    # M3 laptop. A figure from another machine is kept as a record, not a comparison.
     "politeness": 151.0,
-    # T3. Both at the reference input, which for groundedness is one sentence against
-    # one source, and for topic_scope is the three-node taxonomy in
-    # benchmarks/collect.py.
+    "moderation": 18.5,
+    # T3, neither measured by the 2026-08-18 run. groundedness's figure predates the
+    # adopted binary model entirely; both are records of the last measurement taken.
     "groundedness": 61.0,
     "topic_scope": 214.0,
 }
