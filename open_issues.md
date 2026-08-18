@@ -6,7 +6,7 @@ a wish list.
 
 Ordered by what a caller would notice first, not by effort.
 
-Last reviewed 2026-08-18, at `flowx-border` 0.2.1. Eight open, one closed.
+Last reviewed 2026-08-18, at `flowx-border` 0.2.1. Nine open, one closed.
 
 ---
 
@@ -254,7 +254,40 @@ Thirteen times wider on the widest cell. Two further consequences, both concrete
   differ by an order of magnitude across detectors, so re-measure per detector rather than
   reusing 0.0188 or 0.3294.
 
-## 8. Local `.git` still holds the pre-rewrite objects
+## 8. Four published models cannot be re-verified against a stricter export gate
+
+Re-checking a quantised export needs both halves, fp32 and quantised. `CLAUDE.md` already
+records this for `groundedness`: "an artifact whose fp32 is gone cannot be re-verified when the
+gate gets stricter, which is exactly when you want to." Audited against `registry.MODELS` on
+2026-08-18, it applies to four of the eleven published models.
+
+| | fp32 half | `run.json` |
+|---|---|---|
+| `bias`, `groundedness`, `piiguard` | kept | kept |
+| `nsfw`, `toxicity`, `regulated_advice`, `injection` | **recovered from the VM 2026-08-18** | 1 of 4 |
+| `gibberish`, `politeness`, `moderation`, `topic_scope` | **gone** | 1 of 4 |
+
+The four recovered were on `border-l4-x` and are now in `artifacts_local`, matched to the
+shipped model by identical per-language eval table rather than by directory name. That check
+mattered: `regulated_advice` had two candidates whose mean F1 differed by 0.0001, 0.9950 and
+0.9951, at different thresholds, so the mean could not pick between them and the table could.
+`nsfw` also looked absent on a first pass because the audit guessed the directory name and
+`groundedness` looked absent for the same reason.
+
+The four that are gone were trained on a VM that no longer exists. Each still has its
+`export_manifest.json`, so what the gate measured at the time is on record; what cannot be done
+is running a stricter gate. The gate did get stricter once, on 2026-08-15, when p99 probability
+drift was added.
+
+- **Where**: `artifacts_local/<detector>-full/model.safetensors`, and `registry.MODELS` for
+  what is published.
+- **Fix, three of the four for free**: `gibberish` and `politeness` are on the retrain list in
+  issue 5 and `moderation` on the one in issue 1, and a retrain writes both halves. `topic_scope`
+  is on no list and is the one that needs a deliberate decision.
+- **Then keep them.** A run writes `model.safetensors` and `run.json` at the artifact root
+  today, so this is a retention habit rather than a code gap. About 1 GB per model.
+
+## 9. Local `.git` still holds the pre-rewrite objects
 
 Minor, and the only remnant of what was issue 7. The training repository now has a private
 remote at `flowx-ai/border-training`, 117 commits, and a fresh clone is 60 MB.
