@@ -170,10 +170,16 @@ its false-positive problem was fixed and its sample size was never separately tr
 thinnest corpus in the set is the one this list did not mention. `CLAUDE.md` carried a third
 version of the list naming `injection`, which has 40 to 42.
 
-The figure worth acting on is `nsfw` Maltese: **0.600 on 10 test positives**, where one item
-moves the score by 10 points. That is the same cell that went 0.000 to 1.000 on corpus size
-alone in August after this project had blamed the base model's pretraining in three places, so
-the 0.600 is as likely to be the sample as the language.
+**The `nsfw` Maltese cell was measured on 2026-08-18 and it is worse than thin, it is
+unstable.** Two runs on the identical corpus at seeds 42 and 1337 read Maltese as **0.8000 and
+0.4706**, a spread of 0.3294 on those 10 test positives, with the shipped model's 0.6000
+between them. This paragraph called 0.600 "the figure worth acting on" and said one item moves
+it by 10 points; the seed alone moves it by 33. It is a property of a draw, not of Maltese, and
+it must not be quoted as a score.
+
+The diagnosis is unchanged and is in fact what the spread demonstrates: 10 positives cannot
+support a per-language figure. What changed is that the number naming the problem cannot be
+used to state it. See `reports/SEED_CONTROL.md` and issue 7.
 
 - **Where**: `data/{nsfw,gibberish,politeness}_test.jsonl`, counted by `labels` being non-empty.
 - **Fix**: regenerate all three at the density `toxicity` and `bias` now have, then retrain.
@@ -227,10 +233,26 @@ reads `mt` 0.9580. The two straddle the baseline.
 - **Where**: `border_train.compare_runs`, and `reports/moderation_seed_control.json`.
 - **Fix**: two seeds per retrain before reporting a delta. It doubles the GPU cost of a
   10-minute run, which is the cheapest thing on this list.
-- **Not transferable as a number.** It was measured on a 12-label head with roughly 130 test
-  positives per label. `nsfw` and `gibberish` hold 9 to 12 per language, so their floor is
-  plausibly higher, which is the wrong direction for comfort. Re-measure per detector rather
-  than reusing 0.0188.
+**That non-transferability was then measured, and the guess held.** A second control on
+`nsfw`, whose per-language cells hold 9 to 10 positives against `moderation`'s 130 per label:
+
+| | `moderation` | `nsfw` |
+|---|---|---|
+| per-language spread, mean / max | 0.0052 / 0.0252 | **0.0389 / 0.3294** |
+| per-language mean F1, spread between runs | 0.0007 | 0.0171 |
+| calibrated threshold, two seeds | 0.83, 0.85 | **0.84, 0.94** |
+
+Thirteen times wider on the widest cell. Two further consequences, both concrete:
+
+- **`nsfw`'s recorded retrain gain is inside its own floor.** +0.0158 in mean per-language F1
+  against a measured 0.0171 spread between seeds on identical data.
+- **A calibrated threshold is a seed artifact where the corpus is thin**, and
+  `policies/default.yaml` takes the library's default from it. `moderation` is stable at 0.83
+  and 0.85; `nsfw` gives 0.84 and 0.94 against the shipped 0.76.
+
+- **Still not transferable as a number.** The floor scales with the test split and the splits
+  differ by an order of magnitude across detectors, so re-measure per detector rather than
+  reusing 0.0188 or 0.3294.
 
 ## 8. Local `.git` still holds the pre-rewrite objects
 
