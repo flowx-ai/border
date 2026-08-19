@@ -6,7 +6,7 @@ a wish list.
 
 Ordered by what a caller would notice first, not by effort.
 
-Last reviewed 2026-08-19, at `flowx-border` 0.2.1. Seven open, two closed.
+Last reviewed 2026-08-19, at `flowx-border` 0.2.1. Six open, three closed.
 
 **Restructured 2026-08-18, and the count is the reason.** The list opened at seven items and
 reached nine in a day, which reads as work going backwards. It was not: both additions were
@@ -268,7 +268,7 @@ it must not be quoted as a score.
 
 The diagnosis is unchanged and is in fact what the spread demonstrates: 10 positives cannot
 support a per-language figure. What changed is that the number naming the problem cannot be
-used to state it. See `reports/SEED_CONTROL.md` and issue 5.
+used to state it. See `reports/SEED_CONTROL.md` and issue 4.
 
 - **Where**: `data/{nsfw,gibberish,politeness}_test.jsonl`, counted by `labels` being non-empty.
 - **Fix**: regenerate all three at the density `toxicity` and `bias` now have, then retrain.
@@ -302,21 +302,7 @@ correctly. One written Finnish date exists across the 26,455 rows of `pii_frames
   typed F1 0.0000 with every gold span missed on held-out frames, and a multi-token date is
   the thing it had never seen.
 
-## 3. `injection` still reads one imperative as an override
-
-**1 of 12 ordinary support questions**, down from 7 of 12 in 0.1.0. The survivor is "Please
-cancel my subscription." at `direct_injection` 0.9775, and it scores the same at 0.43 and at
-0.95, so no threshold reaches it.
-
-An imperative request to act on an account looks on the surface like an instruction
-override, and the corpus has almost nothing of the shape: **2 rows of 35,025** match
-account-access phrasing.
-
-- **Where**: `tests/test_support_questions.py`, strict xfail.
-- **Fix**: the same account-access benign register as item 2's first part, so the two should be done
-  together.
-
-## 4. `groundedness` is published, disabled, and one call in four is wrong
+## 3. `groundedness` is published, disabled, and one call in four is wrong
 
 0.7381 on 42 hand-written probes with the rule layer in front, against 0.9471 on the
 generator's own held-out split. Both are real and the gap is the point.
@@ -341,7 +327,7 @@ the clearest case. Safe direction for a guardrail, still a cost, hence disabled.
 
 - **Design**: `docs/groundedness-redesign.md` in the training repository.
 
-## 5. No retrain delta in this project has a measured noise floor
+## 4. No retrain delta in this project has a measured noise floor
 
 A seed control was run for the first time on 2026-08-18: the same `moderation` corpus, the
 same hyperparameters, seed 42 against seed 1337. Per-label F1 moved by a mean of 0.0073 and a
@@ -382,7 +368,7 @@ Thirteen times wider on the widest cell. Two further consequences, both concrete
   differ by an order of magnitude across detectors, so re-measure per detector rather than
   reusing 0.0188 or 0.3294.
 
-## 6. `topic_scope`'s shipped threshold was below its own score floor
+## 5. `topic_scope`'s shipped threshold was below its own score floor
 
 Fixed 2026-08-19 and kept on the list because what it says about the other thresholds is not
 yet checked.
@@ -446,7 +432,7 @@ sweep returning the same number for every threshold should have stopped me soone
 - **And the bar is taxonomy-dependent**: measured on 15 nodes, and more nodes mean more chances
   of a spurious near-match, so a deployment should re-sweep it.
 
-## 7. Four published models cannot be re-verified against a stricter export gate
+## 6. Four published models cannot be re-verified against a stricter export gate
 
 Re-checking a quantised export needs both halves, fp32 and quantised. `CLAUDE.md` already
 records this for `groundedness`: "an artifact whose fp32 is gone cannot be re-verified when the
@@ -475,6 +461,8 @@ drift was added.
   what is published.
 - **Fix, three of the four for free**: `gibberish` and `politeness` are on the retrain list in
   item 2 and `moderation` on the one beside it, and a retrain writes both halves.
+  `moderation` itself is done as of 2026-08-19: both seeds of the v4 retrain kept their
+  safetensors and their int8 export, so it has both halves for the first time.
 - **`topic_scope` needs no action, established 2026-08-19.** It is unconfigured in both shipped
   policies and is T3, so nothing in the shipped configuration loads it and its missing fp32
   half cannot affect a caller. Its manifest is also the most complete of the set: it records
@@ -484,6 +472,27 @@ drift was added.
   today, so this is a retention habit rather than a code gap. About 1 GB per model.
 
 ## Closed while writing this
+
+**`injection` no longer reads an imperative as an override, and it was already fixed when this
+item still said otherwise.** Measured 2026-08-19 against the shipped v5, revision `e2dd543f`:
+**0 of 12** ordinary support questions fire, and `"Please cancel my subscription."`, the
+survivor this item was written about, produces no finding at all rather than
+`direct_injection` 0.9775.
+
+    v3   7 of 12   every benign register was conversational prose, so an imperative
+                   account request was out of distribution
+    v4   1 of 12   technical registers added for an unrelated failure incidentally helped
+    v5   0 of 12   after mundane_account_access joined the shared MUNDANE_REGISTERS
+
+The corpus carries 1,862 rows in that register across all 26 languages, 61 of them with a
+cancellation phrasing labelled benign, against 2 rows in 35,025 before. `tests/
+test_support_questions.py` records the same three-version history beside the test, which is
+where the discrepancy showed: the test had been un-xfailed when v5 landed and this list was
+never updated. **Read the test, not the issue.**
+
+The same register also closed the `moderation` half on the same day, 5 of 10 to 0, so the two
+were done together as this item said they should be.
+
 
 **The pre-rewrite objects are gone and `.git` is 64 MB.** Was 15 GB, because
 `exports/piiguard/model.onnx` at 1,058 MB had been committed twice before the history was
