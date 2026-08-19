@@ -417,9 +417,32 @@ sweep returning the same number for every threshold should have stopped me soone
 
 - **Where**: `tests/test_topic_scope_threshold.py`. The fast test needs no model and asserts
   every shipped `topic_scope` threshold sits above the recorded floor.
-- **What is left**: the same check has not been run for the other detectors' thresholds. A
-  classifier's sigmoid does reach 0, so the fault is specific to a rescaled-cosine score, but
-  "probably fine" is what 0.45 was.
+- **The other twelve were checked on 2026-08-19 and the fault cannot reach them.** Not by
+  sweeping them, which was tried first and found nothing but artifacts of a thin sample: over
+  32 texts with no positives in them, `bias` and `toxicity` looked "unreachable" because
+  nothing biased or toxic was in the sample, `pii` and `encoded_payload` looked "inert"
+  because only their high band fired, and three emitted nothing because they need
+  configuration a bare options dict does not supply. A sweep needs the detector's own
+  positives, and only `topic_scope` had a labelled corpus for that.
+
+  What settles it is the score's construction rather than a measurement:
+
+  | detector | score | floor |
+  |---|---|---|
+  | the nine classifiers, `pii`, `output_leakage` | sigmoid or model probability | reaches 0 |
+  | `system_prompt_leakage` | `matched / len(grams)` | reaches 0 when nothing matches |
+  | `summary_support` | `(similarity - best) / similarity` | reaches 0, and carries no shipped threshold |
+  | `repetition` | a difflib ratio, a real floor candidate | uses `options.similarity`, not `threshold`, and is disabled in both policies |
+  | `topic_scope` | **rescaled cosine** | **~0.667, and this was the fault** |
+
+  So `topic_scope` was the only shipped `threshold` sitting on a score that cannot reach 0.
+  The class is closed by construction, not by hoping.
+
+- **One sharp edge found while looking, and it is a cliff rather than a floor.**
+  `encoded_payload` scores exactly 0.9 or 0.5, so a threshold anywhere in `(0.5, 0.9]`
+  silently means strong-only and above 0.9 disables the detector. The shipped 0.5 admits
+  both bands and the code guards the second case, so nothing is wrong today; it is worth
+  knowing that this knob has two settings and not a range.
 - **And the bar is taxonomy-dependent**: measured on 15 nodes, and more nodes mean more chances
   of a spurious near-match, so a deployment should re-sweep it.
 
