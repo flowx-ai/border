@@ -83,6 +83,7 @@ from typing import TYPE_CHECKING, Final, cast, get_args
 from flowx_border.detectors.base import INPUT, OUTPUT, Context, DetectorConfig
 from flowx_border.detectors.checksummed import supplement
 from flowx_border.detectors.entity_shapes import (
+    BELOW_BAR_PREFIX,
     REJECTED_PREFIX,
     RELABELLED_PREFIX,
     UNVERIFIED_PREFIX,
@@ -484,6 +485,7 @@ class PiiDetector:
         overlap = int(cfg.options.get("window_overlap", DEFAULT_OVERLAP))
         wanted = self._wanted_entities(cfg)
         actions = self._entity_actions(cfg)
+        bars = self._entity_thresholds(cfg)
 
         merged = {
             span: value
@@ -515,6 +517,12 @@ class PiiDetector:
                 # Dropped, and recorded. A silently removed finding leaves a record
                 # indistinguishable from one where the model found nothing.
                 out.append(self._noted(f"{REJECTED_PREFIX}{entity.lower()}", span))
+                continue
+            # After the relabelling on purpose. A span corrected from `person` to an
+            # `email` is an email, so it faces the email bar rather than the one that
+            # stopped being relevant when the correction landed.
+            if score < bars.get(entity.lower(), 0.0):
+                out.append(self._noted(f"{BELOW_BAR_PREFIX}{entity.lower()}", span))
                 continue
             if validate and checksum_state(entity, value) is False:
                 # Kept. A checksum failure is as likely to be a typo, a test number or a
@@ -623,6 +631,72 @@ class PiiDetector:
                     f"which is not one of {', '.join(sorted(_ACTIONS))}."
                 )
             out[entity] = cast(Action, chosen)
+        return out
+
+    def _entity_thresholds(self, cfg: DetectorConfig) -> dict[str, float]:
+        """Per-entity minimum scores, from `options.entity_thresholds`.
+
+        Added 2026-08-19 because one threshold for seven entity types cannot express
+        what the measurement asks for, the same reason `entity_actions` exists.
+
+        **`person` is the type with no shape to check.** Every other type has one: a
+        checksum for CARD and IBAN, a format for EMAIL and PHONE, a length and a
+        scheme for NATIONAL_ID. `person` has none, so an unfamiliar capitalised token
+        mid-sentence lands there and `entity_shapes.py` has nothing to reject it with.
+        Measured over 234 ordinary rows in 26 languages, that is 43 of 51 damaging
+        `pii` findings, and the spans are place names: `Regensburg`, `Valletta`,
+        `Stenlosevej`, `Kobanya-Kispest`.
+
+        A bar works here and it was previously established that it could not. That
+        conclusion rested on the false positives scoring a median of 0.9416, which was
+        measured on the artifact superseded on 2026-08-16 and asserted to still hold
+        rather than re-taken. On the adopted model the median is 0.7392, and:
+
+            bar     false positives removed     held-out PERSON recall
+            0.90         30 of 43                    1.0000 over 668 spans
+            0.95         33 of 43                    1.0000, but loses a hand-written
+                                                     Greek honorific at 0.9118
+
+        So 0.90 costs nothing measurable and removes seven tenths of the noise. What
+        survives it is mostly places named after people, `Franjo Tudman` at 0.977 and
+        `Deak Ferenc` at 0.962, where the span does contain a person's name and the
+        finding is arguably right.
+
+        A dropped span is recorded rather than removed, at `log`, for the reason
+        `_noted` gives everywhere else here: a silently filtered finding leaves a record
+        indistinguishable from a text that had none.
+        """
+        raw = cfg.options.get("entity_thresholds")
+        if not raw:
+            return {}
+        if not isinstance(raw, dict):
+            raise ValueError(
+                "pii: entity_thresholds must be a mapping of entity type to a score, "
+                "for example {person: 0.9}."
+            )
+        out: dict[str, float] = {}
+        for name, value in raw.items():
+            entity = str(name).strip().lower()
+            if entity not in ENTITY_TYPES:
+                raise ValueError(
+                    f"pii: entity_thresholds names unknown entity type {entity!r}. "
+                    f"This model tags {', '.join(ENTITY_TYPES)}. A misspelled type "
+                    "would "
+                    "silently leave that entity at the detector's own threshold."
+                )
+            try:
+                bar = float(value)
+            except (TypeError, ValueError):
+                raise ValueError(
+                    f"pii: entity_thresholds gives {entity!r} the value {value!r}, "
+                    "which is not a number."
+                ) from None
+            if not 0.0 <= bar <= 1.0:
+                raise ValueError(
+                    f"pii: entity_thresholds gives {entity!r} the bar {bar}, which is "
+                    "outside 0.0 to 1.0."
+                )
+            out[entity] = bar
         return out
 
     @staticmethod

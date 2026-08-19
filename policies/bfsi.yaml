@@ -44,6 +44,16 @@ detectors:
       # date next to a name is usually a date of birth, and the line above already says
       # over-redaction is the preferred error, so the divergence is the point rather
       # than an omission.
+      #
+      # No `entity_thresholds` either, for the same reason and it is worth stating rather
+      # than leaving as an absence. default.yaml puts a 0.90 bar on PERSON because an
+      # unfamiliar capitalised token mid-sentence lands there and place names were being
+      # redacted out of ordinary prose. That bar cost nothing measurable, 1.0000 recall
+      # over 668 held-out spans, but "nothing measurable" is not "nothing", and the
+      # trade it makes is a small risk of a missed person against a visible
+      # over-redaction. This policy has already chosen the other side of exactly that
+      # trade twice, in the threshold above and in the DATE decision, so it takes the
+      # over-redaction here too.
   output_leakage:
     on_fail: block          # personal data on the way out is a reportable event
     threshold: 0.4

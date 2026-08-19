@@ -56,6 +56,30 @@ detectors:
       # policies/bfsi.yaml, where a date of birth is the likely case and it does.
       entity_actions:
         date: flag
+      # `person` is the one type with no shape to check. Every other has one: a checksum
+      # for CARD and IBAN, a format for EMAIL and PHONE, a length and a scheme for
+      # NATIONAL_ID. So an unfamiliar capitalised token mid-sentence lands in `person` and
+      # `entity_shapes.py` has nothing to reject it with. Measured over 234 ordinary rows
+      # in 26 languages on 2026-08-19, that is 43 of 51 damaging findings, and the spans
+      # are places: `Regensburg`, `Valletta`, `Stenlosevej`, `Kobanya-Kispest`.
+      #
+      # A bar at 0.90 removes 30 of those 43 and costs nothing measurable:
+      #
+      #   held-out PERSON recall     1.0000 over 668 gold spans, lowest real person 0.9610
+      #   hand-written people        14 of 14 across 8 scripts, lowest 0.9118
+      #
+      # It is 0.90 rather than 0.95 because 0.95 removes three more and loses that 0.9118
+      # Greek honorific, and a missed person is a hole where a redacted place is visible.
+      #
+      # What survives the bar is mostly places named after people, `Franjo Tudman` at
+      # 0.977 and `Deak Ferenc` at 0.962, where the span does contain a person's name.
+      #
+      # This reverses an earlier finding that a threshold could not help here. That rested
+      # on the false positives scoring a median of 0.9416, measured on the artifact
+      # superseded on 2026-08-16 and then asserted to still hold rather than re-taken. On
+      # the adopted model the median is 0.7392.
+      entity_thresholds:
+        person: 0.90
   output_leakage:
     on_fail: redact
     threshold: 0.5

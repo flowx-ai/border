@@ -62,6 +62,13 @@ RELABELLED_PREFIX: Final = "pii_relabelled_from_"
 #: Reported when a span was kept despite failing its checksum, one per span, at `log`.
 UNVERIFIED_PREFIX: Final = "pii_checksum_failed_"
 
+#: Reported when a span scored under the per-entity bar a policy set through
+#: `options.entity_thresholds`, one per span, at `log`. Same reason as the three above:
+#: a policy that raises the `person` bar to 0.90 to stop place names being redacted
+#: still has to see what the bar dropped, and a record showing nothing is a record
+#: indistinguishable from a text that contained nothing.
+BELOW_BAR_PREFIX: Final = "pii_below_entity_threshold_"
+
 _DIGITS: Final = re.compile(r"\d")
 
 #: ISO 13616: an IBAN is 15 to 34 characters. The floor is duplicated in

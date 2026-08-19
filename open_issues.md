@@ -18,7 +18,7 @@ recorded only in `CLAUDE.md` and in two strict xfails, and not here.
 
 ---
 
-## 1. `pii` removes text from ordinary business prose, on 16.2 percent of rows
+## 1. `pii` removes text from ordinary business prose, on 9.4 percent of rows
 
 The largest caller-visible number in the project, and it was not on this list until 2026-08-18.
 `pii` is enabled in both shipped policies, so this is behaviour a caller gets by default rather
@@ -27,12 +27,17 @@ than a figure in a report.
 Measured by `tests/test_ordinary_text_sweep.py` over 234 ordinary rows in 26 languages, running
 the whole shipped configuration on both sides:
 
-| | |
-|---|---|
-| rows where something is blocked or redacted | **0.162** |
-| `pii` fires | 0.261 against a 0.25 ceiling |
-| block or redact findings | 109 over 234 rows |
-| leaked tokens | **0**, on every measurement to date |
+| | 2026-08-18 | 2026-08-19 |
+|---|---|---|
+| rows where something is blocked or redacted | 0.162 | **0.0940** |
+| `pii` fires | 0.261 | 0.261, against a 0.25 ceiling |
+| `pii` damages a row | 0.150 | **0.0769** |
+| leaked tokens | 0 | **0**, and 0 of 560 held-out spans survive verbatim |
+
+**Halved on 2026-08-19 with no retrain**, by `options.entity_thresholds: {person: 0.90}` in
+`policies/default.yaml`. The firing rate is unchanged on purpose: the bar records what it
+drops at `log`, so 86 findings are `date` at `flag`, 60 are
+`pii_below_entity_threshold_person`, and only 42 are redactions.
 
 The last row is what keeps this an over-redaction problem rather than a disclosure. Nothing
 sensitive reaches a caller unredacted; the cost is text a caller wanted, removed.
@@ -54,15 +59,47 @@ the sweep:
 | `800 123 456` | `phone` | a Czech freephone support line |
 
 **`piiguard` has seven entity types and none of them is LOCATION**: CARD, DATE, EMAIL, IBAN,
-NATIONAL_ID, PERSON, PHONE. So a place name has nowhere correct to go, and `PERSON` is the
-nearest thing to a proper noun the label set offers. That reframes the fix as a choice rather
-than a bug to squash:
+NATIONAL_ID, PERSON, PHONE. `person` is also the only one with no shape to check, so
+`entity_shapes.py` can reject a malformed IBAN and has nothing to say about a capitalised word.
 
-- **Toponyms as entity-free text in the corpus**, the same shape as the calendar-word fix that
-  worked. Cheapest, and it does not change the label set or the policy surface.
-- **A LOCATION type.** Arguably more correct, since a street in a delivery notice really is
-  personal data in context, and it would let a policy decide. It is a new entity type, so it is
-  policy-visible and a bigger decision than a corpus change.
+**An ablation inside fixed frames found the cue, and it is not knowledge of place names.**
+
+| filler | mid-sentence | sentence-initial |
+|---|---|---|
+| `Berlin`, `Paris`, `Siemens`, `Volkswagen` | never tagged | never tagged |
+| `Regensburg`, `Valletta`, `Plattling` | 0.51 to 0.97 | not tagged |
+| `Grelmshof`, invented | 0.89 to 0.97 | 0.70 |
+| `Martin Weber` | 1.00 | 1.00 |
+
+An invented token scores 0.97, so it is **an unfamiliar capitalised token mid-sentence**.
+Sentence-initial is exempt because capitalisation there is orthography. The corpus says why:
+75.3 percent of mid-sentence capitalised tokens in `piiguard_*` are part of an entity, and the
+24.7 percent that are not are acronyms, German capitalised nouns and formal pronouns. A
+name-shaped capitalised non-entity does not occur.
+
+**So the fix was a bar on score, and deliberately not a stoplist of toponyms.** Place names are
+common surnames and the model already separates the two by context:
+
+| | as a place | the same token as a person |
+|---|---|---|
+| `Berlin` | not tagged | `Isaiah Berlin` 1.00 |
+| `Paris` | not tagged | `Ms Paris` 1.00 |
+| `Regensburg` | 0.68 | `Frau Regensburg` 1.00 |
+
+A rule keyed on toponym shape would have turned a visible over-redaction into an invisible
+hole, which `entity_shapes.py` refuses to do for exactly this reason.
+`tests/test_entity_thresholds.py` pins both directions.
+
+**What remains, and it is now a smaller question.** 13 `person` spans, 4 `phone`, 4
+`national_id`. Most surviving `person` findings are places named after people, `Franjo Tudman`
+at 0.977 and `Deak Ferenc` at 0.962, where the span does contain a person's name. The
+`national_id` four are not identifiers at all: `EP2237/10` is a patent number, `LV-EWT2026` a
+product code, `0800` a freephone prefix. Two open choices, both smaller than before:
+
+- **A LOCATION type**, so a place has somewhere correct to go rather than the nearest
+  proper-noun label. Arguably more correct, policy-visible, and a bigger decision than a bar.
+- **Toponyms as entity-free corpus text**, which would move the remaining 13 down rather than
+  needing a bar at all. Now a refinement rather than the fix.
 
 - **Where**: `tests/test_ordinary_text_sweep.py`, two strict xfails carrying the numbers, split
   from the enforcing test so a `toxicity` or `nsfw` regression still fails something.
