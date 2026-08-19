@@ -124,20 +124,44 @@ NON_FINDING = (
 
 
 def ordinary_rows() -> list[tuple[str, str]]:
-    """(language, text) for ordinary text, corpus first then the hand-written set."""
+    """(language, text) for ordinary text, corpus first then the hand-written set.
+
+    Stratified by register within each language, and that is not a refinement.
+
+    This took `texts[:PER_LANGUAGE]` until 2026-08-19, the first rows per language in
+    corpus order. When `mundane_account_access` was added as a fourth mundane register
+    the corpus began writing it first, so all 208 corpus rows became account-access
+    requests and the sweep stopped measuring ordinary text at all: one register only.
+
+    What that produced looked exactly like a regression: `regulated_advice` fired on
+    0.829 of rows against a 0.10 ceiling and `bias` on 0.068 against 0.05, with no code
+    change and no model change. The rows had changed underneath it. So a sample built by
+    slicing corpus order is a sample that moves when a generator's register order does,
+    and the number it produces is not comparable with the one before it.
+    """
     out: list[tuple[str, str]] = []
     if CORPUS.exists():
-        by_language: dict[str, list[str]] = collections.defaultdict(list)
+        by_cell: dict[tuple[str, str], list[str]] = collections.defaultdict(list)
         for line in CORPUS.read_text(encoding="utf-8").splitlines():
             if not line.strip():
                 continue
             row = json.loads(line)
-            if str(row.get("register", "")).startswith("mundane") and not row.get(
-                "labels"
-            ):
-                by_language[row["language"]].append(row["text"])
-        for language, texts in sorted(by_language.items()):
-            out += [(language, text) for text in texts[:PER_LANGUAGE]]
+            register = str(row.get("register", ""))
+            if register.startswith("mundane") and not row.get("labels"):
+                by_cell[(row["language"], register)].append(row["text"])
+        languages = sorted({language for language, _ in by_cell})
+        for language in languages:
+            registers = sorted(r for lang, r in by_cell if lang == language)
+            if not registers:
+                continue
+            # Round robin, so every register contributes and the count per language is
+            # unchanged whatever order the corpus was written in.
+            share, extra = divmod(PER_LANGUAGE, len(registers))
+            for index, register in enumerate(registers):
+                take = share + (1 if index < extra else 0)
+                out += [
+                    (language, text) for text in by_cell[(language, register)][:take]
+                ]
     out += list(SENTENCES.items())
     return out
 

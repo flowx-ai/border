@@ -305,12 +305,20 @@ def test_moderation_is_available_and_is_twelve_labels_of_thirteen() -> None:
     on it while looking complete is the failure the "never silently do nothing" rule
     exists to prevent.
     """
-    from flowx_border.models.registry import MODELS, UNPUBLISHED, spec_for
+    from flowx_border.models.registry import MODELS, UNPUBLISHED
 
     assert "moderation" in CATALOGUE
     assert "moderation" in MODELS, "published on 2026-08-17, so it belongs in MODELS"
     assert "moderation" not in UNPUBLISHED
-    spec = spec_for("moderation")
+    # `MODELS` and not `spec_for`. This read `spec_for("moderation")` until 2026-08-19,
+    # which resolves the local override first, so with `FLOWX_BORDER_MODEL_DIR` set the
+    # repo is a directory on the machine and the assertion below cannot hold. The claim
+    # here is about what the published table says, and only the table can answer it.
+    #
+    # The same distinction `local_spec_for` exists to keep: a record from an override
+    # reports `local:<sha>` and not a commit, precisely so a reader can tell them apart.
+    # A test about the published entry has to read the published entry.
+    spec = MODELS["moderation"]
     assert spec.repo == "flowxai/moderation"
     assert spec.trained_languages is not None
     assert len(spec.trained_languages) == 26

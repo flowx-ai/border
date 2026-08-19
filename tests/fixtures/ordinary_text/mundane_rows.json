@@ -1,0 +1,1051 @@
+{
+ "per_language": 8,
+ "rows": [
+  {
+   "language": "az",
+   "register": "mundane_account_access",
+   "text": "Hesabımda yeni telefon nömrəsi əlavə etmək istəyirəm."
+  },
+  {
+   "language": "az",
+   "register": "mundane_account_access",
+   "text": "Əziz dəstək komandası, kartımın PIN kodunu itirdim və hesabımın girişində problem yaşayıram. Xahiş edirəm, mövcud şifrəmi dəyişmək üçün bir bərpa linki göndərin və yeni pin təyin edim. Həmçinin, hesabımın təhlükəsizliyini artırmaq üçün əlavə tədbirlər barədə məsləhət verin."
+  },
+  {
+   "language": "az",
+   "register": "mundane_informational",
+   "text": "Qəbələ Bəylik kitabxanasında keçmiş ayda qaytarılmayan 2 kitab üçün gecikmə cəzası 15 AZN-dir, ödəmə 31 iyul tarixində bağlanır."
+  },
+  {
+   "language": "az",
+   "register": "mundane_informational",
+   "text": "Naxçıvan Dövlət Tarix Muzeyi həftənin hər günü 09:00‑19:00 arası açıqdır, giriş bileti 5 AZN-dir."
+  },
+  {
+   "language": "az",
+   "register": "mundane_operational",
+   "text": "Hörmətli işçilər, Xətai filialının qəbul saatları dəyişib; yeni saatlar 08:30‑17:30, çərşənbə axşamı günü isə 09:00‑18:00 olacaq. Zəhmət olmasa, bu dəyişikliyi gündəlik planınıza daxil edin. Təşəkkürlər."
+  },
+  {
+   "language": "az",
+   "register": "mundane_operational",
+   "text": "5 oktyabr tarixinə qədər mətbəx inventarı sifariş formu mövcuddur."
+  },
+  {
+   "language": "az",
+   "register": "mundane_transactional",
+   "text": "Əziz Nərgiz Quliyeva, 12 iyun 2024 tarixində Bakı şəhərindəki “Azəri Gül” çiçək dükanından aldığınız 30 ədəd qırmızı gül çiçəkləri 14:00‑15:30 saatları arasında çatdırılacaq. Çatdırılma kodu: GUL2024. Çiçəklərinizin gözəl görünüşündən zövq alın!"
+  },
+  {
+   "language": "az",
+   "register": "mundane_transactional",
+   "text": "Sayın Rafiq Məmmədov, Sifarişiniz (№20260821) yayımcı şirkətimiz tərəfindən bu gün, 2026‑08‑19, saat 09:30‑da ünvana (Nəsimi rayonu, Əhməd bəy küç.) çatdırıldı. Hər hansı sualınız olsa, müştəri xidmətinə müraciət edin."
+  },
+  {
+   "language": "bg",
+   "register": "mundane_account_access",
+   "text": "Добър ден, бих желал/а да изтегля копие от всички лични данни, които вашата платформа съхранява за мен – имейл, телефон, история на поръчки, предпочитания и рекламни настройки. Потребителското ми име е niki.stoyanova, а желаната форма е CSV файл, изпратен на mymail@example.com. Моля, потвърдете кога ще бъде готов."
+  },
+  {
+   "language": "bg",
+   "register": "mundane_account_access",
+   "text": "Моля, изпратете ми фактурата за април 2024 г."
+  },
+  {
+   "language": "bg",
+   "register": "mundane_informational",
+   "text": "Сметката за електричество за периода януари‑март 2024 е 124,56 лв., дължима до 15 април."
+  },
+  {
+   "language": "bg",
+   "register": "mundane_informational",
+   "text": "Библиотеката в Плевен ще бъде затворена в събота от 10:00 до 14:00."
+  },
+  {
+   "language": "bg",
+   "register": "mundane_operational",
+   "text": "Здравейте, информираме, че в понеделник 2 ноември ще има кратка пауза за кафе в общата кухня от 15:30 до 15:45 ч. Моля, планирайте вашите срещи около този интервал."
+  },
+  {
+   "language": "bg",
+   "register": "mundane_operational",
+   "text": "Добър ден, потвърждаваме, че в следващата седмица (28‑30 септември) ще се провежда профилактика на електронната поща. По време на това време достъпът може да бъде ограничен, моля, запазете важни имейли."
+  },
+  {
+   "language": "bg",
+   "register": "mundane_transactional",
+   "text": "Уважаеми г-н Димитров, потвърждаваме анулирането на вашия абонамент за интернет услуги, ефективно от 30.09.2026 г. Няма такси."
+  },
+  {
+   "language": "bg",
+   "register": "mundane_transactional",
+   "text": "Уважаеми г-н Димитров, вашата поръчка №8456 е изпратена от нашия склад и ще бъде доставена в гр. Пловдив до 09.04.2026 г. Моля, следете статуса в секцията „Моите поръчки“ от вашия профил."
+  },
+  {
+   "language": "cs",
+   "register": "mundane_account_access",
+   "text": "Dobrý den, zapomněl jsem heslo a také již nemám přístup k registrovanému telefonu. Jak mohu obnovit přístup k účtu a nastavit nové bezpečnostní možnosti?"
+  },
+  {
+   "language": "cs",
+   "register": "mundane_account_access",
+   "text": "Mám otázku ohledně poslední faktury – částka 1299 Kč se zdá vyšší, než jsem očekával."
+  },
+  {
+   "language": "cs",
+   "register": "mundane_informational",
+   "text": "Vážení návštěvníci knihovny v Plzni, informujeme vás, že od 1. října 2024 bude prodloužená otevírací doba v zimním období. Pondělí až pátek od 9:00 do 20:00, sobota od 9:00 do 17:00 a neděle zavřená. Vstup je zdarma, výpůjčky lze provádět i přes on‑line katalog. Každé úterý od 17:00 do 18:30 probíhá čtenářský klub pro děti, kde mohou poslouchat pohádky a zapojit se do tvořivých her. Přihlášky jsou přijímány na knihovně osobně i e‑mailem."
+  },
+  {
+   "language": "cs",
+   "register": "mundane_informational",
+   "text": "Muzeum města Plzně otevře novou expozici „Průmyslová revoluce“ od 15. října do 30. ledna 2025. Prohlídky jsou denně od 10:00 do 18:00, vstupné 120 Kč pro dospělé, 80 Kč pro studenty."
+  },
+  {
+   "language": "cs",
+   "register": "mundane_operational",
+   "text": "Otevírací doba kanceláře: 8:00–17:00, pondělí až pátek."
+  },
+  {
+   "language": "cs",
+   "register": "mundane_operational",
+   "text": "Formulář k podpisu najdete v sekci HR, termín odevzdání 12. května."
+  },
+  {
+   "language": "cs",
+   "register": "mundane_transactional",
+   "text": "Na základě Vašeho požadavku jsme připravili elektronickou fakturu k odsouhlasení v sekci ‘Faktury’ Vašeho účtu."
+  },
+  {
+   "language": "cs",
+   "register": "mundane_transactional",
+   "text": "Vážený zákazníku, Vaše předplatné služby StreamPlus se automaticky prodlužuje od 1. června 2026 na další rok s měsíčním poplatkem 199 Kč. Platební údaje jsou aktualizovány ve vašem účtu. Děkujeme za věrnost."
+  },
+  {
+   "language": "da",
+   "register": "mundane_account_access",
+   "text": "Jeg vil aktivere to‑faktor login på min konto, tak."
+  },
+  {
+   "language": "da",
+   "register": "mundane_account_access",
+   "text": "Min konto viser en mistænkelig login‑forsøg fra en ukendt IP. Kan I låse kontoen midlertidigt?"
+  },
+  {
+   "language": "da",
+   "register": "mundane_informational",
+   "text": "Vejrudsigt for København den 22. september: Kl. 06-12 forventes let tåge med temperaturer mellem 11 og 14 °C. Fra kl. 13-18 stiger solen gradvist, men skyer vil holde sig i vestlige del af byen, så temperaturerne når 16‑18 °C. Nedbør er usandsynlig, men en let brise fra sydøst kan forekomme omkring kl. 20."
+  },
+  {
+   "language": "da",
+   "register": "mundane_informational",
+   "text": "Motorvejen E20 mellem Holbæk og Ringsted har midlertidigt hastighedsbegrænsning 80 km/t."
+  },
+  {
+   "language": "da",
+   "register": "mundane_operational",
+   "text": "IT-afdelingen informerer om planlagt vedligeholdelse af netværket lørdag 02.09 fra 02:00 til 04:00. Ingen påvirkning forventes."
+  },
+  {
+   "language": "da",
+   "register": "mundane_operational",
+   "text": "IT-afdelingen informerer alle brugere af e-Boks: På grund af rutinemæssig sikkerhed vedligeholdelse skal adgangskoden til jeres konto nulstilles den 30. november kl. 08.00. Følg anvisningerne i jeres brugerprofil for at vælge en ny kode."
+  },
+  {
+   "language": "da",
+   "register": "mundane_transactional",
+   "text": "Påmindelse: Betalingsdeadline for abonnementet på 199,00 kr er 10. juni. Log ind på MitKonto for status."
+  },
+  {
+   "language": "da",
+   "register": "mundane_transactional",
+   "text": "Din mødeinvitation kl. 14.00 den 12. april er bekræftet. Lokale: R1."
+  },
+  {
+   "language": "de",
+   "register": "mundane_account_access",
+   "text": "Mein Account wurde gesperrt, weil ich verdächtige Anmeldungen bemerkt habe. Bitte prüfen und freischalten."
+  },
+  {
+   "language": "de",
+   "register": "mundane_account_access",
+   "text": "Bitte setzen Sie mein Passwort zurück, ich habe es vergessen."
+  },
+  {
+   "language": "de",
+   "register": "mundane_informational",
+   "text": "Der Buslinienplan für die Linie 42 in Stuttgart: Abfahrt vom Hauptbahnhof jede halbe Stunde zwischen 06:00 und 22:00 Uhr. Letzte Fahrt nach der Innenstadt um 22:30 Uhr, Rückkehr zum Bahnhof um 23:00 Uhr. Die Strecke führt über Rotkreuzplatz, Feuersee, Killesberg und endet an der Universitätsbibliothek. Fahrzeit ca. 35 Minuten."
+  },
+  {
+   "language": "de",
+   "register": "mundane_informational",
+   "text": "Die Öffnungszeiten der Stadtbibliothek Köln: Montag‑Freitag 09:00‑20:00, Samstag 10:00‑18:00, Sonntag geschlossen."
+  },
+  {
+   "language": "de",
+   "register": "mundane_operational",
+   "text": "Liebe Kolleginnen und Kollegen, das Bürogebäude wird am Freitag, den 23.08., von 14:00 bis 16:00 Uhr für die jährliche Klimaanlagenwartung geschlossen. Bitte planen Sie Ihre Termine entsprechend. Danke für Ihr Verständnis."
+  },
+  {
+   "language": "de",
+   "register": "mundane_operational",
+   "text": "Bitte überprüfen Sie bis zum 1. August Ihre Kontaktdaten im Mitarbeitenden‑Verzeichnis und aktualisieren Sie veraltete Einträge."
+  },
+  {
+   "language": "de",
+   "register": "mundane_transactional",
+   "text": "Erinnerung: Ihr Termin bei Dr. Müller am 22.04.2024, 14:00 Uhr."
+  },
+  {
+   "language": "de",
+   "register": "mundane_transactional",
+   "text": "Sehr geehrter Herr Klein, wir bestätigen den Zahlungseingang Ihrer Rechnung Nr. 2024‑0999 über 89,50 € vom 05. April 2024. Der Betrag wurde am 07. April 2024 auf unser Konto DE98 7654 3210 9876 5432 10 gutgeschrieben. Vielen Dank für die schnelle Überweisung. Bei Rückfragen stehen wir Ihnen gern zur Verfügung."
+  },
+  {
+   "language": "el",
+   "register": "mundane_account_access",
+   "text": "Παρακαλώ παρέχετε αντίγραφο της τελευταίας μου απόδειξης πληρωμής για το κατώτατο όριο."
+  },
+  {
+   "language": "el",
+   "register": "mundane_account_access",
+   "text": "Θα ήθελα να αλλάξω το email στο προφίλ μου σε νέα_διεύθυνση@example.com, γιατί το παλιό δεν λειτουργεί."
+  },
+  {
+   "language": "el",
+   "register": "mundane_informational",
+   "text": "Ανακοίνωση: η υπηρεσία Ασφαλείας θα κλείσει στις 22:00 για εργασίες."
+  },
+  {
+   "language": "el",
+   "register": "mundane_informational",
+   "text": "Τεχνικά χαρακτηριστικά ψυγεία Electrolux RS-180: χωρητικότητα 180 ℓ, ενεργειακή κλάση A++, εσωτερική θερμοκρασία –18 °C στο κατά ψύξης, +5 °C στο κατά ψύξης. Διαθέτει σύστημα NoFrost, 4 ράφια αλμυρού γυαλιού, διακοσμητικό φωτεινό πάνελ αφής, και δυνατότητα σύνδεσης με το εφαρμογές Smart Home μέσω Wi‑Fi για απομακρυσμένη παρακολούθηση."
+  },
+  {
+   "language": "el",
+   "register": "mundane_operational",
+   "text": "Παρακαλώ ελέγξτε τη λίστα αποδοχών στο Intranet μέχρι Παρασκευή."
+  },
+  {
+   "language": "el",
+   "register": "mundane_operational",
+   "text": "Η καθαριότητα των κοινόχρηστων χώρων θα γίνει κάθε Τρίτη από τις 09:00 έως τις 11:30. Παρακαλούμε να διασφαλίσετε ότι τα προσωπικά αντικείμενα είναι σε κλειστά ντουλάπια ώστε να αποφευχθεί οποιαδήποτε εσφαλμένη αποθήκευση."
+  },
+  {
+   "language": "el",
+   "register": "mundane_transactional",
+   "text": "Η παραγγελία σας #5678 έχει φτάσει στο ταχυδρομείο Κηφισού. Μπορείτε να την παραλάβετε από τις 09:00 έως 17:00."
+  },
+  {
+   "language": "el",
+   "register": "mundane_transactional",
+   "text": "Σεβαστέ πελάτη, η αποστολή με αριθμό παρακολούθησης GR123456789, που αφορά την παραγγελία 65432, βρίσκεται στη φάση διανομής. Η αναμενόμενη ημερομηνία παράδοσης είναι η 10 Απριλίου 2023. Για τυχόν ερωτήσεις, συνδεθείτε στο προφίλ σας και ελέγξτε την ενότητα «Παραγγελίες». Σας ευχόμαστε καλή ημέρα."
+  },
+  {
+   "language": "en",
+   "register": "mundane_account_access",
+   "text": "I think my account was compromised; please lock it immediately."
+  },
+  {
+   "language": "en",
+   "register": "mundane_account_access",
+   "text": "Please send me a copy of all personal data stored under my profile with GreenFinance, including transaction history and correspondence. I need it for an upcoming audit."
+  },
+  {
+   "language": "en",
+   "register": "mundane_informational",
+   "text": "The weekly maintenance window for the corporate VPN is Saturday 02:00–04:00 UTC; service will be temporarily unavailable."
+  },
+  {
+   "language": "en",
+   "register": "mundane_informational",
+   "text": "When assembling the IKEA LACK coffee table, first attach legs A and B to the tabletop using the provided dowels and Allen key. Tighten each screw clockwise until secure, then flip the table upright."
+  },
+  {
+   "language": "en",
+   "register": "mundane_operational",
+   "text": "Please note the company’s holiday calendar for 2024 has been posted on the HR homepage. The office will be closed on the following dates: 1 January (New Year’s Day), 29 March (Good Friday), 1 May (Labour Day), 25 December (Christmas Day), and 26 December (Boxing Day). Employees are expected to plan their workload accordingly and coordinate any required coverage with their managers."
+  },
+  {
+   "language": "en",
+   "register": "mundane_operational",
+   "text": "IT will reset passwords tomorrow at 2 PM; please plan accordingly."
+  },
+  {
+   "language": "en",
+   "register": "mundane_transactional",
+   "text": "Appointment confirmed for Thursday, Nov 12 at 2:30 pm with Dr. Lewis at Riverside Clinic. See portal for details."
+  },
+  {
+   "language": "en",
+   "register": "mundane_transactional",
+   "text": "Account update: mailing address changed to 123 Oak St, Apt 4B."
+  },
+  {
+   "language": "es",
+   "register": "mundane_account_access",
+   "text": "Tengo problemas para acceder a mi cuenta después de haber sido bloqueada por actividad sospechosa. ¿Qué información necesitan para verificar mi identidad y desbloquearla? Mi nombre es Javier Ortiz, DNI 11223344X."
+  },
+  {
+   "language": "es",
+   "register": "mundane_account_access",
+   "text": "Envíenme un reporte de todas las transacciones de este mes."
+  },
+  {
+   "language": "es",
+   "register": "mundane_informational",
+   "text": "El horario de atención de la biblioteca municipal de Sevilla es de lunes a viernes, 9:00‑18:00."
+  },
+  {
+   "language": "es",
+   "register": "mundane_informational",
+   "text": "La biblioteca cierra a las 20:00; devuelve libros antes."
+  },
+  {
+   "language": "es",
+   "register": "mundane_operational",
+   "text": "Actualización del menú de la cafetería corporativa para la semana del 5 al 11 de abril: lunes – ensalada César con pollo a la parrilla; martes – lasaña vegetariana; miércoles – filete de merluza con puré de patatas; jueves – arroz con pollo; viernes – pizza margarita. Los precios se mantienen sin variación y el servicio está disponible de 07:30 a 14:30."
+  },
+  {
+   "language": "es",
+   "register": "mundane_operational",
+   "text": "Se recuerda a los colaboradores que deben actualizar su foto de perfil en la intranet antes del 5 de mayo."
+  },
+  {
+   "language": "es",
+   "register": "mundane_transactional",
+   "text": "Buenas tardes, Ana López. Confirmamos que su pedido 8923-AB, realizado el 3 de septiembre, será entregado en la dirección Calle Gran Vía 45, Madrid, entre el 10 y el 12 de septiembre. El envío incluye la factura electrónica adjunta en su cuenta. Para cualquier consulta, diríjase a la sección ‘Mis pedidos’ en nuestro sitio web."
+  },
+  {
+   "language": "es",
+   "register": "mundane_transactional",
+   "text": "Recordatorio de factura de luz: El consumo correspondiente al periodo de junio‑julio asciende a 67,40 €. El vencimiento es el 30 de septiembre. Puede pagar a través de la banca en línea o en cualquier oficina de la compañía."
+  },
+  {
+   "language": "et",
+   "register": "mundane_account_access",
+   "text": "Palun saatke mulle arve nr 2023-07-15 PDF‑vormingus, et saaksin selle raamatupidamisse lisada."
+  },
+  {
+   "language": "et",
+   "register": "mundane_account_access",
+   "text": "Palun lülitage minu konto blokeeritud režiimilt maha, kuna usun, et see on häkitud."
+  },
+  {
+   "language": "et",
+   "register": "mundane_informational",
+   "text": "Kohviku 'Kalev' menüü täna: kanapirukas, must leib, humus, tee 3,99€, avatud kuni kella 20:00."
+  },
+  {
+   "language": "et",
+   "register": "mundane_informational",
+   "text": "Raamiku kokkupanekuks avage pakend ja otsekohe kontrollige, et teil on kõik komponendid: 4 külge, 2 pingetikku, 2 kruvi, 2 mutrit ja 4 kinnitusklambrit. Pange kõigepealt külg ühel tasasel pinnal, kinnitage pingetikud iga külje lohisevasse serva, seejärel keerake kruvid mutritega kokku. Lõpuks kinnitage kinnitusklambrid üleval ja all, et raam oleks stabiilne."
+  },
+  {
+   "language": "et",
+   "register": "mundane_operational",
+   "text": "Kohviku filtrite vahetus toimumab reedel kell 14.00, palun pane tähele."
+  },
+  {
+   "language": "et",
+   "register": "mundane_operational",
+   "text": "Tere Tiina, tööjaotuses on muudatused alates 1. oktoobrist: ühtlasi esmaspäevadel (kell 06:00‑14:00) ning kolmapäevadel (kell 14:00‑22:00). Palun kontrolli oma isiklikku vahemikku Intranetis ja kinnita osalemine."
+  },
+  {
+   "language": "et",
+   "register": "mundane_transactional",
+   "text": "Teavitame, et teie tellimus nr 45231 on täna, 19.08.2026, väljastatud. Kättetoimetamine toimub 24–26. augustil Tallinna postiautomaadi Kaarlihoos. Jälgige saadetist oma e-pangarendis."
+  },
+  {
+   "language": "et",
+   "register": "mundane_transactional",
+   "text": "Austatud Märt Jõgiste, 2023. aasta tuludeklaratsiooni esitamise tähtaeg on 30.04.2024. Palun logige sisse maksuteenuse portaali ning kontrollige esitatud andmeid. Kui deklaratsioon on valmis, kinnitage seda klõpsates nupule 'Esita'. Juhised leiate jaotisest 'Abi ja juhised' samas keskkonnas."
+  },
+  {
+   "language": "fi",
+   "register": "mundane_account_access",
+   "text": "Unohdin PIN-koodini, miten voin palauttaa sen?"
+  },
+  {
+   "language": "fi",
+   "register": "mundane_account_access",
+   "text": "Voisitteko lähettää minulle viimeisen kuukauden laskun sähköpostiosoitteeseeni? Tarvitsen sen kirjanpitoon."
+  },
+  {
+   "language": "fi",
+   "register": "mundane_informational",
+   "text": "Juna I, Rautatieasema, lähtee 14.15, perillä Helsinki klo 15:30."
+  },
+  {
+   "language": "fi",
+   "register": "mundane_informational",
+   "text": "Turun sataman alueella tänään pilvistä, lämpötila -2 °C ja tuuli 12 km/h kohti lännestä. Sadeennusteena lievää räntää 14:00–16:00. Muistathan tarkistaa puhelimesta päivitetyn varoituksen."
+  },
+  {
+   "language": "fi",
+   "register": "mundane_operational",
+   "text": "Palvelinhuoneen jäähdytysjärjestelmä tarkastetaan lauantaina 7.10. klo 02:00–04:00. Tänä aikana sisäverkko saattaa olla hetkellisesti puutteellisesti saavutettavissa. Pikaista työtä ei suositella."
+  },
+  {
+   "language": "fi",
+   "register": "mundane_operational",
+   "text": "Vastaanottajan Tiina: huomioithan, että kokous A202, alun perin varattu huomenna klo 14:00, on siirretty Tilaan B3, samalle ajankohdalle. Tilassa on parempi varustelu. Jos sinulla on kysyttävää, ota yhteys varausjärjestelmään."
+  },
+  {
+   "language": "fi",
+   "register": "mundane_transactional",
+   "text": "Vahvistus: Olet varannut hierontapalvelun Turun Kylpylässä 15.11.2026 klo 11:00. Palvelun hinta 55,00 €, maksua ei vielä veloitettu. Voit tarkastella varausta OmaKylpylä‑sovelluksessa ja muokata aikataulua tarvittaessa."
+  },
+  {
+   "language": "fi",
+   "register": "mundane_transactional",
+   "text": "Arvoisa vastaanottaja, Olemme lähettäneet teille sähköpostin, jossa on PDF-liite laskusta nro 5678. Eräpäivä 20.10.2026, summa 150,00 €. Lue ja hyväksy tiedot OmaYritys-portaalissa."
+  },
+  {
+   "language": "fr",
+   "register": "mundane_account_access",
+   "text": "Bonjour, je suis Julien Dupont, client chez VousConnect depuis 2019. J’ai récemment changé de téléphone et je n'arrive plus à me connecter à mon compte parce que mon mot de passe ne fonctionne plus. Pourriez‑vous m’indiquer la marche à suivre pour réinitialiser mon mot de passe, en m’envoyant le lien de réinitialisation à mon adresse e‑mail enregistrée ? Merci d’avance."
+  },
+  {
+   "language": "fr",
+   "register": "mundane_account_access",
+   "text": "Quel est le délai pour recevoir le code de validation par SMS ?"
+  },
+  {
+   "language": "fr",
+   "register": "mundane_informational",
+   "text": "Avis de réunion du conseil municipal le 3 novembre à 18h00."
+  },
+  {
+   "language": "fr",
+   "register": "mundane_informational",
+   "text": "Le téléphone du service client est ouvert de 8h à 18h, lundi‑vendredi."
+  },
+  {
+   "language": "fr",
+   "register": "mundane_operational",
+   "text": "Bonjour, les nouveaux ordinateurs portables seront disponibles au service informatique à partir du 8 octobre, de 9 h00 à 12 h00. Présentez votre badge d’accès au comptoir pour les récupérer. Aucun rendez‑vous nécessaire."
+  },
+  {
+   "language": "fr",
+   "register": "mundane_operational",
+   "text": "Bonjour, le service des locaux rappelle que les extincteurs doivent être vérifiés chaque trimestre. La prochaine vérification aura lieu le 3 janvier. Merci de libérer l'accès aux zones concernées le matin."
+  },
+  {
+   "language": "fr",
+   "register": "mundane_transactional",
+   "text": "Votre abonnement à La Poste sera renouvelé le 01/11, pas d’action requise."
+  },
+  {
+   "language": "fr",
+   "register": "mundane_transactional",
+   "text": "Bonjour Monsieur Dubois, Nous avons le plaisir de vous accueillir parmi les membres du Club des Bibliothécaires de Lyon. Votre adhésion, valable du 1 juin 2024 au 31 mai 2025, vous donne accès à toutes les activités et à la bibliothèque numérique. Vous recevrez sous peu votre carte de membre et les informations d’accès."
+  },
+  {
+   "language": "ga",
+   "register": "mundane_account_access",
+   "text": "Mholfaí dom an dáileadh mo shonraí i bhfaisnéis CSV, le do thoil?"
+  },
+  {
+   "language": "ga",
+   "register": "mundane_account_access",
+   "text": "Tá an táirge míosúil nach dtuairiscigh mé fós. Seol dom an sonrasc le laghdú de 10% le do thoil."
+  },
+  {
+   "language": "ga",
+   "register": "mundane_informational",
+   "text": "Céim amháin den oideas an stobhach Éireannach: Cuir 500g mairteoil i spúnóg mhór, cuir air le picilín salainn, pór le cinneadh buí, agus deoch le duilleoga fíon. Cuir leis an uachtar reoite agus le duilleoga cayenne. Cuir an meascán i bhfolach ar bharr fuinnimh 180°C ar feadh 45 nóiméad. Freastal ar an traic le bheith á chumail i lár an dinim."
+  },
+  {
+   "language": "ga",
+   "register": "mundane_informational",
+   "text": "Tá an aimsir ag dul i ngleic leis an mbealach: 12°C, gaoth bhreá."
+  },
+  {
+   "language": "ga",
+   "register": "mundane_operational",
+   "text": "Cuirtear le fios go rachaidh do chuntas úsáideora in éag i ndiaidh 30 lá gan gníomhaíocht. Úsáid an córas Intraneta le haghaidh athnuachan."
+  },
+  {
+   "language": "ga",
+   "register": "mundane_operational",
+   "text": "Réamhrá don chruinniú eile: 11:00 ar an láidre Gaeilge."
+  },
+  {
+   "language": "ga",
+   "register": "mundane_transactional",
+   "text": "Ár ghradam, Siobhán Ní Shúilleabháin,\n\nFuinneog íocaíochta deimhnithe a léiríonn go ríthábhachtach: €250,00 a fuair sé ó chuntas “eirec‑pay‑2023” ar 5 Aibreán 2023. Tá an íocaíocht curtha i bhfeidhm chun do sheirbhísí glanadh fuinnimh a chlárú. Níl gá le haon gníomh eile; tá an taifeadadh curtha i d’iosca cuntais i do chuntas. Go raibh maith agat as an íocaíocht fíor‑dhílis."
+  },
+  {
+   "language": "ga",
+   "register": "mundane_transactional",
+   "text": "Áit: Dún Laoghaire. Dáta: 15 Márta 2024. A chara Pádraig Ní Bhriain, tá do fhactóir UIC-2024-017 le híoctha: €237,50. Is gá í a íoc roimh 5 Aibreán 2024. Féach ar do chuntas trí ár n-portal gnó le haghaidh sonraí breise. Go raibh maith agat."
+  },
+  {
+   "language": "hr",
+   "register": "mundane_account_access",
+   "text": "Ne mogu pristupiti svom profilu, zaboravio sam PIN, kako resetirati?"
+  },
+  {
+   "language": "hr",
+   "register": "mundane_account_access",
+   "text": "Molim vas, otkažite moju pretplatu na uslugu StreamNow s ID‑om 987654, koja se automatski obnavlja svakog 1. mjeseca. Ne želim više plaćati mjesečnu tarifu od 9,99 € i tražim potvrdu otkazivanja na moj e‑mail info@primjer.com. Također, želim da se ne šalju daljnje promotivne poruke."
+  },
+  {
+   "language": "hr",
+   "register": "mundane_informational",
+   "text": "Recept: 200 g brašna, 100 ml mlijeka, pržiti 3 minute."
+  },
+  {
+   "language": "hr",
+   "register": "mundane_informational",
+   "text": "Poštovani sugrađani, današnji vremenski izvještaj za Zagreb pokazuje djelomično oblačno nebo s jutarnjim temperaturama oko 12 °C, a najvišu dnevnu temperaturu očekujemo 18 °C u podne. Kiša je moguća oko šest popodne u zapadnom dijelu grada, a vjetar će iz zapada blago puhao brzinom 10–12 km/h. Preporučamo laganu jaknu i kišobran ako planirate biti vani."
+  },
+  {
+   "language": "hr",
+   "register": "mundane_operational",
+   "text": "Obavijest: novi parkirni sustav aktiviran od 1. studenog, registrirajte svoj automobil na internetskom portalu."
+  },
+  {
+   "language": "hr",
+   "register": "mundane_operational",
+   "text": "Pozdrav svima, u privitku se nalazi ažurirani raspored smjena za listopad. Molimo da provjerite svoj položaj i potvrdite primanje najkasnije do 5. listopada putem sustava HR-Portal. Hvala na suradnji."
+  },
+  {
+   "language": "hr",
+   "register": "mundane_transactional",
+   "text": "Poštovani kupče, vaš paket s narudžbom br. 789123, vrijednosti 245,60 HRK, bit će isporučen od strane DHL-a u ponedjeljak, 23. listopada 2026., između 09:00 i 15:00 sati. Za promjenu vremena dostave koristite svoj račun."
+  },
+  {
+   "language": "hr",
+   "register": "mundane_transactional",
+   "text": "Obavijest o obnovi pretplate: početak 01.11.2026., cijena 299,00 kn."
+  },
+  {
+   "language": "hu",
+   "register": "mundane_account_access",
+   "text": "Az e-mail fiókom feltörődött, kérlek zárd le a hozzáférést."
+  },
+  {
+   "language": "hu",
+   "register": "mundane_account_access",
+   "text": "Kérném a múlt havi számlát PDF formátumban emailben."
+  },
+  {
+   "language": "hu",
+   "register": "mundane_informational",
+   "text": "A Budapesti Történeti Múzeum 15. augusztus‑30. szeptember között mutatja a „Habsburgok a Duna partján” kiállítást, napi nyitva tartás 10:00‑18:00, belépő 1500 Ft, diákoknak 750 Ft."
+  },
+  {
+   "language": "hu",
+   "register": "mundane_informational",
+   "text": "A M3-as metró menetrendje hétköznap 5 perces gyakorisággal közlekedik 06:00-tól 23:30-ig."
+  },
+  {
+   "language": "hu",
+   "register": "mundane_operational",
+   "text": "Kérjük, hogy a 2024. április 30-án esedékes szabályzatváltozási űrlapot a HR-nek a hét végéig elektronikusan aláírjátok."
+  },
+  {
+   "language": "hu",
+   "register": "mundane_operational",
+   "text": "Figyelem, IT felhasználók! Az eszköz kölcsönzési szabályzatot frissítettük, és a változásokról a belső portál „Eszközök” menüpontjában tájékozódhattok. A kölcsönzési időtartam alapértelmezetten 30 nap, de kérelmezhető hosszabb időszak a vezetői jóváhagyással. Kérjük, minden kölcsönzött laptopot és monitorot a visszavétel előtt ellenőrizzetek a sérülések szempontjából, és jelentsetek minden hibát a HelpDesk rendszerben."
+  },
+  {
+   "language": "hu",
+   "register": "mundane_transactional",
+   "text": "Tisztelt Cégünk alkalmazottja! Az új egészségbiztosítási kötvény 2024.01.01-től érvényes. Kérjük, nézze meg a HR intraneten a részleteket, és erősítse meg a részvételét a megadott határidőig."
+  },
+  {
+   "language": "hu",
+   "register": "mundane_transactional",
+   "text": "Kedves Papp László! A 2023.09.22-i koncertjegy vásárlását rögzítettük: 2 db 2023-09-30‑i Színházi Völgye koncert, 9 980 Ft/fő. A jegyek PDF formátumban elérhetők a vásárlói fiókjában. Jó szórakozást kívánunk!"
+  },
+  {
+   "language": "it",
+   "register": "mundane_account_access",
+   "text": "Salve, sono Laura Bianchi, cliente da tre anni con l’account ID 874562. Vorrei ricevere via email la fattura dettagliata di febbraio 2024, includendo l’elenco delle transazioni e l’IVA applicata, perché devo presentarla al mio commercialista per la dichiarazione. Potete inviarmela in formato PDF, con tutti i riferimenti di pagamento e le eventuali note di credito, entro domani? Grazie."
+  },
+  {
+   "language": "it",
+   "register": "mundane_account_access",
+   "text": "Ciao, ho notato una differenza di €15,00 sulla fattura di gennaio 2024 rispetto al mio piano attuale. L’importo addebitato sembra più alto del previsto. Potete verificare se c’è stato un errore di calcolo o un pagamento extra e fornirmi un chiarimento? Grazie per l’aiuto."
+  },
+  {
+   "language": "it",
+   "register": "mundane_informational",
+   "text": "Il Festival della Cultura Mediterranea, edizione 2024, avrà luogo a Palermo dal 5 al 9 maggio. Gli spettacoli includeranno concerti di musica tradizionale, proiezioni di cortometraggi, workshop di cucina e danze popolari, tutti ospitati in vari spazi della città, come il Teatro Politeama, il Palazzo dei Normanni e la Piazza Marina. L’ingresso è gratuito, ma è consigliata la prenotazione anticipata per i laboratori, disponibile sul sito ufficiale del festival."
+  },
+  {
+   "language": "it",
+   "register": "mundane_informational",
+   "text": "Il museo apre alle 09:30, chiude alle 18:00, biglietto 8 euro."
+  },
+  {
+   "language": "it",
+   "register": "mundane_operational",
+   "text": "Il server di posta sarà offline per manutenzione programmata lunedì 10:00-12:00. Accedi al backup se necessario."
+  },
+  {
+   "language": "it",
+   "register": "mundane_operational",
+   "text": "Il corso di formazione Gestione del tempo si terrà lunedì 22 aprile, aula 2A, dalle 10:00 alle 12:30. La partecipazione è obbligatoria per tutti i responsabili di progetto; confermate la presenza nella piattaforma Learning."
+  },
+  {
+   "language": "it",
+   "register": "mundane_transactional",
+   "text": "Prenotazione per il corso di cucina, 12 aprile, confermata."
+  },
+  {
+   "language": "it",
+   "register": "mundane_transactional",
+   "text": "Il Suo abbonamento a Rivista Italiana sarà rinnovato il 01/09/2024. Nessuna azione necessaria."
+  },
+  {
+   "language": "lt",
+   "register": "mundane_account_access",
+   "text": "Prašau atstatyti mano slaptažodį, nes pamiršau jį įvesti."
+  },
+  {
+   "language": "lt",
+   "register": "mundane_account_access",
+   "text": "Sveiki, norėčiau įjungti papildomą saugumo patikrą, kad gautų pranešimus telefonu, kai bus bandymas prisijungti iš nežinomų įrenginių. Mano naudotojas: dmitrijas_v, prašau patvirtinti įjungimą."
+  },
+  {
+   "language": "lt",
+   "register": "mundane_informational",
+   "text": "Keleivių informacija: autobusų maršrutas 12 iš Kauno stoties į Šilutę kursuoja kas 30 min nuo 06:00 iki 22:00."
+  },
+  {
+   "language": "lt",
+   "register": "mundane_informational",
+   "text": "Klaipėdos pakrantės prognozė savaitgalio dienoms: Šeštadienį ryto metu debesų dangos bus 60 %, oro temperatūra nuo +12 °C iki +16 °C, vėjas šiaurės rytų kryptimi, greitis 4 m/s. Po pietų galėsime tikėtis trumpų lietaus gaidelių, oro temperatūra pakils iki +18 °C, vėjas stiprės iki 6 m/s. Sekmadienį numatoma šviesi, saulėta diena su temperatūra +20 °C iki +22 °C."
+  },
+  {
+   "language": "lt",
+   "register": "mundane_operational",
+   "text": "Jūsų IT pareikalavimas #4521 yra priskirtas komandai „Klientų palaikymas“; numatoma išspręsti iki 2024‑09‑25. Dėkojame už kantrybę."
+  },
+  {
+   "language": "lt",
+   "register": "mundane_operational",
+   "text": "Jūsų darbo laiko lentelė atnaujinta – peržiūrėkite ją „Workday“ sistemoje iki kovo 15 d. ir praneškite apie neatitikimus."
+  },
+  {
+   "language": "lt",
+   "register": "mundane_transactional",
+   "text": "Gerb. A. Stankevičienė, primename, kad Jūsų šildymo paslaugų sąskaita Nr. 11458 už 2026 m. spalio mėnesį liko neapmokėta. Bendra suma – 112,60 € + PVM. Prašome atlikti mokėjimą iki 2026‑09‑30 per įprastą bankų mokėjimų portalą. Jei mokėjimas jau įvykdytas, ignoruokite šį priminimą. Dėkojame už dėmesį ir bendradarbiavimą."
+  },
+  {
+   "language": "lt",
+   "register": "mundane_transactional",
+   "text": "Primename, kad Jūsų paskutinė sąskaita už elektros energiją 78,50 EUR yra neapmokėta iki 2024-08-05."
+  },
+  {
+   "language": "lv",
+   "register": "mundane_account_access",
+   "text": "Man trūkst piekļuves kods, varat tālāk palīdzēt?"
+  },
+  {
+   "language": "lv",
+   "register": "mundane_account_access",
+   "text": "Varat nosūtīt man visus datus, kas glabāti manā kontā?"
+  },
+  {
+   "language": "lv",
+   "register": "mundane_informational",
+   "text": "Pagatavojot latviešu skābu kāpostu zupas bāzi, sasmalcināt 500 g svaigu kāpostu, pievienot 1 l ūdens, 2 ēdamkarotes sāls, 1 tējkaroti melnā pipara un vāra uz lēnas uguns 30 minūtes."
+  },
+  {
+   "language": "lv",
+   "register": "mundane_informational",
+   "text": "Dienas piedāvājums Rīgas centrā: 20% atlaide uz svaigu dārzeņu kaste, spēkā līdz 15. aprīlim, apmeklējiet Tīģeru ielu."
+  },
+  {
+   "language": "lv",
+   "register": "mundane_operational",
+   "text": "Atgādinām, ka mūsu klientu apkalpošanas centrs Rīgā būs atvērts no pirmdienas līdz piektdienai, plkst. 08:00–18:00, bet sestdienas dienās darbojas tikai no 09:00 līdz 14:00. Sazinieties, ja nepieciešama papildu informācija."
+  },
+  {
+   "language": "lv",
+   "register": "mundane_operational",
+   "text": "Lūdzam apstiprināt budžeta plāna izmaiņas līdz 30. aprīlim."
+  },
+  {
+   "language": "lv",
+   "register": "mundane_transactional",
+   "text": "Cienītais Jānis, Jūsu biedrības “Latvijas Dzejas Draugi” gada biedra statusa atjaunošana ir plānota 2023. gada 31. novembrī. Ja apmaksāsiet 25,00 €, jūsu biedrības tiesības tiks turpinātas līdz 2024. gada 30. novembrim."
+  },
+  {
+   "language": "lv",
+   "register": "mundane_transactional",
+   "text": "Sveicināti, Jānis! Jūsu “Rīgas Sporta Kluba” gada locekļa statuss beidzas 2026. gada 30. jūnijā. Lai turpinātu izmantot sporta zāles, grupu treniņus un baseina pakalpojumus, jāatjauno locekļa maksa – 150 EUR. Atjaunošanu var veikt Jūsu klienta kontā līdz 2026. gada 20. jūnijam. Agrīna atjaunošana nodrošina 10 % atlaidi. Paldies, ka esat daļa no komandas!"
+  },
+  {
+   "language": "mt",
+   "register": "mundane_account_access",
+   "text": "Kif nista’ nimporta d-data tiegħi minn app rivista?"
+  },
+  {
+   "language": "mt",
+   "register": "mundane_account_access",
+   "text": "Grazzi talli tgħinuni, għandix aktar għażliet biex nikkonfigura l-profil tiegħi. Jekk tista’ tagħtini gwida biex niskopri l-impostazzjonijiet ta’ notifikazzjonijiet u nbiddel il-lingwa għal Malti."
+  },
+  {
+   "language": "mt",
+   "register": "mundane_informational",
+   "text": "Il-reċetta tal-qastun: żid tgħin bis-sigħat, ħawwel."
+  },
+  {
+   "language": "mt",
+   "register": "mundane_informational",
+   "text": "Il-librerija pubblika ta’ Żebbuġ se tkun miftuha minn 09:00 sa 19:00 il-Ġimgħa, u minn 10:00 sa 16:00 il-Ġimgħa. F’dawn il-ħinijiet jinkiteb il-programm ta’ lezzjoni dwar il-kitba kreattiva, li jibda 15:30 il-Ġimgħata ftit qabel l-iskadi. Il-punt ta’ servizz tal‑informazzjoni huwa fl‑ilkolliegħ, b’ħinijiet fissi."
+  },
+  {
+   "language": "mt",
+   "register": "mundane_operational",
+   "text": "Il-meeting room 'Kalkulazzjoni' migrat f’Il-Ħamrun minn 10:00."
+  },
+  {
+   "language": "mt",
+   "register": "mundane_operational",
+   "text": "Il-Formola ta’ Konferma għas-Studju ta’ Riski għad-2025 għandha titħassar sa 15 ta’ Aprili. Il-formola tista’ tinstalla fuq il-portal “HRDocs” u tintwera bħala PDF. Jekk tidħol fil-portal, għażel “Sign” u ikkonferma bl-digital. Kuntattja l-HR jekk għandek problemi tekniku."
+  },
+  {
+   "language": "mt",
+   "register": "mundane_transactional",
+   "text": "Ħatrax li l‑abbonament ta’ Wi‑Fi HomeNet se jintemm id‑12 ta’ April, €45.99. Tista’ taġġorna online fil‑konto tiegħek."
+  },
+  {
+   "language": "mt",
+   "register": "mundane_transactional",
+   "text": "Għażiż Klijent, il-fattura N°2023/0585 għandha tiġi mellieda sa l-10 ta' Marzu. Tħossok liberu tikkontrolla l‑kont online."
+  },
+  {
+   "language": "nl",
+   "register": "mundane_account_access",
+   "text": "Ik zie een phishing‑mail die beweert van jullie support te komen. Hoe kan ik dit melden?"
+  },
+  {
+   "language": "nl",
+   "register": "mundane_account_access",
+   "text": "Goedemorgen, ik ben Anika Smit uit Haarlem en ik heb een e‑mail ontvangen die zogenaamd van jullie beveiligingsteam kwam, met een link om mijn wachtwoord te resetten. De afzender lijkt verdacht en ik wil zeker weten dat het geen phishing is. Kunt u bevestigen of deze e‑mail legitiem is en wat ik moet doen? Bedankt."
+  },
+  {
+   "language": "nl",
+   "register": "mundane_informational",
+   "text": "Het Vondelpark in Amsterdam heeft aangepaste openingstijden gedurende de zomermaanden. Van 1 juni tot en met 31 augustus is het park geopend van 06:00 tot 22:00 uur. Na 22:00 uur is het terrein alleen toegankelijk voor evenementen die door de beheerder zijn goedgekeurd. Het park biedt gratis wifi, diverse sportvelden en een kinderboerderij, die dagelijks van 09:00 tot 19:00 uur beschikbaar is."
+  },
+  {
+   "language": "nl",
+   "register": "mundane_informational",
+   "text": "Voor de korting van 10 % op je volgende aankoop moet je vóór 30 april inloggen op je account."
+  },
+  {
+   "language": "nl",
+   "register": "mundane_operational",
+   "text": "Reminder: ingevulde projectaanvraag moet uiterlijk 15‑sep bij HR."
+  },
+  {
+   "language": "nl",
+   "register": "mundane_operational",
+   "text": "De vergaderzaal B is verplaatst naar 14:00 uur in blok C."
+  },
+  {
+   "language": "nl",
+   "register": "mundane_transactional",
+   "text": "Beste mevrouw De Vries, hartelijk dank voor uw bestelling bij CoolTech Online (order 783412). Uw pakket bestaat uit een 27‑inch 4K‑monitor, twee USB‑C‑kabels en een jaarabonnement op onze cloudopslag. De verwachte leverdatum is dinsdag 2‑mei‑2026, leverbaar op uw opgegeven adres: Stationsweg 12, 2511 JD Den Haag. U ontvangt een verzendbevestiging zodra het pakket ons distributiecentrum verlaat."
+  },
+  {
+   "language": "nl",
+   "register": "mundane_transactional",
+   "text": "Beste mevrouw Visser, na controle blijkt factuur 2023‑0321 een correctie nodig te hebben; het oorspronkelijke bedrag € 420,00 wordt aangepast naar € 378,00 wegens een korting. Een gecorrigeerde factuur wordt per e‑mail verzonden."
+  },
+  {
+   "language": "pl",
+   "register": "mundane_account_access",
+   "text": "Proszę anulować moją subskrypcję premium w serwisie VideoPlus, effective od dzisiaj. Nie zamierzam odnawiać po zakończeniu bieżącego okresu rozliczeniowego i chciałbym potwierdzenie anulowania na mój e‑mail. Moje konto ma ID użytkownika 54321. Chciałbym także otrzymać informacje o ewentualnych zwrotach za niewykorzystany czas. Dziękuję."
+  },
+  {
+   "language": "pl",
+   "register": "mundane_account_access",
+   "text": "Szanowni Państwo, potrzebuję faktury VAT za ostatnie trzy miesiące z mojego konta w serwisie ShopOnline, aby rozliczyć koszty w firmie. Czy moglibyście przesłać mi dokumenty na adres e‑mail podany w profilu? Proszę również o informację, czy mogę pobrać je bezpośrednio z panelu. Z góry dziękuję."
+  },
+  {
+   "language": "pl",
+   "register": "mundane_informational",
+   "text": "W Bibliotece Miejskiej w Bydgoszczy od 2 listopada obowiązuje nowy harmonogram: otwarcie codziennie od 9:00 do 20:00, poniedziałki zamknięte, wypożyczenia online dostępne 24/7 poprzez konta czytelników."
+  },
+  {
+   "language": "pl",
+   "register": "mundane_informational",
+   "text": "Rozkład jazdy tramwaju linii 5 w Krakowie został zaktualizowany z dniem 1 września 2024 roku. Zmiany obejmują przyspieszenie kursowania w godzinach szczytu, gdy tramwaje będą jeździć co 6 minut zamiast dotychczasowych 8, oraz wprowadzenie dodatkowego przystanku przy ul. Sławkowskiej. Pełny rozkład dostępny jest w aplikacji MPK oraz na tablicach przy przystankach."
+  },
+  {
+   "language": "pl",
+   "register": "mundane_operational",
+   "text": "Informujemy, że sala konferencyjna nr 3 w budynku A zostanie od jutra, 14 września, zamieniona na salę 5 w budynku B ze względu na remont. Rezerwacje dokonane w systemie RoomBook do godz. 17:00 zostaną automatycznie przeniesione, a uczestnicy otrzymają powiadomienie. Prosimy o sprawdzenie aktualnego numeru sali przed przybyciem."
+  },
+  {
+   "language": "pl",
+   "register": "mundane_operational",
+   "text": "Zmiana w grafiku zmian: od przyszłego tygodnia, zespół B pracuje od 08:00 do 16:00, a zespół C od 14:00 do 22:00."
+  },
+  {
+   "language": "pl",
+   "register": "mundane_transactional",
+   "text": "Potwierdzamy rezerwację wizyty u lekarza specjalisty w przychodni Miejskiej przy ul. Jana Pawła II 15 w Krakowie. Termin: 22 października 2023 r., godz. 14:30. Prosimy o przybycie 10 minut przed wyznaczonym czasem oraz o zabranie dokumentu tożsamości. Wszelkie zmiany prosimy zgłaszać telefonicznie pod numerem 12 345 67 89."
+  },
+  {
+   "language": "pl",
+   "register": "mundane_transactional",
+   "text": "Wiadomość: płatność za subskrypcję – 19,99 PLN, od 01.10."
+  },
+  {
+   "language": "pt",
+   "register": "mundane_account_access",
+   "text": "Bloqueie meu login, suspeito que alguém está usando."
+  },
+  {
+   "language": "pt",
+   "register": "mundane_account_access",
+   "text": "Por favor, cancele minha assinatura, conta 11234. Não preciso mais do serviço e não desejo renovação automática. Peço que confirmem o encerramento por e‑mail, informando a data de término e a ausência de cobranças futuras."
+  },
+  {
+   "language": "pt",
+   "register": "mundane_informational",
+   "text": "Receita de bolo de cenoura: 2 xícaras de farinha, 3 ovos, 1 colher de óleo, 200 ml de leite."
+  },
+  {
+   "language": "pt",
+   "register": "mundane_informational",
+   "text": "Para montar a estante IKEA LACK, encaixe as laterais nas prateleiras, fixe com parafusos 4 mm e ajuste a base com a chave Allen."
+  },
+  {
+   "language": "pt",
+   "register": "mundane_operational",
+   "text": "Informamos que, a partir da próxima segunda‑feira, 05/10, o intervalo para o café será das 10:15 às 10:30 em todas as áreas. O serviço de reposição de café será coordenado pela equipe de Facilities, que passará a coletar copos reutilizáveis."
+  },
+  {
+   "language": "pt",
+   "register": "mundane_operational",
+   "text": "Informamos que o projetor portátil modelo X‑200 estará disponível para empréstimo na sala de mídia a partir de 05/12. O equipamento deve ser devolvido até duas semanas após o uso, mediante registro no sistema de recursos."
+  },
+  {
+   "language": "pt",
+   "register": "mundane_transactional",
+   "text": "Seu pedido #5789 foi despachado, rastreio no portal da loja."
+  },
+  {
+   "language": "pt",
+   "register": "mundane_transactional",
+   "text": "A conta de energia elétrica da sua residência, referente ao período de julho a agosto, vence em 20/09/2026. Evite juros pagando até a data."
+  },
+  {
+   "language": "ro",
+   "register": "mundane_account_access",
+   "text": "Salut, am primit un mesaj de la suport care pretinde că contul meu a fost compromis. Ce pași trebuie să urmez?"
+  },
+  {
+   "language": "ro",
+   "register": "mundane_account_access",
+   "text": "Bună ziua, sunt Radu Iacob, client al serviciului de telefonie mobilă. Am primit recent factura pentru luna martie 2024 și observ o taxă suplimentară pe care nu o recunosc. Vă rog să îmi furnizaţi detaliile acelei taxe și să verificaţi dacă a fost aplicată corect. Aștept clarificări și, dacă este necesar, o corecție a sumei. Mulțumesc."
+  },
+  {
+   "language": "ro",
+   "register": "mundane_informational",
+   "text": "Anunț: plata taxei de bibliotecă până la 15 oct. 2024."
+  },
+  {
+   "language": "ro",
+   "register": "mundane_informational",
+   "text": "Programul meteo pentru București prevede temperaturi de 22‑24°C, cu nori puțini și vânt slab, în intervalul 06:00‑18:00."
+  },
+  {
+   "language": "ro",
+   "register": "mundane_operational",
+   "text": "Reminder: facturile lunare trebuie încărcate în sistemul financiar până la data de 20 septembrie."
+  },
+  {
+   "language": "ro",
+   "register": "mundane_operational",
+   "text": "Stimaţi colegi, vă reamintim că săliţa de conferinţe A va fi disponibilă începând cu 14:00, iar sala B este rezervată pentru trainingul de vineri. Vă rugăm să actualizaţi planificarea în aplicaţia Teams. Mulţumim!"
+  },
+  {
+   "language": "ro",
+   "register": "mundane_transactional",
+   "text": "Salutare, doamnă Marinescu, coletul cu numărul de urmărire RO123456789, conţinând cărţile comandate pe 28 martie, va fi livrat mâine, 5 aprilie, în intervalul 09:00‑12:00 la adresa dumneavoastră din Bulevardul Unirii nr. 45, sector 2, Bucureşti. Vă mulţumim pentru alegerea serviciului nostru."
+  },
+  {
+   "language": "ro",
+   "register": "mundane_transactional",
+   "text": "Parcare zona 3, înțelegere: taxa de 15 lei pentru data 03/09/2026 este restantă. Puteți plăti online în cont."
+  },
+  {
+   "language": "sk",
+   "register": "mundane_account_access",
+   "text": "Požiadam faktúru za posledný mesiac na moju emailovú adresu. Prosím, pošlite mi ju v PDF formáte a uveďte číslo faktúry."
+  },
+  {
+   "language": "sk",
+   "register": "mundane_account_access",
+   "text": "Dobrý deň, stratila som svoj PIN a potrebujem obnoviť prístup k účtu. Ako postupovať?"
+  },
+  {
+   "language": "sk",
+   "register": "mundane_informational",
+   "text": "MHD v Bratislave – linka 61 odchodí z autobusovej zastávky Na Hrebeneč od 06:15 do 22:45, posledný spoj v noci 23:30. Intervaly 10 min v špičke, 15 min mimo špičky. Vlaková spojka na stanicu Železná studna trvá 7 min."
+  },
+  {
+   "language": "sk",
+   "register": "mundane_informational",
+   "text": "Múzeum Slovenského národného povstania v Banskej Bystrici bude od 1. novembra až do 31. decembra otvárať výstavy od 10:00 do 18:00, vstupné 5 € pre dospelých, 3 € pre študentov a seniorov. V priestoroch je k dispozícii audio sprievodca v slovenčine a angličtine. Vstup je možný aj s rodinným preukazom."
+  },
+  {
+   "language": "sk",
+   "register": "mundane_operational",
+   "text": "Prosím, podpíšte formulár o firemnej zmluve do 15.09."
+  },
+  {
+   "language": "sk",
+   "register": "mundane_operational",
+   "text": "Plánovaná údržba serverov je naplánovaná na 3. októbra od 01:00 do 04:00, služby budú nedostupné."
+  },
+  {
+   "language": "sk",
+   "register": "mundane_transactional",
+   "text": "Ďakujeme za obnovenie predplatného služby StreamBox. Vaša platba 9,99 € bola spracovaná 30.09.2023."
+  },
+  {
+   "language": "sk",
+   "register": "mundane_transactional",
+   "text": "Elektrina a plyn – spoločnosť EnergoSK – vás informuje, že faktúra č. 2024/0789 za obdobie 01.03.–31.03.2024 je k úhrade do 20. apríla. Celková suma 68,45 EUR. Prehľad nájdete vo svojom elektronickom účte."
+  },
+  {
+   "language": "sl",
+   "register": "mundane_account_access",
+   "text": "Želim dodati dodatno plačilno kartico v svoj profil. Prosimo, pošljite potrditveno sporočilo na moj telefon."
+  },
+  {
+   "language": "sl",
+   "register": "mundane_account_access",
+   "text": "Prosim, pošljite mi zadnjo fakturo za storitev X v vrednosti 45,99 EUR na moj elektronski naslov."
+  },
+  {
+   "language": "sl",
+   "register": "mundane_informational",
+   "text": "V nedeljo, 20. avgusta, bo linija 1 mestnega avtobusa v Mariboru vozila po načrtu od 06:15 do 22:45, s 15‑minutnimi intervali v dopoldanskem prometu in 30‑minutnimi v večernem. Vozni red je objavljen na postaji Slovenska cesta in v aplikaciji SŽ vozniki."
+  },
+  {
+   "language": "sl",
+   "register": "mundane_informational",
+   "text": "Knjižnica Celje odpira ob 9.00, zapira ob 18.30."
+  },
+  {
+   "language": "sl",
+   "register": "mundane_operational",
+   "text": "Sprememba delovnega časa: od 1. novembra bo ponedeljek odprt od 08:00 do 14:00, ostali dnevi ostajajo nespremenjeni."
+  },
+  {
+   "language": "sl",
+   "register": "mundane_operational",
+   "text": "Podjetniški dogodek: 22. junija, 18:00, v dvorani Glavnega viječnika, predstavitev novega produkta; vstop prost."
+  },
+  {
+   "language": "sl",
+   "register": "mundane_transactional",
+   "text": "Pozdravljeni, gospod/gospa Novak,\n\nobveščamo vas, da je v skladu z našim obračunom za mesec maj 2024 na vaš račun št. 458762 izdan račun za storitev internetnega paketa v višini 39,90 EUR. Rok plačila je 15. junij 2024. Za podrobnosti in morebitna vprašanja si lahko ogledate svoj račun v spletnem portalu NLB Banke. Hvala za sodelovanje."
+  },
+  {
+   "language": "sl",
+   "register": "mundane_transactional",
+   "text": "Zdravo, vaš termin za osebni pregled pri dr. Marija Horvat, ambulanta Zdravstveni dom Škofja Loka, je potrjen za ponedeljek, 15. avgusta 2024, ob 10:30. Vpišite se v portal ZdravstveniDom.si, da potrdite prisotnost."
+  },
+  {
+   "language": "sv",
+   "register": "mundane_account_access",
+   "text": "Jag har en felaktig avgift på min senaste faktura, kan den tas bort?"
+  },
+  {
+   "language": "sv",
+   "register": "mundane_account_access",
+   "text": "Hej, jag har bytt jobb och vill uppdatera den e‑postadress som är kopplad till mitt konto. Min nuvarande adress är anna.larsson@exempel.se och den nya adressen blir anna.larsson@nyttföretag.se. Kan ni bekräfta att ändringen är genomförd och att jag kan logga in med den nya e‑posten? Tack."
+  },
+  {
+   "language": "sv",
+   "register": "mundane_informational",
+   "text": "Tunnelbana 2: nästa tåg avgår kl. 14:07 från T‑centralen."
+  },
+  {
+   "language": "sv",
+   "register": "mundane_informational",
+   "text": "Tåg 2152 mot Malmö anländer 18:45 på Köpenhamn C, plattform 5, utan väntetid enligt senaste informationen."
+  },
+  {
+   "language": "sv",
+   "register": "mundane_operational",
+   "text": "Till alla i fastighetsförvaltning,\n\nPlanerad underhåll av ventilationen i byggnad A sker lördag 22 april mellan 08:00 och 12:00. Under denna period kommer det att finnas en tillfällig minskning i luftflödet och vissa kontorsrum kan bli varmare än vanligt. Vänligen planera eventuella möten därefter och håll dörrarna stängda för att minska drag. Tack för er förståelse och samarbete."
+  },
+  {
+   "language": "sv",
+   "register": "mundane_operational",
+   "text": "Formulär: Säkerhetschecken måste signeras avdelningschef senast 18/10."
+  },
+  {
+   "language": "sv",
+   "register": "mundane_transactional",
+   "text": "Faktura: månadens elförbrukning 432 kWh, totalkostnad 1 120 kr."
+  },
+  {
+   "language": "sv",
+   "register": "mundane_transactional",
+   "text": "Hej Anders, du har försenade böcker på Stadsbiblioteket Göteborg: “Kvinnors historia” (förfallodag 10 juni) och “Modern fysik” (förfallodag 12 juni). Återlämning kan göras i vilket bibliotek som helst. En påminnelseavgift på 20 kr per bok tillkommer efter 7 dagar. Du kan förlänga lånet i ditt bibliotekskonto på bibliotekets webbplats."
+  },
+  {
+   "language": "tr",
+   "register": "mundane_account_access",
+   "text": "Kişisel bilgilerimin ve işlem geçmişimin bir kopyasını GDPR kapsamında alabilir miyim? Bu verileri e-posta ile ya da güvenli bir indirme bağlantısı ile paylaşabilirsiniz. Verilerin hazırlanma süresi nedir?"
+  },
+  {
+   "language": "tr",
+   "register": "mundane_account_access",
+   "text": "Aboneliğimi iptal etmek istiyorum; onayınızı bekliyorum."
+  },
+  {
+   "language": "tr",
+   "register": "mundane_informational",
+   "text": "Otobüs tarifesi 6. hat, 07:00‑20:00 saatleri arasında hizmet verir."
+  },
+  {
+   "language": "tr",
+   "register": "mundane_informational",
+   "text": "Antalya Büyükşehir Belediyesi Kütüphanesi, 3 Nisan 2026 tarihinden itibaren haftanın her günü 08:00‑20:00 saatleri arasında hizmet vermeye başlayacak. Üyelik kartınızı yanınızda bulundurmanız, kitap ödünç alma işlemlerinde zorunludur."
+  },
+  {
+   "language": "tr",
+   "register": "mundane_operational",
+   "text": "İstanbul ofisimiz hafta içi 08:30‑17:00 saatleri arasında açıktır."
+  },
+  {
+   "language": "tr",
+   "register": "mundane_operational",
+   "text": "Ofis yöneticisi, 05 Ağustos 2024 tarihine kadar ofis içi otopark kullanım talimatlarını imzalamanız gerekmektedir. İmzalı formlar, resepsiyon masasına teslim edilmelidir. Gerekli belgeler intranet’de mevcuttur."
+  },
+  {
+   "language": "tr",
+   "register": "mundane_transactional",
+   "text": "Merhaba, Ayşe Hanım. 15 Ekim 2024 tarihli abonelik yenilemeniz 99,90 TL tutarındadır. Ödeme sayfanızda bekliyor."
+  },
+  {
+   "language": "tr",
+   "register": "mundane_transactional",
+   "text": "Sayın Hasan Kaya, 10/09/2024 tarihinde 300,00 TL tutarındaki üyelik yenileme ödemesi hesabınıza alındı. Makbuz PDF formatında e-posta adresinize gönderilmiştir."
+  }
+ ],
+ "taken_from": {
+  "content_sha256": "39ab805595b642ac5d83b59e3c406184423e490b6acc7fd2d285bc9fde7824f8",
+  "corpus": "data/moderation_train.jsonl in the training repository",
+  "prompt_version": "moderation_solicitation_v4",
+  "sampled_by": "ordinary_rows(), stratified by register within each language"
+ }
+}
