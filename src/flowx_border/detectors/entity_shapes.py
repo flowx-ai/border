@@ -200,6 +200,13 @@ def corrected_label(entity: str, value: str) -> str | None:
     return None
 
 
+#: The shortest national identifier in the 26 supported locales is Azerbaijan's seven
+#: alphanumeric characters, so a floor of six rejects nothing real. Each locale's
+#: scheme is fixed length: `ga` and `mt` are 8, `es`, `nl` and `pt` are 9, most are
+#: 10 or 11, and `it` is 16. Measured over 6,228 gold spans, not read off a spec.
+_NATIONAL_ID_MIN: Final = 6
+
+
 def is_possible(entity: str, value: str) -> bool:
     """Can this text be this entity type at all?
 
@@ -261,10 +268,33 @@ def is_possible(entity: str, value: str) -> bool:
         # is the guarantee.
         return _alnum_count(core) >= _IBAN_MIN
     if entity == "NATIONAL_ID":
-        # Every scheme in the 26 carries at least four digits, including the two that
-        # carry no checksum. Malta's and Azerbaijan's are format-only, which is why this
-        # is a digit count rather than a checksum: see the model card.
-        return _digit_count(core) >= 4
+        # A length floor and deliberately not a digit floor. This read
+        # `_digit_count(core) >= 4` until 2026-08-19, on the stated grounds that
+        # "every scheme in the 26 carries at least four digits". That premise is false.
+        #
+        # **It was a disclosure, in two of the 26 languages.** An Azerbaijani identifier
+        # is seven alphanumerics and generates with as few as zero digits, `CCRKJSX`.
+        # An Italian codice fiscale is sixteen with as few as one, `ZLGJBJ4XCRNM9USY`.
+        # Measured over the whole corpus, 294 of 6,228 gold national IDs carry fewer
+        # than four digits: **216 of 240 Azerbaijani and 78 of 240 Italian.**
+        #
+        # The model found every one of them and tagged it correctly, this gate rejected
+        # the shape, and the detector then dropped the span. So a real national
+        # identifier reached the caller with `pii_shape_rejected_national_id` recorded
+        # beside it, which is this module's own named failure arrived at from the far
+        # side: it refuses to drop a PERSON for fear of an invisible hole, and dropped
+        # these.
+        #
+        # `CLAUDE.md` had even recorded the reason, "the digit floor cannot rise,
+        # because the Italian codice fiscale generates with as few as zero digits",
+        # without noticing that a floor of four was already above zero.
+        #
+        # The floor is now alphanumeric length, which every scheme does have. Each
+        # locale's is fixed length and the shortest anywhere is Azerbaijan's seven, so
+        # six clears all 26 with a character to spare while still rejecting the `1440`
+        # screen resolution and the `0800` freephone prefix this type was picking up on
+        # ordinary product text.
+        return _alnum_count(core) >= _NATIONAL_ID_MIN
     if entity == "PERSON":
         # A name is any string, so there is nothing to check and this module says so
         # rather than inventing a heuristic. A capitalisation rule was considered and

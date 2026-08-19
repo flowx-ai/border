@@ -80,6 +80,28 @@ detectors:
       # the adopted model the median is 0.7392.
       entity_thresholds:
         person: 0.90
+        # Added 2026-08-19 from the same sweep, and both are cheaper than `person` was.
+        #
+        # `national_id` was redacting product model numbers: `EP2237/10` on a Philips
+        # espresso machine at 0.992, `LV-EWT2026` on a kettle at 0.833, a `1440` screen
+        # resolution at 0.603 and an `0800` freephone prefix at 0.650. It is where the model
+        # puts a digit run it does not recognise. A bar at 0.90 removes three of the four
+        # and costs nothing at all: held-out recall is 0.8556 at every bar from 0.5 to 0.99,
+        # because the distribution is bimodal, a real identifier scores about 0.99 or is
+        # missed entirely, and nothing sits between. So this bar is free in a way `person`'s
+        # was not, and the 0.144 that goes unfound is a recall problem the bar does not touch.
+        #
+        # `phone` was redacting `123456` at 0.567 and a municipal notice line at 0.874. 0.90
+        # is the ceiling here rather than a choice: at 0.95 held-out recall falls 1.0000 to
+        # 0.8368.
+        #
+        # What no bar can reach is the other two `phone` findings, LIDL's support line at
+        # 0.988 and Orange's at 0.991. Those are real phone numbers, correctly tagged, and
+        # the question they raise is whether a company's published support line is personal
+        # data at all. It is not, and the model cannot tell it from a personal mobile, so
+        # that one stays open rather than being papered over with a threshold.
+        national_id: 0.90
+        phone: 0.90
   output_leakage:
     on_fail: redact
     threshold: 0.5

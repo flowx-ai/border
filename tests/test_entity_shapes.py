@@ -279,3 +279,62 @@ def test_a_sentence_containing_an_address_is_not_relabelled() -> None:
 
 def test_an_address_already_labelled_email_is_left_alone() -> None:
     assert corrected_label("email", "ivan.horvat@primjer.hr") is None
+
+
+# ------------------------------------------------------- the national ID length floor
+
+#: Real national identifiers carrying fewer than four digits, which the digit floor that
+#: stood here until 2026-08-19 rejected and the detector then dropped, so the identifier
+#: reached the caller. From the corpus rather than invented: `az` generates 216 of 240
+#: this way and `it` 78 of 240, 294 of 6,228 gold spans in all.
+LOW_DIGIT_NATIONAL_IDS = [
+    ("az", "CCRKJSX"),
+    ("az", "FZA5VPU"),
+    ("az", "SLMLCQ4"),
+    ("az", "Y0CQ65Z"),
+    ("az", "OXKV1DG"),
+    ("it", "BMX1ALHZUWHSFDFM"),
+    ("it", "ZLGJBJ4XCRNM9USY"),
+    ("it", "VK0XRHY63OYQAXKU"),
+]
+
+
+@pytest.mark.parametrize("locale,value", LOW_DIGIT_NATIONAL_IDS)
+def test_a_real_national_id_with_almost_no_digits_is_possible(
+    locale: str, value: str
+) -> None:
+    """The disclosure this floor caused, pinned in the direction that matters.
+
+    An Azerbaijani identifier is seven alphanumerics and can carry zero digits; an
+    Italian codice fiscale is sixteen and can carry one. A digit floor of four rejected
+    both, and `is_possible` returning False makes `pii` drop the span entirely, so the
+    model found the identifier, tagged it correctly, and the caller got it back anyway.
+    """
+    assert is_possible("NATIONAL_ID", value), (
+        f"{locale} identifier {value!r} rejected as impossible, which drops the span "
+        "and returns a real national identifier to the caller"
+    )
+
+
+@pytest.mark.parametrize("value", ["1440", "0800", "12", "6,5", "128"])
+def test_a_short_number_is_still_not_a_national_id(value: str) -> None:
+    """The precision the floor is there for, and the reason it is not simply removed.
+
+    These are what `national_id` picked up on ordinary product text: a screen
+    resolution, a freephone prefix, dimensions. The shortest real scheme in the 26 is
+    Azerbaijan's seven alphanumerics, so six keeps those and rejects all of these.
+    """
+    assert not is_possible("NATIONAL_ID", value)
+
+
+def test_the_floor_sits_below_every_scheme_in_the_supported_set() -> None:
+    """Measured per locale over the corpus: each scheme is a fixed length and the
+    shortest is seven, so the floor has exactly one character of margin. Written down so
+    that raising it later has to argue with the shortest scheme, not with a guess."""
+    from flowx_border.detectors.entity_shapes import _NATIONAL_ID_MIN
+
+    shortest_real_scheme = 7  # az, and ga and mt are the next at 8
+    assert shortest_real_scheme > _NATIONAL_ID_MIN, (
+        f"the floor is {_NATIONAL_ID_MIN} and the shortest real scheme is "
+        f"{shortest_real_scheme}, so the floor now rejects a real identifier"
+    )

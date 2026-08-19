@@ -18,7 +18,7 @@ recorded only in `CLAUDE.md` and in two strict xfails, and not here.
 
 ---
 
-## 1. `pii` removes text from ordinary business prose, on 9.4 percent of rows
+## 1. `pii` removes text from ordinary business prose, on 7.7 percent of rows
 
 The largest caller-visible number in the project, and it was not on this list until 2026-08-18.
 `pii` is enabled in both shipped policies, so this is behaviour a caller gets by default rather
@@ -29,10 +29,31 @@ the whole shipped configuration on both sides:
 
 | | 2026-08-18 | 2026-08-19 |
 |---|---|---|
-| rows where something is blocked or redacted | 0.162 | **0.0940** |
+| rows where something is blocked or redacted | 0.162 | **0.0769** |
 | `pii` fires | 0.261 | 0.261, against a 0.25 ceiling |
-| `pii` damages a row | 0.150 | **0.0769** |
+| `pii` damages a row | 0.150 | **0.0598** |
 | leaked tokens | 0 | **0**, and 0 of 560 held-out spans survive verbatim |
+
+**And looking for the residue found a disclosure, which was the more serious half.**
+`entity_shapes.is_possible` required four digits for a `NATIONAL_ID`, on the stated premise
+that every scheme in the 26 has them. An Azerbaijani identifier is seven alphanumerics with as
+few as zero digits and an Italian codice fiscale sixteen with as few as one, so the gate
+rejected them, and a rejected shape is **dropped**: the model found the identifier, tagged it
+correctly, and the caller got it back.
+
+| | gold national IDs | under four digits | end to end |
+|---|---|---|---|
+| `az` | 240 | **216 (0.900)** | 52 of 272 held-out spans survived verbatim |
+| `it` | 240 | 78 (0.325) | |
+| all 26 | 6,228 | 294 (0.047) | **1 of 272 after the fix** |
+
+Pre-existing, not caused by the new bars: identical at 0.1912 with no `entity_thresholds` set.
+The floor is now six alphanumerics, below Azerbaijan's seven, which is the shortest scheme in
+the set. `tests/test_entity_shapes.py` pins both forms.
+
+Worth knowing why "zero leaked tokens" did not catch it: that figure asks whether every gold
+token is covered by *some* predicted span, and these spans were predicted before being dropped
+a layer later. Coverage in the tagger is not survival through the library.
 
 **Halved on 2026-08-19 with no retrain**, by `options.entity_thresholds: {person: 0.90}` in
 `policies/default.yaml`. The firing rate is unchanged on purpose: the bar records what it
