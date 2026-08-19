@@ -158,7 +158,15 @@ detectors:
 
   topic_scope:
     on_fail: block
-    threshold: 0.45
+    # 0.85, raised from 0.45 on 2026-08-19. See policies/default.yaml for the measurement.
+    #
+    # This policy prefers caution everywhere else and takes the same bar here, because
+    # below 0.85 the threshold stops discriminating rather than becoming cautious. At the
+    # old 0.45 every one of 408 test rows cleared it, including all 78 that belong to no
+    # taxonomy node, and with `on_fail: block` that is a refused response for an input the
+    # detector had no opinion about. Caution and noise are different things, and only the
+    # first is worth buying.
+    threshold: 0.85
   groundedness:
     enabled: false          # the intent below is kept, and it is not ready to enforce
     always: true            # every outbound claim, every time, once it can be trusted

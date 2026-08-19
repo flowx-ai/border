@@ -6,7 +6,7 @@ a wish list.
 
 Ordered by what a caller would notice first, not by effort.
 
-Last reviewed 2026-08-18, at `flowx-border` 0.2.1. Seven open, one closed.
+Last reviewed 2026-08-19, at `flowx-border` 0.2.1. Seven open, two closed.
 
 **Restructured 2026-08-18, and the count is the reason.** The list opened at seven items and
 reached nine in a day, which reads as work going backwards. It was not: both additions were
@@ -382,7 +382,48 @@ Thirteen times wider on the widest cell. Two further consequences, both concrete
   differ by an order of magnitude across detectors, so re-measure per detector rather than
   reusing 0.0188 or 0.3294.
 
-## 6. Four published models cannot be re-verified against a stricter export gate
+## 6. `topic_scope`'s shipped threshold was below its own score floor
+
+Fixed 2026-08-19 and kept on the list because what it says about the other thresholds is not
+yet checked.
+
+`topic_scope` emits a rescaled cosine, `(cos + 1) / 2`, and both shipped policies set a
+threshold of **0.45**, which is a raw cosine of -0.10. Over the 408 rows of the training
+corpus's test split against a 15-node taxonomy, the lowest score any text achieves is 0.6674,
+so **408 of 408 cleared it**. The threshold rejected nothing and firing was decided entirely by
+whether the nearest node happened to be `disallowed`. Under `policies/bfsi.yaml`, where
+`on_fail` is `block`, that is a refused response for an input the detector had no opinion about.
+
+On the 78 rows that belong to no node at all:
+
+| bar | in-scope kept | out-of-scope kept | separation |
+|---|---|---|---|
+| 0.45, as shipped | 1.0000 | 1.0000 | **0.0000** |
+| 0.80 | 0.9600 | 0.7692 | 0.1908 |
+| **0.85, now shipped** | 0.8000 | 0.2692 | **0.5308** |
+| 0.87 | 0.6857 | 0.0897 | 0.5960 |
+
+**Why the published eval could not see it.** `topic_scope_eval.json` reports `top1_accuracy`,
+which asks *which* node is nearest and never *whether any* is near enough, so a rank metric
+cannot see a threshold that never binds. The file's own note that its 78 out-of-taxonomy rows
+are "never scored, which is half of what it is for" was the more important sentence in it.
+
+**Two of my own measurements were wrong on the way here** and both are worth keeping. I first
+built the taxonomy with `path.replace("/", " ")` as the node description and concluded from it
+that no threshold could separate the registers, because out-of-taxonomy text scored *higher*
+than in-scope. With the corpus's real descriptions the ordering reverses. And a margin sweep
+read 1.0000 at every bar because it counted over one list and divided by another's length; a
+sweep returning the same number for every threshold should have stopped me sooner.
+
+- **Where**: `tests/test_topic_scope_threshold.py`. The fast test needs no model and asserts
+  every shipped `topic_scope` threshold sits above the recorded floor.
+- **What is left**: the same check has not been run for the other detectors' thresholds. A
+  classifier's sigmoid does reach 0, so the fault is specific to a rescaled-cosine score, but
+  "probably fine" is what 0.45 was.
+- **And the bar is taxonomy-dependent**: measured on 15 nodes, and more nodes mean more chances
+  of a spurious near-match, so a deployment should re-sweep it.
+
+## 7. Four published models cannot be re-verified against a stricter export gate
 
 Re-checking a quantised export needs both halves, fp32 and quantised. `CLAUDE.md` already
 records this for `groundedness`: "an artifact whose fp32 is gone cannot be re-verified when the
@@ -410,35 +451,24 @@ drift was added.
 - **Where**: `artifacts_local/<detector>-full/model.safetensors`, and `registry.MODELS` for
   what is published.
 - **Fix, three of the four for free**: `gibberish` and `politeness` are on the retrain list in
-  item 2 and `moderation` on the one beside it, and a retrain writes both halves. `topic_scope`
-  is on no list and is the one that needs a deliberate decision.
+  item 2 and `moderation` on the one beside it, and a retrain writes both halves.
+- **`topic_scope` needs no action, established 2026-08-19.** It is unconfigured in both shipped
+  policies and is T3, so nothing in the shipped configuration loads it and its missing fp32
+  half cannot affect a caller. Its manifest is also the most complete of the set: it records
+  cosine-to-torch for both halves and that the int8 export moved 2 of 200 top-1 taxonomy
+  nodes. Nothing recovers its weights, and nothing needs to.
 - **Then keep them.** A run writes `model.safetensors` and `run.json` at the artifact root
   today, so this is a retention habit rather than a code gap. About 1 GB per model.
 
-## 7. Local `.git` still holds the pre-rewrite objects
-
-Minor, and the only remnant of the repository-and-remote item this list opened with. The
-training repository now has a private
-remote at `flowx-ai/border-training`, 117 commits, and a fresh clone is 60 MB.
-
-Getting there meant stripping committed model weights from history: `.git` had reached 15 GB
-because `exports/piiguard/model.onnx` at 1,058 MB was committed twice, and GitHub rejects any
-file over 100 MB, so the repository could not have had a remote at all. Nothing was lost,
-because every one of those weights is published on Hugging Face and pinned by revision and
-sha256, which says which bytes ran where a git blob only says somebody committed a file.
-
-What remains is housekeeping. The local `.git` is still 15 GB: the old objects are unreachable
-but retained via the reflog, deliberately, as the undo path for the rewrite. Once nobody wants
-that undo:
-
-```sh
-git reflog expire --expire=now --all && git gc --prune=now
-```
-
-`artifacts_local/` is about 41 GB on disk, untracked, and some candidates there are the only
-copy, so never `git clean -fdx` in that repository.
-
 ## Closed while writing this
+
+**The pre-rewrite objects are gone and `.git` is 64 MB.** Was 15 GB, because
+`exports/piiguard/model.onnx` at 1,058 MB had been committed twice before the history was
+rewritten. The unreachable objects were retained deliberately as the undo path for that
+rewrite; verified first that the remote carries all 145 commits and that nothing exists only
+locally, then `git reflog expire --expire=now --all && git gc --prune=now`. History intact,
+working tree untouched, `size-pack` was 2.38 GB of the 15.
+
 
 **The per-token latency slope was transposed.** `CLAUDE.md` said 1.636 ms/token and
 `docs/reference/latency_sweep.json` said 1.663. Recomputed from the sweep's own single-window

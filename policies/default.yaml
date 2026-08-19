@@ -354,7 +354,33 @@ detectors:
       max_urls: 5
   topic_scope:
     on_fail: flag
-    threshold: 0.45
+    # 0.85, raised from 0.45 on 2026-08-19, and 0.45 was not a low bar but an inert one.
+    #
+    # This detector's score is a rescaled cosine, `(cos + 1) / 2`, so 0.45 corresponds to a
+    # raw cosine of -0.10. Measured over the 408 rows of the training corpus's test split
+    # against a 15-node taxonomy, the lowest score any text achieves is 0.6674, so **408 of
+    # 408 rows cleared the old threshold**. It could not reject anything, and firing was
+    # decided entirely by whether the nearest node happened to be disallowed.
+    #
+    # What that cost, on the 78 rows that belong to no node at all:
+    #
+    #   bar    in-scope kept    out-of-scope kept    separation
+    #   0.45          1.0000               1.0000        0.0000
+    #   0.80          0.9600               0.7692        0.1908
+    #   0.85          0.8000               0.2692        0.5308
+    #   0.87          0.6857               0.0897        0.5960
+    #
+    # 0.85 rather than 0.87 because 0.87 buys 0.065 of separation for 11 points of recall.
+    # It costs 20 points of recall against the old bar, which bought nothing.
+    #
+    # A margin between the best and second-best node was measured as the alternative and is
+    # worse here, 0.4134 separation at its own best bar against 0.5960, so the simpler
+    # mechanism stays.
+    #
+    # **Re-sweep this on your own taxonomy.** It is measured on 15 nodes; more nodes mean
+    # more chances of a spurious near-match, so the bar moves with the taxonomy. The old
+    # 0.45 is what a number looks like when nobody has swept it.
+    threshold: 0.85
   groundedness:
     enabled: false          # published and available, deliberately off. See below.
     on_fail: flag
