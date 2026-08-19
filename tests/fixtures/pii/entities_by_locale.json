@@ -1,0 +1,210 @@
+{
+ "az": {
+  "CARD": "5191.1553.4986.9768",
+  "EMAIL": "jleoh@example.az",
+  "IBAN": "AZ73 ZEBQ 2104 7502 6625 4863 5508",
+  "NATIONAL_ID": "5N2YF7A",
+  "PERSON": "Elvin Məmmədov",
+  "PHONE": "+994 570 257 904"
+ },
+ "bg": {
+  "CARD": "4978 1072 6115 4630",
+  "EMAIL": "chbqpqm@mail.bg",
+  "IBAN": "BG73 SVJY 8138 4575 5191 17",
+  "NATIONAL_ID": "2797788727",
+  "PERSON": "Елена Димитрова",
+  "PHONE": "+359 504 975 317"
+ },
+ "cs": {
+  "CARD": "5170 1848 8071 7694",
+  "EMAIL": "lxfyhhj@web.cz",
+  "IBAN": "CZ6645284483606153269214",
+  "NATIONAL_ID": "2868219508",
+  "PERSON": "Tereza Nováková",
+  "PHONE": "+420 560 369 659"
+ },
+ "da": {
+  "CARD": "5283-0082-2809-1146",
+  "EMAIL": "reyffy@web.dk",
+  "IBAN": "DK76 3282 4357 7382 23",
+  "NATIONAL_ID": "9621752534",
+  "PERSON": "Lars Nielsen",
+  "PHONE": "+45 344 974 111"
+ },
+ "de": {
+  "CARD": "5204 3469 1604 0991",
+  "EMAIL": "adjkpupwr@post.de",
+  "IBAN": "DE18 7505 0619 6121 0584 13",
+  "NATIONAL_ID": "84587018289",
+  "PERSON": "Lena Müller",
+  "PHONE": "+49 703 184 559"
+ },
+ "el": {
+  "CARD": "4373.9355.6708.9006",
+  "EMAIL": "klhoy@post.gr",
+  "IBAN": "GR21 8020 632V AXLH KVTD AHIC NCQ",
+  "NATIONAL_ID": "03544141934",
+  "PERSON": "Κατερίνα Παπαδοπούλου",
+  "PHONE": "+30 661 829 826"
+ },
+ "en": {
+  "CARD": "4252.2102.5016.8756",
+  "EMAIL": "vgodmdds@post.com",
+  "IBAN": "GB92 FARE 1067 5941 2208 90",
+  "NATIONAL_ID": "98413970534",
+  "PERSON": "James Jones",
+  "PHONE": "+44 144 100 489"
+ },
+ "es": {
+  "CARD": "5549 5282 4286 7106",
+  "EMAIL": "qbfjlkjo@post.es",
+  "IBAN": "ES97 0710 2344 1658 3375 4801",
+  "NATIONAL_ID": "42063694Y",
+  "PERSON": "Pablo García",
+  "PHONE": "+34 485 953 503"
+ },
+ "et": {
+  "CARD": "6011540230577388",
+  "EMAIL": "qauzhcob@post.ee",
+  "IBAN": "EE86 8847 7671 3799 2287",
+  "NATIONAL_ID": "94190828812",
+  "PERSON": "Martin Tamm",
+  "PHONE": "+372 883 145 577"
+ },
+ "fi": {
+  "CARD": "5200-7377-6061-4754",
+  "EMAIL": "apaimgov@web.fi",
+  "IBAN": "FI0314788158073347",
+  "NATIONAL_ID": "280265-834B",
+  "PERSON": "Sanna Virtanen",
+  "PHONE": "+358 248 609 952"
+ },
+ "fr": {
+  "CARD": "349847661557755",
+  "EMAIL": "ayuuebyr@web.fr",
+  "IBAN": "FR3696992597623919359031682",
+  "NATIONAL_ID": "306249188591687",
+  "PERSON": "Louis Martin",
+  "PHONE": "+33 561 872 860"
+ },
+ "ga": {
+  "CARD": "5111-7309-4238-1572",
+  "EMAIL": "ismyjhvuo@mail.ie",
+  "IBAN": "IE83 EFVV 2794 9213 2310 57",
+  "NATIONAL_ID": "9094776W",
+  "PERSON": "Niamh Mac Cárthaigh",
+  "PHONE": "+353 390 801 998"
+ },
+ "hr": {
+  "CARD": "3405 074509 65523",
+  "EMAIL": "xrvrim@example.hr",
+  "IBAN": "HR3994369581721046499",
+  "NATIONAL_ID": "84802033736",
+  "PERSON": "Marko Kovač",
+  "PHONE": "+385 428 018 041"
+ },
+ "hu": {
+  "CARD": "3443 466291 90630",
+  "EMAIL": "ssutiwuk@example.hu",
+  "IBAN": "HU37 0370 2614 8564 7514 4233 2930",
+  "NATIONAL_ID": "6510703025",
+  "PERSON": "Eszter Kovács",
+  "PHONE": "+36 721 147 508"
+ },
+ "it": {
+  "CARD": "4542.0523.7629.2304",
+  "EMAIL": "eutatkwna@web.it",
+  "IBAN": "IT80 H892 8052 9126 1916 3328 977",
+  "NATIONAL_ID": "218DHHP5XYI98JTX",
+  "PERSON": "Luca Bianchi",
+  "PHONE": "+39 932 665 959"
+ },
+ "lt": {
+  "CARD": "3497.793862.59435",
+  "EMAIL": "pkxlvnnof@web.lt",
+  "IBAN": "LT10 9616 4464 7381 4065",
+  "NATIONAL_ID": "52388299976",
+  "PERSON": "Emilija Kazlauskas",
+  "PHONE": "+370 174 283 804"
+ },
+ "lv": {
+  "CARD": "5136.5164.0752.2888",
+  "EMAIL": "jtmfflo@example.lv",
+  "IBAN": "LV28 EABK 5608 8709 5169 0",
+  "NATIONAL_ID": "99878321800",
+  "PERSON": "Jānis Kalniņš",
+  "PHONE": "+371 684 263 621"
+ },
+ "mt": {
+  "CARD": "4223643293773776",
+  "EMAIL": "zxuxs@example.mt",
+  "IBAN": "MT26 HZYY 9288 6OOK BACC CBCX LNDJ AYY",
+  "NATIONAL_ID": "6721890G",
+  "PERSON": "Luca Borg",
+  "PHONE": "+356 061 022 433"
+ },
+ "nl": {
+  "CARD": "5552.5157.8585.5022",
+  "EMAIL": "qmzvdpma@post.nl",
+  "IBAN": "NL22 VGML 9803 1860 29",
+  "NATIONAL_ID": "555594129",
+  "PERSON": "Sem de Jong",
+  "PHONE": "+31 358 170 338"
+ },
+ "pl": {
+  "CARD": "343092909516711",
+  "EMAIL": "tpbzbxi@web.pl",
+  "IBAN": "PL98 2880 2555 7491 5598 1608 3675",
+  "NATIONAL_ID": "17577895582",
+  "PERSON": "Zofia Kowalska",
+  "PHONE": "+48 797 570 404"
+ },
+ "pt": {
+  "CARD": "5257.8790.6936.0838",
+  "EMAIL": "upahdx@mail.pt",
+  "IBAN": "PT08 6166 3725 8489 9104 7301 1",
+  "NATIONAL_ID": "354297953",
+  "PERSON": "Tiago Santos",
+  "PHONE": "+351 511 687 473"
+ },
+ "ro": {
+  "CARD": "5265-8281-2082-4704",
+  "EMAIL": "dcvuqbjy@web.ro",
+  "IBAN": "RO12 XXUT 2464 8880 9713 4417",
+  "NATIONAL_ID": "3283104332908",
+  "PERSON": "Mihai Popescu",
+  "PHONE": "+40 408 482 112"
+ },
+ "sk": {
+  "CARD": "6011 4375 8883 4380",
+  "EMAIL": "dibyizey@post.sk",
+  "IBAN": "SK09 7608 7087 5916 5524 5139",
+  "NATIONAL_ID": "7734817519",
+  "PERSON": "Zuzana Kováčová",
+  "PHONE": "+421 596 730 181"
+ },
+ "sl": {
+  "CARD": "6011 4686 5219 9582",
+  "EMAIL": "jfdlfrmm@example.si",
+  "IBAN": "SI62551566694164445",
+  "NATIONAL_ID": "1706474842243",
+  "PERSON": "Maja Novak",
+  "PHONE": "+386 201 828 908"
+ },
+ "sv": {
+  "CARD": "5511 4276 8804 3161",
+  "EMAIL": "nikpnpoq@post.se",
+  "IBAN": "SE8713567203434985424237",
+  "NATIONAL_ID": "6806141500",
+  "PERSON": "Karin Johansson",
+  "PHONE": "+46 068 873 331"
+ },
+ "tr": {
+  "CARD": "3499-141293-03170",
+  "EMAIL": "ptgyj@post.tr",
+  "IBAN": "TR1737036NNCLSFJKAUMBWZBYU",
+  "NATIONAL_ID": "59972497394",
+  "PERSON": "Emre Demir",
+  "PHONE": "+90 871 096 162"
+ }
+}
