@@ -44,7 +44,26 @@ def config(threshold: float = 0.5, **options: object) -> DetectorConfig:
 
 @pytest.fixture(scope="module")
 def detector() -> PiiDetector:
+    """Unwarmed. The end-to-end tests below warm it through `warmed` and skip if they
+    cannot, because CI runs the whole suite with `HF_HUB_OFFLINE` and an empty cache."""
     return PiiDetector()
+
+
+@pytest.fixture(scope="module")
+def warmed(detector: PiiDetector) -> PiiDetector:
+    """A warmed detector, or a skip naming what is missing.
+
+    CI runs `pytest -q` with no marker filter and no model cache, so a slow marker does
+    not keep a model-backed test out of it. The first version of this file called
+    `warm()` in a test and turned a missing artifact into a red build, not a skip.
+    """
+    from flowx_border.models.registry import ModelUnavailableError
+
+    try:
+        detector.warm()
+    except ModelUnavailableError as error:
+        pytest.skip(f"piiguard weights not cached: {error}")
+    return detector
 
 
 def test_no_bar_is_the_default(detector: PiiDetector) -> None:
@@ -85,14 +104,14 @@ def test_entity_thresholds_must_be_a_mapping(detector: PiiDetector) -> None:
 
 @pytest.mark.slow
 def test_a_place_name_below_the_bar_is_dropped_and_recorded(
-    detector: PiiDetector,
+    warmed: PiiDetector,
 ) -> None:
     """The point of the option, and the record still shows what the bar did."""
     from flowx_border.detectors.base import Context
 
+    detector = warmed
     text = "The service calls at Vilshofen before continuing to the terminus."
     ctx = Context()
-    detector.warm()
 
     without = detector.run(text, config(), ctx)
     assert any(f.label == "person" and f.action == "redact" for f in without), (
@@ -114,7 +133,7 @@ def test_a_place_name_below_the_bar_is_dropped_and_recorded(
 
 
 @pytest.mark.slow
-def test_a_person_named_after_a_place_is_still_found(detector: PiiDetector) -> None:
+def test_a_person_named_after_a_place_is_still_found(warmed: PiiDetector) -> None:
     """The hole a stoplist of toponyms would have punched, and the bar does not.
 
     Place names are common surnames. The model already separates the two by context, so
@@ -123,8 +142,8 @@ def test_a_person_named_after_a_place_is_still_found(detector: PiiDetector) -> N
     """
     from flowx_border.detectors.base import Context
 
+    detector = warmed
     ctx = Context()
-    detector.warm()
     cfg = config(entity_thresholds={"person": 0.90})
 
     person = "The parcel was signed for by Frau Regensburg on Tuesday morning."
