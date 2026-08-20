@@ -241,6 +241,23 @@ Counted per language in the test split, because that is what a per-language F1 r
 `toxicity` set the bar at 19 to 20 when it came off this list on 2026-08-14, and three
 detectors are still below it:
 
+**Closed on 2026-08-19, and the corpora are regenerated and retrained.** Kept because the rule
+that produced the problem is still in `CLAUDE.md` and still wrong for a two-register detector.
+
+| detector | positives per language | per-language mean F1 |
+|---|---|---|
+| `nsfw` | 9 to 10 -> **23 to 24** | 0.9337 -> 0.9738 / 0.9653 |
+| `gibberish` | 9 to 12 -> **28 to 32** | 0.9664 -> 0.9915 / 0.9892 |
+| `politeness` | 15 to 16 -> **20 to 21** | 0.9619 -> 0.9790 / 0.9844 |
+
+Two seeds each, five of six labels above the measured noise floor, every export gate clean at
+0 of 300 decisions changed, and `nsfw` Maltese's seed spread down from 0.3294 to 0.1179. Not
+adopted: see `reports/THICK_CORPORA.md`. What is left is a calibrated threshold that is a seed
+artifact for two of the three, 0.63/0.86 for `nsfw` and 0.03/0.40 for `politeness`, because
+their validation curves are flat.
+
+The original table, for the record:
+
 | detector | test positives per language | mean F1 | worst language | languages under 0.90 |
 |---|---|---|---|---|
 | `nsfw` | **9 to 10** | 0.9337 | `mt` 0.600 | 4 of 26 |
