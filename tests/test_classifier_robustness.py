@@ -166,7 +166,25 @@ NEUTRAL_PADDING = (
 #: already ambiguous and not where it is plainly ordinary. Their corpora still get the
 #: fix, because a model that reads length near its boundary is fragile in a way a caller
 #: will eventually find; they are simply not broken today.
-NOT_YET_RETRAINED = ("regulated_advice",)
+#: **Empty since 2026-08-20.** `regulated_advice` was the last entry and it left the way
+#: this list is meant to be left: the retrain landed, both of its probes turned into
+#: XPASS(strict), the run failed, and the failure was the instruction to delete the
+#: entry.
+#:
+#: Its recorded value was "5 of 20 short, 0 padded    same shape, smaller; unavailable",
+#: and the 5 was real. Measured on the model that was published until today, at the
+#: shipped threshold of 0.5: 5 of 20, reading `legal_advice` 0.9895 on a parcel delivery
+#: notice, `medical_advice` 0.9996 on an appointment confirmation, and
+#: `financial_advice` 0.9994 on "Please bring your ID card to the meeting." The
+#: replacement fires on 0 of 20 at full length and 0 of 20 cut to 55 characters.
+#:
+#: Worth recording that the entry was nearly deleted for the wrong reason a few hours
+#: earlier. The measurement that said it was already clean had been taken against an
+#: artifact directory that the candidate had been unpacked over, so "published" and
+#: "candidate" were the same bytes and agreed with each other. The published weights are
+#: the ones in `registry.MODELS`, and reading them means either no override at all or a
+#: hash check against the pin.
+NOT_YET_RETRAINED: tuple[str, ...] = ()
 
 
 def _xfail_if_untrained(detector_id: str, reason: str) -> object:

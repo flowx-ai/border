@@ -94,18 +94,27 @@ MAX_FIRE_RATE: dict[str, float] = {
     "injection": 0.05,
     "output_leakage": 0.25,
     "language_id": 1.0,
+    # Enforced since 2026-08-20, when the retrain on the corrected corpus split took it
+    # from 0.5256 to 0.0598 and it came off KNOWN_OVER. The ceiling is the one it was
+    # given while it was failing, kept rather than tightened to what it now measures: a
+    # ceiling set to the current value fails on the next honest ambiguous row.
+    "regulated_advice": 0.10,
 }
 
-#: The two that are over their ceiling today, split out so the eight above stay
-#: enforced. A single xfail covering the whole table would mean a regression in
-#: `toxicity` no longer failed anything, which is how a known failure becomes cover for
-#: an unknown one.
+#: The one that is over its ceiling today, split out so the nine above stay enforced. A
+#: single xfail covering the whole table would mean a regression in `toxicity` no longer
+#: failed anything, which is how a known failure becomes cover for an unknown one.
+#:
+#: `regulated_advice` left this dict on 2026-08-20 and the way it left is the point. It
+#: was not a threshold move: its corpus split was cut along domain lines, the retrain on
+#: the corrected split reads 0.0598 against 0.5256, and its `financial_advice` label got
+#: a score for the first time in the same run. So it moved into MAX_FIRE_RATE above and
+#: is enforced from here on.
 #:
 #: The ceilings here are where each should be, not where it is. Measured values are in
 #: the xfail reason on the test that carries them.
 KNOWN_OVER: dict[str, float] = {
     "pii": 0.25,
-    "regulated_advice": 0.10,
 }
 
 #: Labels that are a detector reporting it could not run, rather than a finding about
@@ -469,10 +478,14 @@ def test_no_detector_fires_above_its_measured_ceiling(sweep: dict[str, object]) 
     ),
     strict=True,
 )
-def test_the_two_detectors_known_to_be_over_their_ceiling(
+def test_the_detector_known_to_be_over_its_ceiling(
     sweep: dict[str, object],
 ) -> None:
-    """Pinned so a corpus fix turns into a failing test rather than into silence."""
+    """Pinned so a corpus fix turns into a failing test rather than into silence.
+
+    It worked. `regulated_advice` was the second entry here and left on 2026-08-20, when
+    the retrain on the corrected corpus split read 0.0598 against a recorded 0.5256.
+    """
     over = over_ceiling(sweep, KNOWN_OVER)
     assert not over, "still over ceiling:\n" + "\n".join(over)
 

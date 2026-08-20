@@ -357,18 +357,25 @@ MODELS: Final[dict[str, ModelSpec]] = {
     "regulated_advice": ModelSpec(
         model_id="flowxai/regulated-advice",
         repo="flowxai/regulated-advice",
-        revision="7e045e07af9f4c93936ec9e61612cb5a9517d1be",
+        revision="5141792fe64fa8e90c5ccd6862b1905c05a119fa",
         filename="onnx/model.int8.onnx",
-        sha256="534a27e4137b2538bc6952c2e5e9e0031b9ceaf00805de64fffe39b53d0953b5",
+        sha256="9d76be7ee815bea38f08734f953f9a8f1a37c7dff046c3166069becf9e0563a7",
         extra_files=("tokenizer.json", "config.json"),
         trained_max_length=96,
         trained_languages=frozenset(LANGUAGES),
         notes=(
-            "XLM-RoBERTa base, 3 labels. Known to over-fire on ordinary "
-            "text: it fires on 0.145 of 234 mundane rows in 26 languages "
-            "against a 0.10 ceiling, pinned as a strict xfail in "
-            "tests/test_ordinary_text_sweep.py. It flags rather than "
-            "redacts, so the cost is a noisy record and not damaged text."
+            "XLM-RoBERTa base, 3 labels, retrained 2026-08-20 on a corrected "
+            "corpus split. Two things moved. Its ordinary-text firing rate "
+            "went from 0.5256 of 234 mundane rows to 0.0600, below the 0.10 "
+            "ceiling in tests/test_ordinary_text_sweep.py, which is what took "
+            "it off that file's known-over list. And financial_advice has a "
+            "score for the first time, 0.8927 at a support of 260: the "
+            "previous split was cut along domain lines and gave that label "
+            "2,542 training rows and no test rows, so its reported f1 of 0.0 "
+            "was a division by nothing. All three labels now read 0.876 to "
+            "0.902. Read those rather than the per-language table, which asks "
+            "whether the detector fires at all and reads 1.000 in sixteen "
+            "languages on that easier question."
         ),
     ),
     "topic_scope": ModelSpec(
