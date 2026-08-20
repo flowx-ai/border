@@ -224,9 +224,15 @@ def is_possible(entity: str, value: str) -> bool:
     stripped = value.strip()
     if not stripped:
         return False
-    # Trailing sentence punctuation is not part of any of these entities and is what the
-    # model attached to `five.` and `fem.`. Stripped before measuring rather than
-    # treated as a rejection, so that `14 March 2024.` is still a date.
+    # `PERSON` and `LOCATION` reach the end of this function unchallenged, and that is a
+    # statement rather than an omission: a name has no shape, and neither does a place.
+    # Any rule keyed on their surface would be keyed on capitalisation, which is
+    # orthography. `LOCATION` was added on 2026-08-20 and is the type this module's own
+    # refusal to guess argued for: dropping a span because it looks like a place turns a
+    # visible over-redaction into an invisible hole, so the model has to name it
+    # instead. Trailing sentence punctuation is not part of any of these entities and is
+    # what the model attached to `five.` and `fem.`. Stripped before measuring rather
+    # than treated as a rejection, so that `14 March 2024.` is still a date.
     core = stripped.strip(_TRAILING)
     if not core:
         return False

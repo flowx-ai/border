@@ -109,6 +109,18 @@ ENTITY_TYPES: Final[tuple[str, ...]] = (
     "date",
     "email",
     "iban",
+    # Added 2026-08-20, when the model gained a LOCATION head. It exists because the
+    # previous answer to place names was to teach the model that a capitalised proper
+    # noun mid-sentence need not be an entity, and a model trained that way stopped
+    # finding people: eleven real names went unredacted on the ordinary-text sweep and
+    # the library refused it. PERSON and a place share a surface form, so distinguishing
+    # is the only lesson available.
+    #
+    # Whether a location is personal data is the caller's question. A city in a rail
+    # timetable is not and a street in a delivery notice is, and no model can read that
+    # off the token. So it ships as `flag` in policies/default.yaml and `redact` in
+    # policies/bfsi.yaml, the same split `date` has for the same reason.
+    "location",
     "national_id",
     "person",
     "phone",
