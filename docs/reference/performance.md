@@ -33,7 +33,7 @@ means the score is unverified rather than good or bad.
 | `pii` | T1 | built | – | – | – | – | – | – |
 | `politeness` | T2 | built | f1 | 0.962 | 0.968 | 0.788 | 392 | positive examples |
 | `postal_code` | T1 | built | – | – | – | – | – | – |
-| `regulated_advice` | T2 | built | f1 | 0.995 | 1.000 | 0.957 | 622 | positive examples |
+| `regulated_advice` | T2 | built | f1 | 0.986 | 1.000 | 0.900 | 572 | positive examples |
 | `repetition` | T1 | built | – | – | – | – | – | – |
 | `secrets` | T0 | built | – | – | – | – | – | – |
 | `sql_injection` | T1 | built | – | – | – | – | – | – |
@@ -53,8 +53,7 @@ means the score is unverified rather than good or bad.
 - **`moderation`**: the score above is per language and asks whether the detector fires at all, not which of its 12 labels applies. Per label the weakest with support is violent_facilitation at 0.8351, against a macro of 0.9919 here.
 - **`nsfw`**: the score above is per language and asks whether the detector fires at all, not which of its 2 labels applies. Per label the weakest with support is sexual at 0.8945, against a macro of 0.9337 here.
 - **`nsfw`**: 1 of 26 languages have fewer than 10 positive examples: ga. Their individual scores are indicative rather than measured.
-- **`regulated_advice`**: 1 of 3 labels have no examples in the test split and were never evaluated: financial_advice. Their reported f1 of 0.0 is a division by nothing rather than a score, and the figures here describe only the labels that do have support.
-- **`regulated_advice`**: the score above is per language and asks whether the detector fires at all, not which of its 3 labels applies. Per label the weakest with support is legal_advice at 0.7629, against a macro of 0.9950 here.
+- **`regulated_advice`**: the score above is per language and asks whether the detector fires at all, not which of its 3 labels applies. Per label the weakest with support is legal_advice at 0.8758, against a macro of 0.9864 here.
 - **`topic_scope`**: 26 of 26 languages have fewer than 10 examples evaluated: az, bg, cs, da, de, el, en, es, et, fi, fr, ga, hr, hu, it, lt, lv, mt, nl, pl, pt, ro, sk, sl, sv, tr. Their individual scores are indicative rather than measured.
 - **`topic_scope`**: no calibrated threshold recorded, so this detector runs at the policy default. Several detectors in this family reported nothing at 0.5 while separating positives from negatives well below it.
 - **`toxicity`**: the score above is per language and asks whether the detector fires at all, not which of its 4 labels applies. Per label the weakest with support is harassment at 0.9723, against a macro of 0.9915 here.
@@ -65,33 +64,33 @@ At a 396 character reference input, 1 thread, CPUExecutionProvider. Romanian pro
 
 | Detector | p95 ms | Budget ms | note |
 |---|---|---|---|
-| `banned_terms` | 0.161 | 5.0 | – |
-| `bias` | 18.302 | 225.0 | – |
+| `banned_terms` | 0.163 | 5.0 | – |
+| `bias` | 18.376 | 225.0 | – |
 | `code_present` | 0.007 | 5.0 | – |
-| `disclosure` | 0.030 | 5.0 | – |
-| `encoded_payload` | 0.188 | 5.0 | – |
-| `gibberish` | 26.319 | 225.0 | – |
+| `disclosure` | 0.029 | 5.0 | – |
+| `encoded_payload` | 0.187 | 5.0 | – |
+| `gibberish` | 26.440 | 225.0 | – |
 | `groundedness` | – | 300.0 | weights unavailable |
-| `injection` | 18.266 | 225.0 | – |
-| `internal_domains` | 0.151 | 5.0 | – |
+| `injection` | 18.333 | 225.0 | – |
+| `internal_domains` | 0.154 | 5.0 | – |
 | `invisible_text` | 0.025 | 5.0 | – |
 | `json_schema` | 0.001 | 5.0 | – |
-| `language_id` | 0.216 | 5.0 | – |
-| `markup_injection` | 0.170 | 5.0 | – |
-| `moderation` | 18.420 | 150.0 | – |
-| `nsfw` | 18.318 | 225.0 | – |
+| `language_id` | 0.228 | 5.0 | – |
+| `markup_injection` | 0.165 | 5.0 | – |
+| `moderation` | 18.466 | 150.0 | – |
+| `nsfw` | 18.737 | 225.0 | – |
 | `output_format` | 0.001 | 5.0 | – |
-| `output_leakage` | 23.227 | 225.0 | – |
-| `pii` | 23.658 | 225.0 | – |
+| `output_leakage` | 23.463 | 225.0 | – |
+| `pii` | 23.427 | 225.0 | – |
 | `politeness` | – | 225.0 | weights unavailable |
 | `postal_code` | 0.001 | 5.0 | – |
-| `regulated_advice` | 18.649 | 225.0 | – |
-| `repetition` | 0.292 | 5.0 | – |
-| `secrets` | 0.030 | 1.0 | – |
-| `sql_injection` | 0.147 | 5.0 | – |
-| `summary_support` | 0.575 | 5.0 | – |
-| `system_prompt_leakage` | 0.193 | 5.0 | the unconfigured path |
+| `regulated_advice` | 18.631 | 225.0 | – |
+| `repetition` | 0.295 | 5.0 | – |
+| `secrets` | 0.028 | 1.0 | – |
+| `sql_injection` | 0.142 | 5.0 | – |
+| `summary_support` | 0.546 | 5.0 | – |
+| `system_prompt_leakage` | 0.188 | 5.0 | the unconfigured path |
 | `token_limit` | 0.001 | 5.0 | the unconfigured path |
 | `topic_scope` | – | 300.0 | weights unavailable |
-| `toxicity` | 18.741 | 225.0 | – |
+| `toxicity` | 18.474 | 225.0 | – |
 | `url_reachability` | 0.005 | 3000.0 | the unconfigured path |
