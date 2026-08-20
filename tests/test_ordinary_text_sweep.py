@@ -48,6 +48,7 @@ produced. If the two sources ever disagree, the hand-written ones are the eviden
 from __future__ import annotations
 
 import collections
+import hashlib
 import json
 import os
 from pathlib import Path
@@ -273,6 +274,20 @@ def sweep() -> dict[str, object]:
         "a corpus fix and a retrain; the retrain already existed, in a sibling "
         "directory on the same disk, and scored 0.128. Compare the reports before "
         "concluding anything about a model.\n\n"
+        "**Every figure in this paragraph was measured on a row set that no longer "
+        "exists, and the current number is 0.2051.** The rows were re-drawn on "
+        "2026-08-19 by `1bedcde`, which fixed `ordinary_rows` sampling by corpus order "
+        "and therefore taking all eight of a language's rows from one register. The "
+        "per-entity bar below landed in `34dbd15`, one commit earlier, so its headline "
+        "describes the sliced rows and not these. On the snapshot now in "
+        "tests/fixtures/ordinary_text/mundane_rows.json, content sha da8a38fa450c, the "
+        "published models read 0.2051 of rows losing text and `pii` 0.1709.\n\n"
+        "The bar still works and its effect is smaller than claimed. Same rows, same "
+        "code, `entity_thresholds` removed: 0.2436 of rows and `pii` at 0.2094, so the "
+        "bar takes `pii` from 0.2094 to 0.1709. That is an 18 percent relative "
+        "reduction rather than the halving in the commit subject, and the difference "
+        "is entirely the row set. A measurement is not transferable between two row "
+        "sets just because both have 234 rows in them.\n\n"
         "**0.162 to 0.0940 on 2026-08-19, from a per-entity bar on `person`.** The "
         "residue was place names, and reading the sweep said why: `person` is the one "
         "type with no shape to check, so an unfamiliar capitalised token mid-sentence "
@@ -280,7 +295,8 @@ def sweep() -> dict[str, object]:
         "inside fixed frames separated the variables: `Berlin`, `Paris` and `Siemens` "
         "are never tagged, `Regensburg` and `Valletta` are, and an invented "
         "`Grelmshof` scores 0.97, so it is unfamiliarity and not knowledge of place "
-        "names. Sentence-initial is exempt, capitalisation there being orthography.\n\n"
+        "names. Sentence-initial is exempt, capitalisation there being orthography. "
+        "\n\n"
         "`options.entity_thresholds` puts a 0.90 bar on `person`, removing 30 of the "
         "43, and 0.90 bars on `national_id` and `phone` too. Held-out recall is 1.0000 "
         "for PERSON over 668 gold spans and for PHONE, and national_id recall is flat "
@@ -334,6 +350,78 @@ def over_ceiling(sweep: dict[str, object], ceilings: dict[str, float]) -> list[s
     ]
 
 
+#: The rates this sweep last measured, written to a file rather than into prose.
+RECORDED = (
+    Path(__file__).resolve().parent.parent
+    / "docs"
+    / "reference"
+    / ("ordinary_text_rates.json")
+)
+
+#: How far a rate may move from the recorded one before it is a different measurement.
+#: One row of 234 is 0.0043, so this is about four rows: enough that a threshold
+#: nudge or a rounding difference does not fail, small enough that a model swap does.
+RATE_TOLERANCE = 0.02
+
+
+def test_the_recorded_rates_still_describe_this_configuration(
+    sweep: dict[str, object],
+) -> None:
+    """A number in an xfail reason is prose, and nothing recomputes prose.
+
+    Two figures in this file went stale without anything failing. `regulated_advice` was
+    recorded at 0.145 and measured 0.5256, and the `pii` chain ended at 0.0940 against a
+    measured 0.1709. Neither was a regression: `1bedcde` re-drew the rows round-robin
+    across registers, one commit after the number was taken, and an xfail reason
+    cannot notice that its input moved. Both tests went on xfailing, which is what
+    they were told to do, so the run stayed green while the documented numbers
+    described rows that no longer existed.
+
+    So the rates live in `docs/reference/ordinary_text_rates.json` and this compares
+    them with what the sweep just measured. The row hash is checked first, because a
+    moved row set and a changed model are different problems with different fixes, and
+    the error message should say which one happened.
+
+    Regenerate with the snippet in that file's sibling docs when a change is intended. A
+    rate moving is normal; a rate moving unnoticed is what this prevents.
+    """
+    recorded = json.loads(RECORDED.read_text(encoding="utf-8"))
+    rows = ordinary_rows()
+    digest = hashlib.sha256(
+        "\n".join(text for _, text in rows).encode("utf-8")
+    ).hexdigest()
+    assert digest == recorded["rows_content_sha256"], (
+        "the sweep's rows are not the ones the recorded rates were measured on, so no "
+        "comparison of rates is meaningful. Re-measure and update"
+        f"{RECORDED.name}, and treat every rate quoted elsewhere as stale: "
+        f"recorded {recorded['rows_content_sha256'][:12]}, measured {digest[:12]}"
+    )
+
+    fired = sweep["fired"]
+    damaged = sweep["damaged"]
+    assert isinstance(fired, collections.Counter)
+    assert isinstance(damaged, collections.Counter)
+    rows_seen = sweep["rows"]
+    assert isinstance(rows_seen, int)
+
+    drifted = []
+    for detector, entry in sorted(recorded["detectors"].items()):
+        for key, counter in (("fires", fired), ("damages", damaged)):
+            now = counter[detector] / rows_seen
+            if abs(now - entry[key]) > RATE_TOLERANCE:
+                drifted.append(
+                    f"  {detector} {key}: recorded {entry[key]:.4f}, now {now:.4f}"
+                )
+    assert not drifted, (
+        "the sweep measures rates the recorded file does not describe, on the same "
+        "rows:\n"
+        + "\n".join(drifted)
+        + f"\n\nThat is a changed detector or a changed policy, not a changed row set. "
+        f"If it is intended, re-measure and update {RECORDED.name} in the same commit, "
+        "and grep for every place the old figure was quoted."
+    )
+
+
 def test_no_detector_fires_above_its_measured_ceiling(sweep: dict[str, object]) -> None:
     """A rate check, because one odd sentence is not a regression and a pattern is.
 
@@ -349,21 +437,32 @@ def test_no_detector_fires_above_its_measured_ceiling(sweep: dict[str, object]) 
 @pytest.mark.xfail(
     reason=(
         "Measured over the same 234 rows. pii fires on ordinary text above its 0.25 "
-        "ceiling and regulated_advice on 0.145 against 0.10.\n\n"
+        "ceiling and regulated_advice on 0.5256 against 0.10.\n\n"
+        "**That read 0.145 until 2026-08-20 and the row set had moved under it**, the "
+        "same `1bedcde` re-draw described on the test above. Re-measured on the "
+        "snapshot: `pii` fires on 0.4017 and `regulated_advice` on 0.5256, so more "
+        "than half of ordinary business prose produces an advice finding. A number "
+        "inside an xfail reason is prose and nothing recomputes it, which is why both "
+        "were stale and neither failed.\n\n"
+        "`regulated_advice` has a fix waiting rather than a diagnosis. A retrain on "
+        "the corrected corpus split, with the mundane registers the corpus gained, "
+        "reads 0.0600 at seed 42 and 0.0299 at seed 1337 on these same rows, against "
+        "0.5256 published. 7 rows and 14 rows of 234 are not distinguishable from each "
+        "other, and both are an order of magnitude below what ships.\n\n"
         "pii's firing rate is deliberately not the same question as its damage rate, "
-        "which is 0.0769. A date is found and recorded; it is no longer cut "
-        "out of the caller's text. This test measures noise in the evidence record and "
-        "the one above measures damage to the caller's text.\n\n"
+        "which is 0.0769. A date is found and recorded; it is no longer cut out of the "
+        "caller's text. This test measures noise in the evidence record and the one "
+        "above measures damage to the caller's text.\n\n"
         "The gap widened on 2026-08-19 and the reason is the mechanism working. Of "
         "pii's findings over these rows, 86 are `date` at `flag` by policy, 60 are "
         "`pii_below_entity_threshold_person` at `log`, and only 42 are redactions. The "
         "`person` bar records what it drops rather than removing it silently, so "
         "closing the damage did not close the firing, and it should not: a policy that "
         "raises a bar has to be able to see what the bar dropped.\n\n"
-        "regulated_advice is the milder of the two and was already on the known-false-"
-        "positive list: it flags rather than redacts, so the cost is a noisy record "
-        "rather than damaged text. pii is the one that matters, and the test above "
-        "this carries the detail.\n\n"
+        "regulated_advice is the milder of the two and was already on the "
+        "known-false-positive list: it flags rather than redacts, so the cost is a "
+        "noisy record rather than damaged text. pii is the one that matters, and the "
+        "test above this carries the detail.\n\n"
         "Split from the enforcing test on purpose. Folding these two into one xfail "
         "over the whole table would stop a toxicity or nsfw regression failing "
         "anything, which is a known failure being used as cover for an unknown one."

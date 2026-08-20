@@ -248,17 +248,18 @@ def test_a_detector_with_thin_languages_carries_a_summary_caveat(
 def test_a_label_that_was_never_scored_says_so(performance: dict[str, Any]) -> None:
     """A published macro must not hide a label with no examples behind it.
 
-    `regulated_advice` published 0.995 with an empty caveat list while its own report read
-    `f1=0.0` at `support=0` for `financial_advice`, the detector's largest class. That is a
-    division by nothing rather than a score: the split was cut along domain lines and gave
-    the label 2,542 train rows and no test rows.
+    `regulated_advice` published 0.995 with an empty caveat list while its own report
+    read `f1=0.0` at `support=0` for `financial_advice`, the detector's largest class.
+    That is a division by nothing rather than a score: the split was cut along domain
+    lines and gave the label 2,542 train rows and no test rows.
 
-    None of the other tests here could see it. They read `per_language`, and the language
-    rows were all healthy: each one asks whether the detector fires at all, which it does
-    nearly perfectly, so a broken label distribution underneath was invisible from above.
-    `test_the_published_scores_still_match_the_reports_they_came_from` agreed too, because
-    it recomputes a published macro from the report it came from and both halves came from
-    the same split.
+    None of the other tests here could see it. They read `per_language`, and the
+    language rows were all healthy: each one asks whether the detector fires at all,
+    which it does nearly perfectly, so a broken label distribution underneath was
+    invisible from above.
+    `test_the_published_scores_still_match_the_reports_they_came_from` agreed too,
+    because it recomputes a published macro from the report it came from and both halves
+    came from the same split.
 
     So this asserts the caveat rather than the score. The collector reads the per-label
     table and names any label with no support; what is checked here is that the sentence
@@ -278,14 +279,15 @@ def test_a_multi_label_detector_says_the_score_is_not_per_label(
 ) -> None:
     """The per-language figure is detection, and a reader will take it for attribution.
 
-    Each `regulated_advice` language reads precision 1.0 and recall 1.0 for noticing that
-    a sentence is advice, while `legal_advice` sits at 0.7629 for saying which kind it is.
-    Both are true and only the first was published. The gap is general rather than one
-    detector's: `moderation` publishes 0.9919 with `violent_facilitation` at 0.8351.
+    Each `regulated_advice` language reads precision 1.0 and recall 1.0 for noticing
+    that a sentence is advice, while `legal_advice` sits at 0.7629 for saying which kind
+    it is. Both are true and only the first was published. The gap is general rather
+    than one detector's: `moderation` publishes 0.9919 with `violent_facilitation` at
+    0.8351.
 
-    Asserted against the caveats rather than against a threshold on the gap, because there
-    is no defensible number for how wide it may be. What is not defensible is publishing
-    the headline without saying which question it answers.
+    Asserted against the caveats rather than against a threshold on the gap, because
+    there is no defensible number for how wide it may be. What is not defensible is
+    publishing the headline without saying which question it answers.
     """
     for name, entry in scored(performance).items():
         joined = " ".join(entry["caveats"])
