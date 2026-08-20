@@ -173,6 +173,20 @@ def _shape_of(
 NOT_ADOPTED_MARKER = "WHY_NOT_ADOPTED.md"
 
 
+def evaluation_for(root: Path, detector: str) -> dict[str, Any] | None:
+    """The raw evaluation report, for the parts `quality_for` does not summarise.
+
+    `quality_for` returns per-language numbers, which is the shape the published table
+    wants. The per-label table lives beside it in the same report and says something the
+    per-language rows cannot, so `caveats_for` reads it from here rather than having it
+    threaded through a summary that deliberately dropped it.
+    """
+    folder = _artifact_dir(root, detector)
+    if folder is None or (folder / NOT_ADOPTED_MARKER).exists():
+        return None
+    return _read_eval(folder, detector)
+
+
 def quality_for(root: Path, detector: str) -> dict[str, Any] | None:
     """Per-language numbers for one detector, or None when there is no evaluation."""
     folder = _artifact_dir(root, detector)
@@ -264,11 +278,67 @@ def quality_for(root: Path, detector: str) -> dict[str, Any] | None:
     return out
 
 
-def caveats_for(quality: dict[str, Any] | None) -> list[str]:
+def _per_label_caveats(
+    quality: dict[str, Any], evaluation: dict[str, Any] | None
+) -> list[str]:
+    """What the per-language table cannot say, for a head with more than one label.
+
+    Two things, and `regulated_advice` had both while publishing a macro of 0.995 with
+    an empty caveat list.
+
+    **A label with no support was never evaluated.** Its report read `f1=0.0` at
+    `support=0`, which is a division by nothing rather than a score, and it was the
+    detector's largest class: the split was cut along domain boundaries and
+    `financial_advice` got 2,542 train rows and no test rows. Nothing failed. It
+    trained, evaluated, calibrated and published.
+
+    **The per-language figure is any-label detection, not label attribution.** Each
+    language read precision 1.0 and recall 1.0 because that row asks whether a sentence
+    is advice at all, which this model does nearly perfectly, while the per-label table
+    underneath read `legal_advice` 0.7629 and `medical_advice` 0.9008 for saying which
+    kind it is. Both numbers are true and a reader who saw only the first would take it
+    for the second, so the distinction goes beside the score rather than in a footnote.
+    """
+    per_label = (evaluation or {}).get("per_label") or {}
+    if len(per_label) < 2:
+        return []
+    notes = []
+    unscored = sorted(
+        label
+        for label, row in per_label.items()
+        if isinstance(row, dict) and not row.get("support")
+    )
+    if unscored:
+        notes.append(
+            f"{len(unscored)} of {len(per_label)} labels have no examples in the test "
+            f"split and were never evaluated: {', '.join(unscored)}. Their reported f1 "
+            "of 0.0 is a division by nothing rather than a score, and the figures here "
+            "describe only the labels that do have support."
+        )
+    scored = {
+        label: float(row["f1"])
+        for label, row in per_label.items()
+        if isinstance(row, dict) and row.get("support") and "f1" in row
+    }
+    if scored:
+        worst = min(scored, key=lambda label: scored[label])
+        notes.append(
+            f"the score above is per language and asks whether the detector fires at "
+            f"all, not which of its {len(per_label)} labels applies. Per label the "
+            f"weakest with support is {worst} at {scored[worst]:.4f}, against a macro "
+            f"of {quality['macro']:.4f} here."
+        )
+    return notes
+
+
+def caveats_for(
+    quality: dict[str, Any] | None, evaluation: dict[str, Any] | None = None
+) -> list[str]:
     """Sentences that must travel with the numbers rather than sit in a footnote."""
     if quality is None:
         return []
     notes = []
+    notes.extend(_per_label_caveats(quality, evaluation))
     uncounted = quality["languages_without_a_count"]
     if uncounted:
         notes.append(
@@ -466,7 +536,10 @@ def collect(artifacts: Path | None) -> dict[str, Any]:
             },
             "status": "built" if built else "not built",
             "metrics": quality,
-            "caveats": caveats_for(quality),
+            "caveats": caveats_for(
+                quality,
+                evaluation_for(artifacts, detector_id) if artifacts and built else None,
+            ),
         }
         if not built:
             detectors[detector_id]["why_not_built"] = (

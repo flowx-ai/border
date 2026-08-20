@@ -6,7 +6,7 @@ a wish list.
 
 Ordered by what a caller would notice first, not by effort.
 
-Last reviewed 2026-08-19, at `flowx-border` 0.2.1. Six open, three closed.
+Last reviewed 2026-08-20, at `flowx-border` 0.3.0. Seven open, three closed.
 
 **Restructured 2026-08-18, and the count is the reason.** The list opened at seven items and
 reached nine in a day, which reads as work going backwards. It was not: both additions were
@@ -487,6 +487,75 @@ drift was added.
   nodes. Nothing recovers its weights, and nothing needs to.
 - **Then keep them.** A run writes `model.safetensors` and `run.json` at the artifact root
   today, so this is a retention habit rather than a code gap. About 1 GB per model.
+
+## 7. `regulated_advice` publishes a macro of 0.995 and its largest label was never scored
+
+Found 2026-08-20, chasing why `financial_advice` reads `f1=0.0` at `support=0` in the shipped
+model's own report and in two retrains from the same week. It is not a score. It is a division
+by nothing, and it means the detector's largest class had no examples in the test split at all.
+
+The corpus was split by `(language, register)` while this detector's label comes from `domain`,
+and units were ordered by `pair_id`, which begins `language/domain/register`. So position
+encoded domain and an 80/10/10 slice of that order cut along domain lines rather than across
+them:
+
+| label | train | val | test |
+|---|---|---|---|
+| `financial_advice` | 2542 | 55 | **0** |
+| `medical_advice` | 1040 | **0** | 518 |
+| `legal_advice` | 1040 | 491 | 28 |
+
+9 of 12 domains appeared in exactly one split. `medical_advice` had no validation rows, so
+calibration never saw it, and `legal_advice` rested on 28 test rows for a claim about 26
+languages. Nothing failed: it trained, evaluated, calibrated, published and passed
+`tests/test_performance.py`, which recomputes a published macro from the report it came from
+and therefore agreed.
+
+**The published 0.995 is true and answers a different question than it looks like.** Each
+language reads precision 1.0 and recall 1.0 because the per-language row asks whether the
+detector fires at all, not which of its three labels applies. Underneath, `legal_advice` is
+0.7629 and `medical_advice` 0.9008. So the detector is near-perfect at noticing advice and
+mediocre at saying what kind, and only the first number was published, with an empty caveat
+list.
+
+That gap is not unique to this detector, which is why the fix is in the collector rather than
+in one report. Across the five multi-label heads:
+
+| detector | published macro | weakest label with support |
+|---|---|---|
+| `regulated_advice` | 0.9950 | `legal_advice` 0.7629 |
+| `moderation` | 0.9919 | `violent_facilitation` 0.8351 |
+| `injection` | 0.9891 | `jailbreak` 0.9603 |
+| `nsfw` | 0.9337 | `sexual` 0.8945 |
+| `bias` | 0.9826 | `gender` 0.9533 |
+
+- **Where**: `border_train/datagen/base.py::write` in the training repo, and
+  `benchmarks/collect.py::_per_label_caveats` here.
+- **Fixed in the writer, 2026-08-20.** Units are formed before stratification rather than
+  inside a stratum, the key is `(language, domain)`, and units order by a hash of their own
+  text so position encodes nothing. Every value of language, register and domain, and every
+  label, must now reach all three splits, and no pair may straddle one, as guards rather than
+  as consequences. The corrected `regulated_advice` split is 80.0/10.0/10.0 with 0 straddling
+  pairs, all three labels in all three splits, and 22 test positives in every one of the 26
+  languages.
+- **Fixed in the collector, 2026-08-20.** A label with no support, and the gap between the
+  per-language macro and the weakest per-label score, are both caveats now. `performance.json`
+  went from 10 caveats to 12 on the same artifacts.
+- **The pair guarantee was arithmetic coincidence, and that is the part worth keeping.** Units
+  built inside a stratum meant a pair whose members differ in any key field was allocated
+  twice, independently, staying together only when the two strata were the same size and the
+  boundary fell in the same place. Every one of the 5,714 `regulated_advice` pairs differs in
+  register by construction. 78 straddled a boundary, none of them train-to-test, so the comment
+  claiming pairs are kept together read as true. Adding domain to the key took it to 1,144
+  immediately.
+- **Open: what the corrected split says about the model.** Two seeds are training on it. Until
+  they report, the honest statement is that this detector's per-label figures are unknown
+  rather than known to be worse, and `financial_advice` has never had one.
+- **Open: three other corpora have more than one domain**, `topic_scope` with 16,
+  `groundedness` with 5 and `injection` with 2, and their splits on disk predate this fix. Under
+  the old writer 4 of `groundedness`'s 5 domains are absent from its test split, so its
+  published figures describe one document type out of five. A corpus is only re-split when it is
+  regenerated, so each keeps the split it was scored on until it is deliberately retrained.
 
 ## Closed while writing this
 

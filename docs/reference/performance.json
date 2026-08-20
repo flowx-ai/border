@@ -17,7 +17,9 @@
     },
     "bias": {
       "budget_ms": 225.0,
-      "caveats": [],
+      "caveats": [
+        "the score above is per language and asks whether the detector fires at all, not which of its 5 labels applies. Per label the weakest with support is gender at 0.9533, against a macro of 0.9826 here."
+      ],
       "in_core": true,
       "metrics": {
         "best": 1.0,
@@ -218,6 +220,7 @@
     "gibberish": {
       "budget_ms": 225.0,
       "caveats": [
+        "the score above is per language and asks whether the detector fires at all, not which of its 3 labels applies. Per label the weakest with support is noise at 0.9381, against a macro of 0.9664 here.",
         "2 of 26 languages have fewer than 10 positive examples: bg, en. Their individual scores are indicative rather than measured."
       ],
       "in_core": true,
@@ -397,7 +400,9 @@
     },
     "injection": {
       "budget_ms": 225.0,
-      "caveats": [],
+      "caveats": [
+        "the score above is per language and asks whether the detector fires at all, not which of its 3 labels applies. Per label the weakest with support is jailbreak at 0.9603, against a macro of 0.9891 here."
+      ],
       "in_core": true,
       "metrics": {
         "best": 1.0,
@@ -626,7 +631,9 @@
     },
     "moderation": {
       "budget_ms": 150.0,
-      "caveats": [],
+      "caveats": [
+        "the score above is per language and asks whether the detector fires at all, not which of its 12 labels applies. Per label the weakest with support is violent_facilitation at 0.8351, against a macro of 0.9919 here."
+      ],
       "in_core": true,
       "metrics": {
         "best": 1.0,
@@ -787,6 +794,7 @@
     "nsfw": {
       "budget_ms": 225.0,
       "caveats": [
+        "the score above is per language and asks whether the detector fires at all, not which of its 2 labels applies. Per label the weakest with support is sexual at 0.8945, against a macro of 0.9337 here.",
         "1 of 26 languages have fewer than 10 positive examples: ga. Their individual scores are indicative rather than measured."
       ],
       "in_core": true,
@@ -1163,7 +1171,10 @@
     },
     "regulated_advice": {
       "budget_ms": 225.0,
-      "caveats": [],
+      "caveats": [
+        "1 of 3 labels have no examples in the test split and were never evaluated: financial_advice. Their reported f1 of 0.0 is a division by nothing rather than a score, and the figures here describe only the labels that do have support.",
+        "the score above is per language and asks whether the detector fires at all, not which of its 3 labels applies. Per label the weakest with support is legal_advice at 0.7629, against a macro of 0.9950 here."
+      ],
       "in_core": true,
       "metrics": {
         "best": 1.0,
@@ -1621,7 +1632,9 @@
     },
     "toxicity": {
       "budget_ms": 225.0,
-      "caveats": [],
+      "caveats": [
+        "the score above is per language and asks whether the detector fires at all, not which of its 4 labels applies. Per label the weakest with support is harassment at 0.9723, against a macro of 0.9915 here."
+      ],
       "in_core": true,
       "metrics": {
         "best": 1.0,
@@ -1799,31 +1812,31 @@
   "latency": {
     "per_detector_ms": {
       "banned_terms": {
-        "p95": 0.163
+        "p95": 0.161
       },
       "bias": {
-        "p95": 18.392
+        "p95": 18.302
       },
       "code_present": {
         "p95": 0.007
       },
       "disclosure": {
-        "p95": 0.028
+        "p95": 0.03
       },
       "encoded_payload": {
-        "p95": 0.194
+        "p95": 0.188
       },
       "gibberish": {
-        "p95": 26.301
+        "p95": 26.319
       },
       "groundedness": {
         "error": "flowxai/groundedness is not in the local cache and the hub is unreachable because HF_HUB_OFFLINE is set.\n  repo      flo"
       },
       "injection": {
-        "p95": 18.45
+        "p95": 18.266
       },
       "internal_domains": {
-        "p95": 0.158
+        "p95": 0.151
       },
       "invisible_text": {
         "p95": 0.025
@@ -1832,25 +1845,25 @@
         "p95": 0.001
       },
       "language_id": {
-        "p95": 0.227
+        "p95": 0.216
       },
       "markup_injection": {
-        "p95": 0.173
+        "p95": 0.17
       },
       "moderation": {
-        "p95": 18.313
+        "p95": 18.42
       },
       "nsfw": {
-        "p95": 18.394
+        "p95": 18.318
       },
       "output_format": {
         "p95": 0.001
       },
       "output_leakage": {
-        "p95": 23.491
+        "p95": 23.227
       },
       "pii": {
-        "p95": 23.408
+        "p95": 23.658
       },
       "politeness": {
         "error": "flowxai/politeness is not in the local cache and the hub is unreachable because HF_HUB_OFFLINE is set.\n  repo      flowx"
@@ -1859,23 +1872,23 @@
         "p95": 0.001
       },
       "regulated_advice": {
-        "p95": 18.49
+        "p95": 18.649
       },
       "repetition": {
-        "p95": 0.287
+        "p95": 0.292
       },
       "secrets": {
-        "p95": 0.029
+        "p95": 0.03
       },
       "sql_injection": {
-        "p95": 0.144
+        "p95": 0.147
       },
       "summary_support": {
-        "p95": 0.551
+        "p95": 0.575
       },
       "system_prompt_leakage": {
         "describes": "the path where the detector reported leakage_unverifiable rather than the path where it does its work, because the reference configuration does not give it what it needs",
-        "p95": 0.191
+        "p95": 0.193
       },
       "token_limit": {
         "describes": "the path where the detector reported token_limit_unconfigured rather than the path where it does its work, because the reference configuration does not give it what it needs",
@@ -1885,11 +1898,11 @@
         "error": "flowxai/topic-scope is not in the local cache and the hub is unreachable because HF_HUB_OFFLINE is set.\n  repo      flow"
       },
       "toxicity": {
-        "p95": 18.369
+        "p95": 18.741
       },
       "url_reachability": {
         "describes": "the path where there was nothing to fetch. The reference input contains no URLs, and the suite blocks outbound connections, so this figure excludes the request that is the whole cost of the detector. Its budget is a deadline it enforces on itself rather than a measurement, because it depends on a network the library does not control",
-        "p95": 0.004
+        "p95": 0.005
       }
     },
     "provider": "CPUExecutionProvider",
