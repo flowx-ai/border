@@ -1,0 +1,49 @@
+{
+  "any_detector_damages_a_row": 0.2051,
+  "detectors": {
+    "bias": {
+      "damages": 0.0,
+      "fires": 0.0171
+    },
+    "disclosure": {
+      "damages": 0.0,
+      "fires": 1.0
+    },
+    "gibberish": {
+      "damages": 0.0,
+      "fires": 0.0043
+    },
+    "injection": {
+      "damages": 0.0171,
+      "fires": 0.0171
+    },
+    "language_id": {
+      "damages": 0.0,
+      "fires": 0.9957
+    },
+    "nsfw": {
+      "damages": 0.0214,
+      "fires": 0.0214
+    },
+    "pii": {
+      "damages": 0.1709,
+      "fires": 0.4017
+    },
+    "regulated_advice": {
+      "damages": 0.0,
+      "fires": 0.5256
+    },
+    "topic_scope": {
+      "damages": 0.0,
+      "fires": 0.3803
+    },
+    "toxicity": {
+      "damages": 0.0,
+      "fires": 0.0043
+    }
+  },
+  "measured_on": "2026-08-20",
+  "policy": "policies/default.yaml",
+  "rows": 234,
+  "rows_content_sha256": "da8a38fa450c42d0ff4818c6438f3de0339f216111cae44675df627c5b9cbc32"
+}

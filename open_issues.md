@@ -18,7 +18,7 @@ recorded only in `CLAUDE.md` and in two strict xfails, and not here.
 
 ---
 
-## 1. `pii` removes text from ordinary business prose, on 7.7 percent of rows
+## 1. `pii` removes text from ordinary business prose, on 17.1 percent of rows
 
 The largest caller-visible number in the project, and it was not on this list until 2026-08-18.
 `pii` is enabled in both shipped policies, so this is behaviour a caller gets by default rather
@@ -27,12 +27,26 @@ than a figure in a report.
 Measured by `tests/test_ordinary_text_sweep.py` over 234 ordinary rows in 26 languages, running
 the whole shipped configuration on both sides:
 
-| | 2026-08-18 | 2026-08-19 |
-|---|---|---|
-| rows where something is blocked or redacted | 0.162 | **0.0769** |
-| `pii` fires | 0.261 | 0.261, against a 0.25 ceiling |
-| `pii` damages a row | 0.150 | **0.0598** |
-| leaked tokens | 0 | **0**, and 0 of 560 held-out spans survive verbatim |
+| | 2026-08-18 | 2026-08-19 | 2026-08-20, on the snapshot |
+|---|---|---|---|
+| rows where something is blocked or redacted | 0.162 | 0.0769 | **0.2051** |
+| `pii` fires | 0.261 | 0.261 | 0.4017, against a 0.25 ceiling |
+| `pii` damages a row | 0.150 | 0.0598 | **0.1709** |
+| leaked tokens | 0 | 0 | **0**, and 0 of 560 held-out spans survive verbatim |
+
+**The 2026-08-20 column is not a regression, it is the first column measured on a row set that
+holds still.** The two before it were taken on rows drawn by corpus order, so all eight of a
+language's rows came from one register; `1bedcde` re-drew them round-robin across registers the
+same day the 0.0769 was recorded, one commit later, and nothing recomputed the number. The rows
+are now snapshotted in `tests/fixtures/ordinary_text/mundane_rows.json` at content sha
+`da8a38fa450c`, so a figure taken against them is reproducible.
+
+The per-entity bar is still worth having and its effect is smaller than the commit that added it
+claimed. Same rows, same code, `entity_thresholds` removed: 0.2436 of rows and `pii` at 0.2094,
+against 0.2051 and 0.1709 with it. So the bar takes `pii` damage from 0.2094 to 0.1709, an 18
+percent relative reduction rather than a halving. Two row sets of the same size are not
+interchangeable, and this is the second time in this project that a number moved because its
+input did rather than because the thing it measured did.
 
 **And looking for the residue found a disclosure, which was the more serious half.**
 `entity_shapes.is_possible` required four digits for a `NATIONAL_ID`, on the stated premise
@@ -55,7 +69,7 @@ Worth knowing why "zero leaked tokens" did not catch it: that figure asks whethe
 token is covered by *some* predicted span, and these spans were predicted before being dropped
 a layer later. Coverage in the tagger is not survival through the library.
 
-**Halved on 2026-08-19 with no retrain**, by `options.entity_thresholds: {person: 0.90}` in
+**Reduced on 2026-08-19 with no retrain**, by `options.entity_thresholds: {person: 0.90}` in
 `policies/default.yaml`. The firing rate is unchanged on purpose: the bar records what it
 drops at `log`, so 86 findings are `date` at `flag`, 60 are
 `pii_below_entity_threshold_person`, and only 42 are redactions.
