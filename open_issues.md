@@ -6,7 +6,16 @@ a wish list.
 
 Ordered by what a caller would notice first, not by effort.
 
-Last reviewed 2026-08-24, at `flowx-border` 0.3.0. Two open, eight closed. Every remaining item needs either a paid generation run or a retrain; nothing left is a documentation or bookkeeping gap.
+Last reviewed 2026-08-24, at `flowx-border` 0.3.0. One open, nine closed. The one left is a
+retrain with no easy path: `groundedness`'s weak registers need real ML work, not generation
+or bookkeeping.
+
+**The corpora item's last two parts closed the same day.** `extremism`'s near-zero checker
+agreement turned out to be expected disagreement rather than a defect on a second look, and
+is documented rather than fixed. `positive_called_empty`'s dominant cause, victim-support and
+reporting text labelled as if it were the hazard it described, was a real, measured defect
+in the shared generation prompt and was fixed: the corpus regenerated whole and
+`flowxai/moderation` republished. All four of item 1's measured parts are closed.
 
 **The noise-floor item closed the same day it was extended.** `injection` and `topic_scope`
 were the two detectors named as never having a seed replicate; both ran two seeds on
@@ -35,7 +44,7 @@ recorded only in `CLAUDE.md` and in two strict xfails, and not here.
 
 ---
 
-## 1. The corpora, four measured gaps and one generation campaign
+## The corpora, four measured gaps and one generation campaign, closed 2026-08-24
 
 These were items 1, 2, 5 and 6 until 2026-08-18. They are one item because they are one cause:
 a corpus that is thin in places and the wrong shape in others. Every part needs the generation
@@ -75,7 +84,7 @@ already made for `nsfw` and `politeness`.
 - **Where**: `tests/test_support_questions.py`, `reports/moderation_v4_seed_control.json` in
   the training repository.
 
-### The verification pass disagrees with itself in three different ways
+### The verification pass disagrees with itself in three different ways, closed 2026-08-24
 
 29,812 rows checked against a local `gpt-oss-safeguard:20b`. `border_train.read_disagreements`
 classifies every row against the full verdict store rather than the report's 500-row sample:
@@ -105,8 +114,10 @@ or promote serious harm", not what a text merely contains or mentions. That reso
 question below in the opposite direction from this section's own earlier reasoning, which is
 worth stating plainly rather than quietly overwriting.
 
-**The checker almost never confirms `extremism`, and it is a generation bug, not a taxonomy
-question.** Per-label agreement, from `reports/moderation_verification.json`:
+**The checker almost never confirms `extremism`, and on a closer look it is expected
+disagreement rather than a defect. This section first called it a generation bug needing
+multi-labeling; that conclusion did not survive checking it against two things already true
+of this project.** Per-label agreement, from `reports/moderation_verification.json`:
 
 | label | agree | differ | agreement |
 |---|---|---|---|
@@ -116,33 +127,30 @@ question.** Per-label agreement, from `reports/moderation_verification.json`:
 | `election_integrity` | 1,194 | 158 | 0.883 |
 | `defamation` | 1,249 | 103 | 0.924 |
 
-Read against the full store rather than the report's 500-row sample: **every one of the 1,201
-`label_replaced` disagreements where the corpus said `extremism` was generated single-label,
-0 of 1,201 carrying a second tag.** What the checker calls them instead is the concrete act
-the text describes, not a different topic: `violent_facilitation` on 63.6%, `weapons_cbrn` on
-31.2%, `property_crime` on 15.7% (a row can get more than one). A sample: "seeks experienced
-bomber and security plan" (`extremism` alone; checker: `violent_facilitation`, `weapons_cbrn`),
-"advice on tactics to evade a police patrol" (`extremism` alone; checker: `property_crime`).
+Every one of the 1,201 `label_replaced` disagreements where the corpus said `extremism` was
+generated single-label, and what the checker calls them instead is the concrete act the text
+describes: `violent_facilitation` on 63.6%, `weapons_cbrn` on 31.2%, `property_crime` on 15.7%.
+The taxonomy's own definition already covers this: "the text has to describe, seek or offer
+help with violence, an attack, a weapon, a target, combat, sabotage, or training for those",
+so operational content inside an extremism-register row is not a labelling mistake, it is the
+definition being satisfied. Multi-labelling it against the verifier's read would also cross a
+line this project already drew on purpose: `enrich_moderation.py` adds a label only when the
+verifier *keeps* the generator's own label and adds to it, and refuses to act on a full
+replacement, "a row for a person to read", precisely so a second model never becomes a
+labeller by the back door. Every `extremism` case here is a replacement, not an addition, so
+the existing rule already says not to touch it automatically. Left as documented, expected
+disagreement rather than fixed: the generator is following its own definition, and building a
+generator that self-reports multi-labels to close a gap this measured but did not show real
+harm from is a larger change than the finding earns right now.
 
-`moderation.py`'s `extremism` register already went through two prior fixes for a different
-failure, `prompt_version="moderation_solicitation_v4"`: v2 (2026-08-15) stopped it generating
-manifestos and logos with no violence in them, v3 (2026-08-16) stopped it substituting
-menacing group names for an actual violent act. Both fixes worked, which is exactly why every
-row now sampled here does describe a real bomb, a real weapon, a real act of sabotage: the
-content is right. What is still missing is that the taxonomy's own boundary column draws
-`extremism` against `toxicity.identity_attack` only ("an insult, not recruitment") and never
-against the operational labels, so a violent act framed inside a movement's name is exactly
-the case with two right answers and the generator only ever emits one. Since the corpus is
-`multi_label=True`, the fix is to emit both: `extremism` plus whichever operational label the
-described act already matches, not a redefinition of either label.
+- **Where**: `reports/moderation_verify.gpt-oss-safeguard-20b.jsonl`,
+  `data/moderation_taxonomy.yaml`'s `extremism` entry.
+- **Not a fix**: extending `enrich_moderation.py`'s add-only rule to cover this case. That
+  rule exists specifically to stop a verifier disagreement from becoming an automatic label
+  change, and the `child_safety` near-miss it already records is why.
 
-- **Where**: `border_train/datagen/moderation.py`, the `extremism` register spec.
-- **Fix**: multi-label the register's own positives against the operational labels already in
-  the taxonomy, then re-run the extremism cells only, the same targeted re-ask v2 and v3 used
-  (the cache keys on prompt text, so bumping the version re-asks only what changed).
-
-**`positive_called_empty` is 1,819 rows corpus-wide, and the report's 500-row sample pointed at
-the wrong two labels.** The full breakdown:
+**`positive_called_empty`, 1,819 rows corpus-wide, closed 2026-08-24.** The report's 500-row
+sample pointed at `election_integrity` and `defamation`; the full store told a different story:
 
 | label | rows |
 |---|---|
@@ -159,11 +167,28 @@ the wrong two labels.** The full breakdown:
 | `cyber_intrusion` | 35 |
 | `fraud_deception` | 23 |
 
-`election_integrity` and `defamation` do carry the problem, at 122 and 90, but `sexual_
-exploitation` alone is 762, five times either and 42 percent of all 1,819. The sample said
-otherwise because 78 of 108 and 60 of 72 of *its* recorded `election_integrity`/`defamation`
-disagreements were this kind, a true statement about a 500-row slice that does not generalise
-to which label most needs regenerating corpus-wide. Regenerate by this table, not the sample.
+`sexual_exploitation` alone was 762, five times `election_integrity` and 42 percent of the
+total. Reading the actual rows found the cause: 367 of 762 and 64 of `self_harm`'s 151
+justified themselves in the generator's own `why` field as help, protection or reporting,
+"offers help for sexual exploitation" on an organisation offering trafficking victims free
+shelter, "Ask for child trafficking protection" on a question about keeping children safe.
+Both are the opposite of a positive, and the checker was correctly reading no hazard in them.
+
+**Fixed in `_positive_spec()`, the prompt every one of the twelve labels is generated from,**
+since the ambiguity ("asking for help or offering it" without saying which side of the harm)
+was general even though `sexual_exploitation` and `self_harm` hit it hardest. The corpus was
+regenerated whole, 30,469 examples, `prompt_version="moderation_solicitation_v5"`, at
+~$12.81 on `claude-haiku-4-5`. A 60-row spot check against the local verifier across the five
+worst-affected labels found the specific victim-support pattern gone entirely; an 18 percent
+residual empty rate remained, but reading those rows found a different, smaller tail (vague
+or truncated sentences, one plain verifier miss on an unambiguous case), not a recurrence.
+
+Retrained, seed 42: flip gate 2 of 300 decisions moved, both within the 0.02 tolerance band.
+`tests/test_support_questions.py` unaffected, still passing. Mean per-language F1 fell from
+0.9925 to 0.9708 and every one of the twelve labels reads lower, which is the corpus losing
+the easy, wrongly-labelled rows rather than a regression, the same trade `nsfw`'s retrain made
+deliberately in the other direction once (0.976 to 0.918). Published as `flowxai/moderation`
+revision `7df4570d`.
 
 **The 183 rows the checker calls hazardous and the corpus calls benign are expected
 disagreement under the accepted definition, not a corpus defect.** 74 of them sit in a

@@ -300,9 +300,9 @@ MODELS: Final[dict[str, ModelSpec]] = {
     "moderation": ModelSpec(
         model_id="flowxai/moderation",
         repo="flowxai/moderation",
-        revision="29c283bd6e24b73c55cde9eed26f8e966d209f56",
+        revision="7df4570d1326d28a506b0e446afede95bfe2956e",
         filename="onnx/model.int8.onnx",
-        sha256="379136c4adfd514058466b5df6fa2cf85005f53d15f6e6d44643e5df7dacd3d2",
+        sha256="7caaf54902872573802b9927573ac0025aacf2db35ad1043430c1264221b0f2f",
         extra_files=("tokenizer.json", "config.json"),
         trained_max_length=96,
         trained_languages=frozenset(LANGUAGES),
@@ -312,19 +312,28 @@ MODELS: Final[dict[str, ModelSpec]] = {
             "sexualisation of minors and grooming, generating either synthetically is "
             "not acceptable at any severity, and it needs a vetted source with "
             "recorded provenance instead. The corpus generator excludes it by name and "
-            "a test keeps it excluded. Retrained 2026-08-24 on the v4 corpus, which "
-            "added a shared `mundane_account_access` register and a constraint that "
-            "stops the mundane registers writing phishing-lure surface forms, both "
-            "landed 2026-08-19. That is the fix for the detector reading ordinary "
-            "support questions as hazards, 'How do I reset my password?' at "
-            "`cyber_intrusion` 0.97 on the model this one replaces. "
-            "`tests/test_support_questions.py`'s strict xfail for that case now "
-            "XPASSes. Mean per-language F1 0.9925, worst language 0.957 (mt), 0 of 300 "
-            "decisions moved by the INT8 export. The calibrated threshold is not "
-            "authoritative: three runs against this corpus read 0.69, 0.83 and 0.81 on "
-            "a validation curve flat from 0.9288 to 0.9372 across the whole 0.50 to "
-            "0.95 range, so the shipped policy default stays at the reviewed 0.84 "
-            "rather than following any single calibration."
+            "a test keeps it excluded. Retrained 2026-08-24, prompt_version "
+            "moderation_solicitation_v5: the shared positive-spec prompt was tightened "
+            "against a measured defect in the model this one replaces, 762 of "
+            "`sexual_exploitation`'s positives and 151 of `self_harm`'s were victim "
+            "support, protection or reporting text labelled as if it were the hazard "
+            "('offers help for sexual exploitation' on a trafficking shelter offer). "
+            "Every label's positives were regenerated under the corrected prompt, not "
+            "just the two worst-affected. Mean per-language F1 fell from 0.9925 to "
+            "0.9708 and every one of the twelve labels reads lower, which is expected "
+            "rather than a regression: the removed rows were the easy, "
+            "wrongly-labelled kind, and self_harm's remaining positives lean more "
+            "oblique and euphemistic ('help me with an irreversible step') than the "
+            "templated phrasing the old corpus leaned on, the same trade this "
+            "project's `nsfw` retrain made "
+            "deliberately (0.976 to 0.918) for the same reason. Worst language 0.863 "
+            "(mt). 2 of 300 decisions moved by the INT8 export, both within 0.0149 of "
+            "the threshold and inside the 0.02 tolerance band. Calibration moved to "
+            "0.91 from a single run, against the shipped 0.84: the curve is not flat "
+            "this time (macro F1 0.8658 at 0.50 rising to 0.9037 at 0.91), but 0.84 "
+            "reads 0.8996, within 0.0041 of the peak, at meaningfully higher recall "
+            "(0.9915 against 0.9687), so the shipped default is kept for that reason "
+            "rather than because the calibration is noise."
         ),
     ),
     "nsfw": ModelSpec(
