@@ -26,7 +26,7 @@ means the score is unverified rather than good or bad.
 | `json_schema` | T1 | built | – | – | – | – | – | – |
 | `language_id` | T1 | built | – | – | – | – | – | – |
 | `markup_injection` | T1 | built | – | – | – | – | – | – |
-| `moderation` | T2 | built | f1 | 0.993 | 0.992 | 0.957 | 1552 | positive examples |
+| `moderation` | T2 | built | f1 | 0.971 | 0.978 | 0.863 | 1454 | positive examples |
 | `nsfw` | T2 | built | f1 | 0.974 | 0.980 | 0.868 | 622 | positive examples |
 | `output_format` | T1 | built | – | – | – | – | – | – |
 | `output_leakage` | T1 | built | – | – | – | – | – | – |
@@ -51,7 +51,7 @@ means the score is unverified rather than good or bad.
 - **`groundedness`**: the score above is per language and asks whether the detector fires at all, not which of its 2 labels applies. Per label the weakest with support is not_grounded at 0.8903, against a macro of 0.8979 here.
 - **`groundedness`**: no calibrated threshold recorded, so this detector runs at the policy default. Several detectors in this family reported nothing at 0.5 while separating positives from negatives well below it.
 - **`injection`**: the score above is per language and asks whether the detector fires at all, not which of its 3 labels applies. Per label the weakest with support is jailbreak at 0.9603, against a macro of 0.9891 here.
-- **`moderation`**: the score above is per language and asks whether the detector fires at all, not which of its 12 labels applies. Per label the weakest with support is violent_facilitation at 0.8571, against a macro of 0.9925 here.
+- **`moderation`**: the score above is per language and asks whether the detector fires at all, not which of its 12 labels applies. Per label the weakest with support is fraud_deception at 0.8254, against a macro of 0.9707 here.
 - **`nsfw`**: the score above is per language and asks whether the detector fires at all, not which of its 2 labels applies. Per label the weakest with support is sexual at 0.9492, against a macro of 0.9738 here.
 - **`regulated_advice`**: the score above is per language and asks whether the detector fires at all, not which of its 3 labels applies. Per label the weakest with support is legal_advice at 0.8758, against a macro of 0.9864 here.
 - **`topic_scope`**: 26 of 26 languages have fewer than 10 examples evaluated: az, bg, cs, da, de, el, en, es, et, fi, fr, ga, hr, hu, it, lt, lv, mt, nl, pl, pt, ro, sk, sl, sv, tr. Their individual scores are indicative rather than measured.
@@ -64,33 +64,33 @@ At a 396 character reference input, 1 thread, CPUExecutionProvider. Romanian pro
 
 | Detector | p95 ms | Budget ms | note |
 |---|---|---|---|
-| `banned_terms` | 0.159 | 5.0 | – |
-| `bias` | 18.917 | 225.0 | – |
+| `banned_terms` | 0.160 | 5.0 | – |
+| `bias` | 18.565 | 225.0 | – |
 | `code_present` | 0.007 | 5.0 | – |
-| `disclosure` | 0.030 | 5.0 | – |
-| `encoded_payload` | 0.191 | 5.0 | – |
+| `disclosure` | 0.028 | 5.0 | – |
+| `encoded_payload` | 0.193 | 5.0 | – |
 | `gibberish` | – | 225.0 | weights unavailable |
-| `groundedness` | 12.722 | 300.0 | – |
-| `injection` | 18.880 | 225.0 | – |
-| `internal_domains` | 0.159 | 5.0 | – |
-| `invisible_text` | 0.026 | 5.0 | – |
+| `groundedness` | 12.446 | 300.0 | – |
+| `injection` | 18.616 | 225.0 | – |
+| `internal_domains` | 0.156 | 5.0 | – |
+| `invisible_text` | 0.025 | 5.0 | – |
 | `json_schema` | 0.001 | 5.0 | – |
-| `language_id` | 0.226 | 5.0 | – |
-| `markup_injection` | 0.162 | 5.0 | – |
+| `language_id` | 0.217 | 5.0 | – |
+| `markup_injection` | 0.161 | 5.0 | – |
 | `moderation` | – | 150.0 | weights unavailable |
 | `nsfw` | – | 225.0 | weights unavailable |
 | `output_format` | 0.001 | 5.0 | – |
-| `output_leakage` | 23.909 | 225.0 | – |
-| `pii` | 23.721 | 225.0 | – |
+| `output_leakage` | 23.449 | 225.0 | – |
+| `pii` | 23.344 | 225.0 | – |
 | `politeness` | – | 225.0 | weights unavailable |
 | `postal_code` | 0.001 | 5.0 | – |
-| `regulated_advice` | 18.694 | 225.0 | – |
+| `regulated_advice` | 18.775 | 225.0 | – |
 | `repetition` | 0.300 | 5.0 | – |
 | `secrets` | 0.031 | 1.0 | – |
-| `sql_injection` | 0.150 | 5.0 | – |
-| `summary_support` | 0.552 | 5.0 | – |
-| `system_prompt_leakage` | 0.189 | 5.0 | the unconfigured path |
+| `sql_injection` | 0.149 | 5.0 | – |
+| `summary_support` | 0.550 | 5.0 | – |
+| `system_prompt_leakage` | 0.191 | 5.0 | the unconfigured path |
 | `token_limit` | 0.001 | 5.0 | the unconfigured path |
-| `topic_scope` | 34.932 | 300.0 | – |
-| `toxicity` | 19.839 | 225.0 | – |
+| `topic_scope` | 32.508 | 300.0 | – |
+| `toxicity` | 18.696 | 225.0 | – |
 | `url_reachability` | 0.005 | 3000.0 | the unconfigured path |
