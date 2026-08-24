@@ -6,7 +6,7 @@ a wish list.
 
 Ordered by what a caller would notice first, not by effort.
 
-Last reviewed 2026-08-20, at `flowx-border` 0.3.0. Four open, six closed.
+Last reviewed 2026-08-24, at `flowx-border` 0.3.0. Three open, seven closed. Every remaining item needs either a paid generation run or a retrain; nothing left is a documentation or bookkeeping gap.
 
 **Three items closed the same day, and the count went from seven to four.** `pii`
 over-redaction, the largest caller-visible number in the project, closed with a LOCATION
@@ -353,53 +353,33 @@ Thirteen times wider on the widest cell. Two further consequences, both concrete
   differ by an order of magnitude across detectors, so re-measure per detector rather than
   reusing 0.0188 or 0.3294.
 
-## 4. Four published models cannot be re-verified against a stricter export gate
-
-Re-checking a quantised export needs both halves, fp32 and quantised. `CLAUDE.md` already
-records this for `groundedness`: "an artifact whose fp32 is gone cannot be re-verified when the
-gate gets stricter, which is exactly when you want to." Audited against `registry.MODELS` on
-2026-08-18, it applies to four of the eleven published models.
-
-| | fp32 half | `run.json` |
-|---|---|---|
-| `bias`, `groundedness`, `piiguard` | kept | kept |
-| `nsfw`, `toxicity`, `regulated_advice`, `injection` | **recovered from the VM 2026-08-18** | 1 of 4 |
-| `gibberish`, `moderation` | **kept, 2026-08-20** | kept |
-| `politeness` | **on `border-l4-x`'s disk, not pulled down** | 1 of 4 |
-| `topic_scope` | gone, and needs none | 1 of 4 |
-
-The four recovered were on `border-l4-x` and are now in `artifacts_local`, matched to the
-shipped model by identical per-language eval table rather than by directory name. That check
-mattered: `regulated_advice` had two candidates whose mean F1 differed by 0.0001, 0.9950 and
-0.9951, at different thresholds, so the mean could not pick between them and the table could.
-`nsfw` also looked absent on a first pass because the audit guessed the directory name and
-`groundedness` looked absent for the same reason.
-
-The four that are gone were trained on a VM that no longer exists. Each still has its
-`export_manifest.json`, so what the gate measured at the time is on record; what cannot be done
-is running a stricter gate. The gate did get stricter once, on 2026-08-15, when p99 probability
-drift was added.
-
-- **Where**: `artifacts_local/<detector>-full/model.safetensors`, and `registry.MODELS` for
-  what is published.
-- **`gibberish` and `moderation` closed 2026-08-20 and 2026-08-19.** Both retrains, adopted
-  in item 1, kept their `model.safetensors` alongside the int8 export, so both halves exist
-  for the first time.
-- **`politeness` is one step from closed rather than closed.** Its own retrain's seed 42
-  checkpoint was found to be a 0-byte file on this disk when preparing to export it, so it
-  was retrained from the same corpus and re-exported rather than recovered, and only the
-  new int8 export was pulled down. Seed 1337's `model.safetensors` is still on
-  `border-l4-x`'s persistent disk, stopped rather than deleted, so nothing is lost, only
-  unfetched.
-- **`topic_scope` needs no action, established 2026-08-19.** It is unconfigured in both shipped
-  policies and is T3, so nothing in the shipped configuration loads it and its missing fp32
-  half cannot affect a caller. Its manifest is also the most complete of the set: it records
-  cosine-to-torch for both halves and that the int8 export moved 2 of 200 top-1 taxonomy
-  nodes. Nothing recovers its weights, and nothing needs to.
-- **Then keep them.** A run writes `model.safetensors` and `run.json` at the artifact root
-  today, so this is a retention habit rather than a code gap. About 1 GB per model.
-
 ## Closed while writing this
+
+**Every published model now keeps both halves, fp32 and quantised, and the count of four
+missing is zero.** Re-checking a quantised export needs both, and four of eleven published
+models were missing their fp32 half as of 2026-08-18: `nsfw`, `toxicity`, `regulated_advice`
+and `injection` were recovered from a VM that still existed; `gibberish`, `politeness`,
+`moderation` and `topic_scope` were not, trained on a VM that no longer does.
+
+Closed in three steps rather than one. `moderation` and `gibberish` closed themselves on
+2026-08-19 and 2026-08-20: both retrains, adopted for the corpus-thickening item, wrote
+`model.safetensors` alongside the int8 export by default, so nothing had to be recovered.
+`politeness` needed one more step: its own retrain's seed 42 checkpoint turned out to be a
+0-byte file on disk mid-export, so it was retrained rather than recovered, and seed 1337's
+checkpoint, the one `reports/THICK_CORPORA.md` actually measured, sat on `border-l4-x`'s
+stopped-not-deleted disk until it was pulled down on 2026-08-24, closing the last gap.
+`topic_scope` needed nothing: it is unconfigured in both shipped policies and T3, so its
+missing fp32 half cannot affect a caller, and its manifest already records the fullest
+verification of the set, cosine-to-torch for both halves and an int8 export that moved 2 of
+200 top-1 taxonomy nodes.
+
+- **Where**: `artifacts_local/<detector>-full/model.safetensors` for all eleven, and
+  `artifacts_local/politeness-v4-s1337` for the seed the shipped model is not, kept as a
+  replicate rather than discarded.
+- **The habit that closes this permanently**: a training run writes `model.safetensors` and
+  `run.json` at the artifact root by default, so keeping both halves is a retention habit
+  from here rather than a recovery exercise each time.
+
 
 **`pii` over-redaction on ordinary text is fixed, not merely reduced.** The largest
 caller-visible number in the project. It went 0.756 (2026-08-16) to 0.162 to 0.0769 to
