@@ -149,10 +149,23 @@ that produced the problem is still in `CLAUDE.md` and still wrong for a two-regi
 | `politeness` | 15 to 16 -> **20 to 21** | 0.9619 -> 0.9790 / 0.9844 |
 
 Two seeds each, five of six labels above the measured noise floor, every export gate clean at
-0 of 300 decisions changed, and `nsfw` Maltese's seed spread down from 0.3294 to 0.1179. Not
-adopted: see `reports/THICK_CORPORA.md`. What is left is a calibrated threshold that is a seed
-artifact for two of the three, 0.63/0.86 for `nsfw` and 0.03/0.40 for `politeness`, because
-their validation curves are flat.
+0 of 300 decisions changed, and `nsfw` Maltese's seed spread down from 0.3294 to 0.1179.
+
+**Adopted 2026-08-20.** Published as `flowxai/nsfw` revision `6c54edcd`, `flowxai/gibberish`
+revision `9d71506e`, `flowxai/politeness` revision `63c3e6f1`, all three verified against the
+library's own suite before and after. The calibrated thresholds are not adopted alongside the
+quality gain: `nsfw` and `politeness` read 0.63/0.86 and 0.10/0.36 across the two seeds, both
+from validation curves flat enough that calibration is picking the argmax of noise rather than
+a real optimum, sweeping either `nsfw` seed's curve gives macro F1 0.8969 to 0.9190 from 0.50
+to 0.95. The shipped policy keeps 0.76 and 0.89, reviewed by hand, unchanged by either retrain,
+and both model cards and the site's own eval pages now carry the finding rather than presenting
+the raw sweep result as tuned.
+
+`politeness`'s published checkpoint is a re-run rather than the one `reports/THICK_CORPORA.md`
+measured: seed 42's `model.safetensors` was found to be a 0-byte file on disk when preparing to
+export it, retrained from the same corpus rather than recovered, gate clean at 0 of 300 on the
+new export. Seed 1337's checkpoint is still on `border-l4-x`'s persistent disk and has not been
+pulled down.
 
 The original table, for the record:
 
@@ -351,7 +364,9 @@ gate gets stricter, which is exactly when you want to." Audited against `registr
 |---|---|---|
 | `bias`, `groundedness`, `piiguard` | kept | kept |
 | `nsfw`, `toxicity`, `regulated_advice`, `injection` | **recovered from the VM 2026-08-18** | 1 of 4 |
-| `gibberish`, `politeness`, `moderation`, `topic_scope` | **gone** | 1 of 4 |
+| `gibberish`, `moderation` | **kept, 2026-08-20** | kept |
+| `politeness` | **on `border-l4-x`'s disk, not pulled down** | 1 of 4 |
+| `topic_scope` | gone, and needs none | 1 of 4 |
 
 The four recovered were on `border-l4-x` and are now in `artifacts_local`, matched to the
 shipped model by identical per-language eval table rather than by directory name. That check
@@ -367,10 +382,15 @@ drift was added.
 
 - **Where**: `artifacts_local/<detector>-full/model.safetensors`, and `registry.MODELS` for
   what is published.
-- **Fix, three of the four for free**: `gibberish` and `politeness` are on the retrain list in
-  item 1 and `moderation` on the one beside it, and a retrain writes both halves.
-  `moderation` itself is done as of 2026-08-19: both seeds of the v4 retrain kept their
-  safetensors and their int8 export, so it has both halves for the first time.
+- **`gibberish` and `moderation` closed 2026-08-20 and 2026-08-19.** Both retrains, adopted
+  in item 1, kept their `model.safetensors` alongside the int8 export, so both halves exist
+  for the first time.
+- **`politeness` is one step from closed rather than closed.** Its own retrain's seed 42
+  checkpoint was found to be a 0-byte file on this disk when preparing to export it, so it
+  was retrained from the same corpus and re-exported rather than recovered, and only the
+  new int8 export was pulled down. Seed 1337's `model.safetensors` is still on
+  `border-l4-x`'s persistent disk, stopped rather than deleted, so nothing is lost, only
+  unfetched.
 - **`topic_scope` needs no action, established 2026-08-19.** It is unconfigured in both shipped
   policies and is T3, so nothing in the shipped configuration loads it and its missing fp32
   half cannot affect a caller. Its manifest is also the most complete of the set: it records
