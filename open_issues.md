@@ -312,6 +312,35 @@ why `docs/reference/performance.json` reported `metrics: null` for a model that 
 published and shipped, only disabled by default. That silence is closed too, and the library's
 published table now carries this detector's numbers for the first time.
 
+**`tests/test_groundedness_probes.py` failed against the real published weights on
+2026-08-24, and the harness was wrong, not the model.** This machine had only ever tested
+`groundedness` through the local override; running the suite against the actual fetched
+weights for the first time found four failures, one of them 0.286 accuracy against a
+0.500 chance baseline. The `scored` fixture compared `got == row["label"]` and `got in
+UNGROUNDED = {"unsupported", "contradicted"}`, where `got` came from `max(judged, ...)`.
+Correct for the three-way candidates this file was written against, but `judge()` on the
+published binary artifact returns `{"grounded", "not_grounded"}`, so `got` could never
+equal a three-way gold label and could never be a member of `UNGROUNDED` either. The
+"exact" accuracy silently read 0.0 and "binary" accuracy silently read the fraction of
+gold rows labelled `supported`, 12 of 42, which is why it landed under its own chance
+line. `tests/test_t3.py` had already solved this exact problem with its `is_grounded`
+helper, reading the decision through `_verdict`/`_reads_grounded` rather than the label
+string; `test_groundedness_probes.py` was never updated to match when the binary artifact
+was adopted. Fixed the same way. The corrected binary accuracy is 0.6905, matching the
+"binary at 0.78 alone" figure already published in
+`training/docs/groundedness-held-out-probes.md`, so the shipped model was never in
+question. The exact-accuracy and per-shape tests now skip against a binary head rather
+than fail, since a two-class head cannot express `unsupported` against `contradicted` by
+construction.
+
+One of the four failures was real and is the known weakness two paragraphs up, restated
+with a live number: `tests/test_t3.py::test_a_claim_weaker_than_the_source_is_supported`
+reads `not_grounded` at 0.8625 on the exact case the model card documents under "Known
+weakness: it errs toward caution". Re-pinned as a strict xfail rather than left failing,
+matching how the rest of this file already tracks a documented model limitation. Full
+suite against the live published weights: 2109 passed, 21 skipped, 5 xfailed, zero
+failures.
+
 ## 3. No retrain delta in this project has a measured noise floor
 
 A seed control was run for the first time on 2026-08-18: the same `moderation` corpus, the

@@ -383,6 +383,21 @@ def test_a_hand_written_paraphrase_is_supported(grounded: GroundednessDetector) 
     # strict=True, )
 
 
+@pytest.mark.xfail(
+    reason=(
+        "Reopened 2026-08-24: `groundedness-scope`, the three-way candidate that "
+        "cleared this on 2026-08-17, was never adopted. The published binary artifact "
+        "errs toward caution instead: against a source saying withdrawals incur a fee "
+        "for the first twelve months, the weaker claim 'There is a handling fee for "
+        "early withdrawals' reads not_grounded at 0.8625. Documented on the model card "
+        "as 'Known weakness: it errs toward caution', eight of thirteen probe failures "
+        "in that direction, and the reason the detector ships disabled in both shipped "
+        "policies. This is not a new regression, it is this test never having run "
+        "against the artifact the library actually loads until the local override was "
+        "dropped."
+    ),
+    strict=True,
+)
 def test_a_claim_weaker_than_the_source_is_supported(
     grounded: GroundednessDetector,
 ) -> None:
@@ -390,17 +405,6 @@ def test_a_claim_weaker_than_the_source_is_supported(
     assert is_grounded(grounded, PROBE_SOURCE, claim), str(
         {k: round(v, 4) for k, v in grounded.judge(PROBE_SOURCE, claim, 1).items()}
     )
-
-    # Was a strict xfail until 2026-08-17, when `groundedness-scope` made it XPASS. The
-    # marker is gone rather than inverted: a limitation that one candidate has
-    # demonstrably cleared is a requirement for the next one, not a permanent property
-    # of the task. That candidate is still not adopted, for a different probe.
-    # was recorded as: @pytest.mark.xfail( reason=( "Dropping two words flips the
-    # verdict. 'After twelve months have elapsed, " "withdrawals are free of charge'
-    # reads supported at 0.9999; the same claim as " "'Withdrawals are free of charge
-    # after twelve months' reads contradicted at " "0.0002. Same source, same meaning,
-    # two fewer words. It is the same root cause " "as the paraphrase failure, in its
-    # smallest form." ), st
 
 
 def test_a_restatement_survives_losing_two_words(
