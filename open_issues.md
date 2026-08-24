@@ -6,7 +6,17 @@ a wish list.
 
 Ordered by what a caller would notice first, not by effort.
 
-Last reviewed 2026-08-20, at `flowx-border` 0.3.0. Seven open, three closed.
+Last reviewed 2026-08-20, at `flowx-border` 0.3.0. Four open, six closed.
+
+**Three items closed the same day, and the count went from seven to four.** `pii`
+over-redaction, the largest caller-visible number in the project, closed with a LOCATION
+entity type rather than the score bar that had been holding it down. `topic_scope`'s
+threshold closed once the other twelve were checked and found not to share its fault.
+`regulated_advice`'s split closed with a retrain on the corrected corpus, published. None
+of the three closed by lowering a bar or narrowing a claim; each closed because the thing
+underneath it changed. What remains open is one line inside the closed `regulated_advice`
+entry: three other corpora still carry a split written before the same fix and are not
+re-split until they are next retrained.
 
 **Restructured 2026-08-18, and the count is the reason.** The list opened at seven items and
 reached nine in a day, which reads as work going backwards. It was not: both additions were
@@ -18,133 +28,7 @@ recorded only in `CLAUDE.md` and in two strict xfails, and not here.
 
 ---
 
-## 1. `pii` removes text from ordinary business prose, on 17.1 percent of rows
-
-The largest caller-visible number in the project, and it was not on this list until 2026-08-18.
-`pii` is enabled in both shipped policies, so this is behaviour a caller gets by default rather
-than a figure in a report.
-
-Measured by `tests/test_ordinary_text_sweep.py` over 234 ordinary rows in 26 languages, running
-the whole shipped configuration on both sides:
-
-| | 2026-08-18 | 2026-08-19 | 2026-08-20, on the snapshot |
-|---|---|---|---|
-| rows where something is blocked or redacted | 0.162 | 0.0769 | **0.2051** |
-| `pii` fires | 0.261 | 0.261 | 0.4017, against a 0.25 ceiling |
-| `pii` damages a row | 0.150 | 0.0598 | **0.1709** |
-| leaked tokens | 0 | 0 | **0**, and 0 of 560 held-out spans survive verbatim |
-
-**The 2026-08-20 column is not a regression, it is the first column measured on a row set that
-holds still.** The two before it were taken on rows drawn by corpus order, so all eight of a
-language's rows came from one register; `1bedcde` re-drew them round-robin across registers the
-same day the 0.0769 was recorded, one commit later, and nothing recomputed the number. The rows
-are now snapshotted in `tests/fixtures/ordinary_text/mundane_rows.json` at content sha
-`da8a38fa450c`, so a figure taken against them is reproducible.
-
-The per-entity bar is still worth having and its effect is smaller than the commit that added it
-claimed. Same rows, same code, `entity_thresholds` removed: 0.2436 of rows and `pii` at 0.2094,
-against 0.2051 and 0.1709 with it. So the bar takes `pii` damage from 0.2094 to 0.1709, an 18
-percent relative reduction rather than a halving. Two row sets of the same size are not
-interchangeable, and this is the second time in this project that a number moved because its
-input did rather than because the thing it measured did.
-
-**And looking for the residue found a disclosure, which was the more serious half.**
-`entity_shapes.is_possible` required four digits for a `NATIONAL_ID`, on the stated premise
-that every scheme in the 26 has them. An Azerbaijani identifier is seven alphanumerics with as
-few as zero digits and an Italian codice fiscale sixteen with as few as one, so the gate
-rejected them, and a rejected shape is **dropped**: the model found the identifier, tagged it
-correctly, and the caller got it back.
-
-| | gold national IDs | under four digits | end to end |
-|---|---|---|---|
-| `az` | 240 | **216 (0.900)** | 52 of 272 held-out spans survived verbatim |
-| `it` | 240 | 78 (0.325) | |
-| all 26 | 6,228 | 294 (0.047) | **1 of 272 after the fix** |
-
-Pre-existing, not caused by the new bars: identical at 0.1912 with no `entity_thresholds` set.
-The floor is now six alphanumerics, below Azerbaijan's seven, which is the shortest scheme in
-the set. `tests/test_entity_shapes.py` pins both forms.
-
-Worth knowing why "zero leaked tokens" did not catch it: that figure asks whether every gold
-token is covered by *some* predicted span, and these spans were predicted before being dropped
-a layer later. Coverage in the tagger is not survival through the library.
-
-**Reduced on 2026-08-19 with no retrain**, by `options.entity_thresholds: {person: 0.90}` in
-`policies/default.yaml`. The firing rate is unchanged on purpose: the bar records what it
-drops at `log`, so 86 findings are `date` at `flag`, 60 are
-`pii_below_entity_threshold_person`, and only 42 are redactions.
-
-The last row is what keeps this an over-redaction problem rather than a disclosure. Nothing
-sensitive reaches a caller unredacted; the cost is text a caller wanted, removed.
-
-**It was 0.756 on 2026-08-16 and the drop to 0.162 was three changes in a day**, none of them a
-stoplist: `date: flag` in `policies/default.yaml`, an ISO 13616 minimum length on the IBAN rule,
-and adopting the retrain that was already sitting in `artifacts_dates`. `person` went 0.581 to
-0.128 and `national_id` 0.064 to 0.017.
-
-**What remains is place names, and that is a different problem from the one that was fixed.**
-The calendar words are gone: `Friday` and `Maerz` are no longer people. The residue, read off
-the sweep:
-
-| what it tags | as | in |
-|---|---|---|
-| `Regensburg`, `Passau`, `Straubing`, `Plattling`, `Vilshofen` | `person` | a German rail timetable |
-| `Karlovo`, `Florenc`, `Fučíkovo`, `Stenløsevej`, `Midtjylland` | `person` | towns, districts, a street, a region |
-| `„Академик Пейо Яворов“` | `person` | a Bulgarian school named after the poet, so arguably right |
-| `800 123 456` | `phone` | a Czech freephone support line |
-
-**`piiguard` has seven entity types and none of them is LOCATION**: CARD, DATE, EMAIL, IBAN,
-NATIONAL_ID, PERSON, PHONE. `person` is also the only one with no shape to check, so
-`entity_shapes.py` can reject a malformed IBAN and has nothing to say about a capitalised word.
-
-**An ablation inside fixed frames found the cue, and it is not knowledge of place names.**
-
-| filler | mid-sentence | sentence-initial |
-|---|---|---|
-| `Berlin`, `Paris`, `Siemens`, `Volkswagen` | never tagged | never tagged |
-| `Regensburg`, `Valletta`, `Plattling` | 0.51 to 0.97 | not tagged |
-| `Grelmshof`, invented | 0.89 to 0.97 | 0.70 |
-| `Martin Weber` | 1.00 | 1.00 |
-
-An invented token scores 0.97, so it is **an unfamiliar capitalised token mid-sentence**.
-Sentence-initial is exempt because capitalisation there is orthography. The corpus says why:
-75.3 percent of mid-sentence capitalised tokens in `piiguard_*` are part of an entity, and the
-24.7 percent that are not are acronyms, German capitalised nouns and formal pronouns. A
-name-shaped capitalised non-entity does not occur.
-
-**So the fix was a bar on score, and deliberately not a stoplist of toponyms.** Place names are
-common surnames and the model already separates the two by context:
-
-| | as a place | the same token as a person |
-|---|---|---|
-| `Berlin` | not tagged | `Isaiah Berlin` 1.00 |
-| `Paris` | not tagged | `Ms Paris` 1.00 |
-| `Regensburg` | 0.68 | `Frau Regensburg` 1.00 |
-
-A rule keyed on toponym shape would have turned a visible over-redaction into an invisible
-hole, which `entity_shapes.py` refuses to do for exactly this reason.
-`tests/test_entity_thresholds.py` pins both directions.
-
-**What remains, and it is now a smaller question.** 13 `person` spans, 4 `phone`, 4
-`national_id`. Most surviving `person` findings are places named after people, `Franjo Tudman`
-at 0.977 and `Deak Ferenc` at 0.962, where the span does contain a person's name. The
-`national_id` four are not identifiers at all: `EP2237/10` is a patent number, `LV-EWT2026` a
-product code, `0800` a freephone prefix. Two open choices, both smaller than before:
-
-- **A LOCATION type**, so a place has somewhere correct to go rather than the nearest
-  proper-noun label. Arguably more correct, policy-visible, and a bigger decision than a bar.
-- **Toponyms as entity-free corpus text**, which would move the remaining 13 down rather than
-  needing a bar at all. Now a refinement rather than the fix.
-
-- **Where**: `tests/test_ordinary_text_sweep.py`, two strict xfails carrying the numbers, split
-  from the enforcing test so a `toxicity` or `nsfw` regression still fails something.
-- **Not a stoplist.** `entity_shapes.py` refuses to drop a span, and the reason holds: a person
-  really can be called April or Regensburg, and turning a visible over-redaction into an
-  invisible hole is the wrong trade in a redactor.
-- **The Czech freephone row is its own question**: whether a company's published support line is
-  personal data at all. That is a taxonomy decision, not a model error.
-
-## 2. The corpora, four measured gaps and one generation campaign
+## 1. The corpora, four measured gaps and one generation campaign
 
 These were items 1, 2, 5 and 6 until 2026-08-18. They are one item because they are one cause:
 a corpus that is thin in places and the wrong shape in others. Every part needs the generation
@@ -333,7 +217,7 @@ correctly. One written Finnish date exists across the 26,455 rows of `pii_frames
   typed F1 0.0000 with every gold span missed on held-out frames, and a multi-token date is
   the thing it had never seen.
 
-## 3. `groundedness` is published, disabled, and one call in four is wrong
+## 2. `groundedness` is published, disabled, and one call in four is wrong
 
 0.7381 on 42 hand-written probes with the rule layer in front, against 0.9471 on the
 generator's own held-out split. Both are real and the gap is the point.
@@ -358,7 +242,7 @@ the clearest case. Safe direction for a guardrail, still a cost, hence disabled.
 
 - **Design**: `docs/groundedness-redesign.md` in the training repository.
 
-## 4. No retrain delta in this project has a measured noise floor
+## 3. No retrain delta in this project has a measured noise floor
 
 A seed control was run for the first time on 2026-08-18: the same `moderation` corpus, the
 same hyperparameters, seed 42 against seed 1337. Per-label F1 moved by a mean of 0.0073 and a
@@ -399,71 +283,7 @@ Thirteen times wider on the widest cell. Two further consequences, both concrete
   differ by an order of magnitude across detectors, so re-measure per detector rather than
   reusing 0.0188 or 0.3294.
 
-## 5. `topic_scope`'s shipped threshold was below its own score floor
-
-Fixed 2026-08-19 and kept on the list because what it says about the other thresholds is not
-yet checked.
-
-`topic_scope` emits a rescaled cosine, `(cos + 1) / 2`, and both shipped policies set a
-threshold of **0.45**, which is a raw cosine of -0.10. Over the 408 rows of the training
-corpus's test split against a 15-node taxonomy, the lowest score any text achieves is 0.6674,
-so **408 of 408 cleared it**. The threshold rejected nothing and firing was decided entirely by
-whether the nearest node happened to be `disallowed`. Under `policies/bfsi.yaml`, where
-`on_fail` is `block`, that is a refused response for an input the detector had no opinion about.
-
-On the 78 rows that belong to no node at all:
-
-| bar | in-scope kept | out-of-scope kept | separation |
-|---|---|---|---|
-| 0.45, as shipped | 1.0000 | 1.0000 | **0.0000** |
-| 0.80 | 0.9600 | 0.7692 | 0.1908 |
-| **0.85, now shipped** | 0.8000 | 0.2692 | **0.5308** |
-| 0.87 | 0.6857 | 0.0897 | 0.5960 |
-
-**Why the published eval could not see it.** `topic_scope_eval.json` reports `top1_accuracy`,
-which asks *which* node is nearest and never *whether any* is near enough, so a rank metric
-cannot see a threshold that never binds. The file's own note that its 78 out-of-taxonomy rows
-are "never scored, which is half of what it is for" was the more important sentence in it.
-
-**Two of my own measurements were wrong on the way here** and both are worth keeping. I first
-built the taxonomy with `path.replace("/", " ")` as the node description and concluded from it
-that no threshold could separate the registers, because out-of-taxonomy text scored *higher*
-than in-scope. With the corpus's real descriptions the ordering reverses. And a margin sweep
-read 1.0000 at every bar because it counted over one list and divided by another's length; a
-sweep returning the same number for every threshold should have stopped me sooner.
-
-- **Where**: `tests/test_topic_scope_threshold.py`. The fast test needs no model and asserts
-  every shipped `topic_scope` threshold sits above the recorded floor.
-- **The other twelve were checked on 2026-08-19 and the fault cannot reach them.** Not by
-  sweeping them, which was tried first and found nothing but artifacts of a thin sample: over
-  32 texts with no positives in them, `bias` and `toxicity` looked "unreachable" because
-  nothing biased or toxic was in the sample, `pii` and `encoded_payload` looked "inert"
-  because only their high band fired, and three emitted nothing because they need
-  configuration a bare options dict does not supply. A sweep needs the detector's own
-  positives, and only `topic_scope` had a labelled corpus for that.
-
-  What settles it is the score's construction rather than a measurement:
-
-  | detector | score | floor |
-  |---|---|---|
-  | the nine classifiers, `pii`, `output_leakage` | sigmoid or model probability | reaches 0 |
-  | `system_prompt_leakage` | `matched / len(grams)` | reaches 0 when nothing matches |
-  | `summary_support` | `(similarity - best) / similarity` | reaches 0, and carries no shipped threshold |
-  | `repetition` | a difflib ratio, a real floor candidate | uses `options.similarity`, not `threshold`, and is disabled in both policies |
-  | `topic_scope` | **rescaled cosine** | **~0.667, and this was the fault** |
-
-  So `topic_scope` was the only shipped `threshold` sitting on a score that cannot reach 0.
-  The class is closed by construction, not by hoping.
-
-- **One sharp edge found while looking, and it is a cliff rather than a floor.**
-  `encoded_payload` scores exactly 0.9 or 0.5, so a threshold anywhere in `(0.5, 0.9]`
-  silently means strong-only and above 0.9 disables the detector. The shipped 0.5 admits
-  both bands and the code guards the second case, so nothing is wrong today; it is worth
-  knowing that this knob has two settings and not a range.
-- **And the bar is taxonomy-dependent**: measured on 15 nodes, and more nodes mean more chances
-  of a spurious near-match, so a deployment should re-sweep it.
-
-## 6. Four published models cannot be re-verified against a stricter export gate
+## 4. Four published models cannot be re-verified against a stricter export gate
 
 Re-checking a quantised export needs both halves, fp32 and quantised. `CLAUDE.md` already
 records this for `groundedness`: "an artifact whose fp32 is gone cannot be re-verified when the
@@ -491,7 +311,7 @@ drift was added.
 - **Where**: `artifacts_local/<detector>-full/model.safetensors`, and `registry.MODELS` for
   what is published.
 - **Fix, three of the four for free**: `gibberish` and `politeness` are on the retrain list in
-  item 2 and `moderation` on the one beside it, and a retrain writes both halves.
+  item 1 and `moderation` on the one beside it, and a retrain writes both halves.
   `moderation` itself is done as of 2026-08-19: both seeds of the v4 retrain kept their
   safetensors and their int8 export, so it has both halves for the first time.
 - **`topic_scope` needs no action, established 2026-08-19.** It is unconfigured in both shipped
@@ -502,76 +322,69 @@ drift was added.
 - **Then keep them.** A run writes `model.safetensors` and `run.json` at the artifact root
   today, so this is a retention habit rather than a code gap. About 1 GB per model.
 
-## 7. `regulated_advice` publishes a macro of 0.995 and its largest label was never scored
-
-Found 2026-08-20, chasing why `financial_advice` reads `f1=0.0` at `support=0` in the shipped
-model's own report and in two retrains from the same week. It is not a score. It is a division
-by nothing, and it means the detector's largest class had no examples in the test split at all.
-
-The corpus was split by `(language, register)` while this detector's label comes from `domain`,
-and units were ordered by `pair_id`, which begins `language/domain/register`. So position
-encoded domain and an 80/10/10 slice of that order cut along domain lines rather than across
-them:
-
-| label | train | val | test |
-|---|---|---|---|
-| `financial_advice` | 2542 | 55 | **0** |
-| `medical_advice` | 1040 | **0** | 518 |
-| `legal_advice` | 1040 | 491 | 28 |
-
-9 of 12 domains appeared in exactly one split. `medical_advice` had no validation rows, so
-calibration never saw it, and `legal_advice` rested on 28 test rows for a claim about 26
-languages. Nothing failed: it trained, evaluated, calibrated, published and passed
-`tests/test_performance.py`, which recomputes a published macro from the report it came from
-and therefore agreed.
-
-**The published 0.995 is true and answers a different question than it looks like.** Each
-language reads precision 1.0 and recall 1.0 because the per-language row asks whether the
-detector fires at all, not which of its three labels applies. Underneath, `legal_advice` is
-0.7629 and `medical_advice` 0.9008. So the detector is near-perfect at noticing advice and
-mediocre at saying what kind, and only the first number was published, with an empty caveat
-list.
-
-That gap is not unique to this detector, which is why the fix is in the collector rather than
-in one report. Across the five multi-label heads:
-
-| detector | published macro | weakest label with support |
-|---|---|---|
-| `regulated_advice` | 0.9950 | `legal_advice` 0.7629 |
-| `moderation` | 0.9919 | `violent_facilitation` 0.8351 |
-| `injection` | 0.9891 | `jailbreak` 0.9603 |
-| `nsfw` | 0.9337 | `sexual` 0.8945 |
-| `bias` | 0.9826 | `gender` 0.9533 |
-
-- **Where**: `border_train/datagen/base.py::write` in the training repo, and
-  `benchmarks/collect.py::_per_label_caveats` here.
-- **Fixed in the writer, 2026-08-20.** Units are formed before stratification rather than
-  inside a stratum, the key is `(language, domain)`, and units order by a hash of their own
-  text so position encodes nothing. Every value of language, register and domain, and every
-  label, must now reach all three splits, and no pair may straddle one, as guards rather than
-  as consequences. The corrected `regulated_advice` split is 80.0/10.0/10.0 with 0 straddling
-  pairs, all three labels in all three splits, and 22 test positives in every one of the 26
-  languages.
-- **Fixed in the collector, 2026-08-20.** A label with no support, and the gap between the
-  per-language macro and the weakest per-label score, are both caveats now. `performance.json`
-  went from 10 caveats to 12 on the same artifacts.
-- **The pair guarantee was arithmetic coincidence, and that is the part worth keeping.** Units
-  built inside a stratum meant a pair whose members differ in any key field was allocated
-  twice, independently, staying together only when the two strata were the same size and the
-  boundary fell in the same place. Every one of the 5,714 `regulated_advice` pairs differs in
-  register by construction. 78 straddled a boundary, none of them train-to-test, so the comment
-  claiming pairs are kept together read as true. Adding domain to the key took it to 1,144
-  immediately.
-- **Open: what the corrected split says about the model.** Two seeds are training on it. Until
-  they report, the honest statement is that this detector's per-label figures are unknown
-  rather than known to be worse, and `financial_advice` has never had one.
-- **Open: three other corpora have more than one domain**, `topic_scope` with 16,
-  `groundedness` with 5 and `injection` with 2, and their splits on disk predate this fix. Under
-  the old writer 4 of `groundedness`'s 5 domains are absent from its test split, so its
-  published figures describe one document type out of five. A corpus is only re-split when it is
-  regenerated, so each keeps the split it was scored on until it is deliberately retrained.
-
 ## Closed while writing this
+
+**`pii` over-redaction on ordinary text is fixed, not merely reduced.** The largest
+caller-visible number in the project. It went 0.756 (2026-08-16) to 0.162 to 0.0769 to
+0.2051 as the measurement itself got more honest (a corpus artifact swap, then a
+row-sampling fix that this list did not catch until the numbers were re-taken), and the
+open question at every one of those points was the same: `piiguard` had seven entity
+types and none of them was LOCATION, so a place name had nowhere correct to go and landed
+in `person`. A score bar at 0.90 papered over it from 2026-08-19, catching 30 of 43
+damaging findings at a measured cost of nothing to real names, but two open choices
+remained: a LOCATION type, or toponyms as entity-free corpus text.
+
+Closed 2026-08-20 by the first choice. The retrain gained `LOCATION` as an eighth type,
+published as `flowxai/piiguard` revision `ed1fa965`, and every `person` finding across
+the 234-row sweep is now checked by hand and is a genuine person: zero toponyms.
+`entity_thresholds: {person: 0.90}` is removed from both shipped policies, because its
+whole job was filtering toponyms and there are none left to filter.
+
+    ordinary-text pii damage         0.1709 -> 0.1282
+    pii:person findings, all genuine either way    66 -> 56
+    pii:national_id false positives                8 -> 4
+
+0.1282 is higher than 0.1026, the number measured the same day with the bar still in
+front of the new model, and that is not a step backward: the damage metric counts
+over-redaction only and cannot tell a real name correctly redacted from one incorrectly
+left alone. The 18-finding gap between 38 and 56 is exactly the real names, `Tiina`,
+`Jänis`, `Anders`, `Müller`, `Marinescu`, that the bar was silently demoting to a logged
+note instead of a redaction. Verified against the library's own suite before publishing,
+and again against the live pin after: 2096 passed. See `tests/test_entity_thresholds.py`
+and the superseded artifact's `WHY_SUPERSEDED.md` in the training repo.
+
+**`topic_scope`'s shipped threshold was below its own score floor, and the other twelve
+thresholds in the library do not share the fault.** 0.45 against a floor of 0.6674 meant
+408 of 408 test rows cleared it regardless of content, so firing was decided entirely by
+which taxonomy node was nearest. Fixed to 0.85 on 2026-08-19, separation 0.0000 to 0.5308.
+Checked by construction rather than by sweeping (a sweep found only artifacts of a thin
+sample on the other eleven): every other shipped `threshold` sits on a score that reaches
+0, sigmoid, a difflib ratio, or a similarity ratio, and `topic_scope`'s rescaled cosine
+was the only one that could not. `tests/test_topic_scope_threshold.py` pins the floor.
+
+**`regulated_advice` published a macro of 0.995 while its largest label, `financial_advice`,
+had never been scored, and the corrected model is now published.** The split was cut along
+domain lines: 9 of 12 domains landed in exactly one split, and the label with 2,542 train
+rows had zero test rows, so its `f1=0.0` was a division by nothing rather than a score.
+Fixed in the writer, `border_train/datagen/base.py::write`, forming units before
+stratification and keying on `(language, domain)`, with coverage of every language,
+register, domain and label asserted as a guard.
+
+Retrained at two seeds and published as `flowxai/regulated-advice` revision `5141792f`.
+`financial_advice` reads 0.8927 at a support of 260, and the detector's ordinary-text fire
+rate falls from 0.5256 to 0.0598, under its 0.10 ceiling, so it moved off the enforced
+`KNOWN_OVER` list. The collector also gained a caveat for any zero-support label and for
+the gap between a per-language macro and its weakest per-label score, since the same
+question, "does it fire" versus "which label", is general across the five multi-label
+heads and not unique to this one.
+
+Three other corpora have more than one domain and their splits on disk predate the writer
+fix: `topic_scope` with 16, `groundedness` with 5, `injection` with 2. Under the old
+writer 4 of `groundedness`'s 5 domains are absent from its test split, so its published
+figures describe one document type out of five. A corpus is only re-split when it is
+regenerated, so this stays open until each is deliberately retrained, tracked as part of
+item 1's generation campaign rather than as its own line.
+
 
 **`injection` no longer reads an imperative as an override, and it was already fixed when this
 item still said otherwise.** Measured 2026-08-19 against the shipped v5, revision `e2dd543f`:
