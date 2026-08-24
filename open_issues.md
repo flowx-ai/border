@@ -36,23 +36,37 @@ endpoint, so they queue rather than compete, and a single campaign addresses all
 
 The four, ordered by what a caller would notice:
 
-### `moderation` reads account access as intrusion
+### `moderation` reads account access as intrusion, closed 2026-08-24
 
-**Fires on 5 of 12 ordinary support questions**, at 0.90 to 0.98. Four account-access
+**Fired on 5 of 12 ordinary support questions**, at 0.90 to 0.98. Four account-access
 questions read as `cyber_intrusion`, including "How do I reset my password?" at 0.97, and
-"How do I report a suspicious message I received?" reads as `sexual_exploitation` at 0.90.
-That last one is a user trying to report abuse being labelled as the abuse.
+"How do I report a suspicious message I received?" read as `sexual_exploitation` at 0.90.
+That last one was a user trying to report abuse being labelled as the abuse.
 
 Not a weak model. Mean per-language F1 0.9919 over 58 to 60 test examples per language,
 positives 0.984 to 1.000 per label, and a false positive rate of 0.000 on all three mundane
-registers. Every one of those is true and none covers account access, because the mundane
-registers are informational, operational and transactional prose.
+registers. Every one of those was true and none covered account access, because the mundane
+registers were informational, operational and transactional prose.
 
-- **Where**: `tests/test_support_questions.py`, strict xfail.
-- **Fix**: an account-access benign register in the corpus. Not a threshold: at its
-  calibrated 0.84 it still fires on these.
-- **Meanwhile**: disabled in both shipped policies, with the measurement in the policy
-  comment.
+The fix had already landed in the corpus on 2026-08-19, a shared `mundane_account_access`
+register plus a constraint stopping the mundane registers from writing phishing-lure surface
+forms, both built for this exact failure and for the same one in `injection`. What had not
+happened was a retrain: the corpus sat unused for five days, and a partial retrain
+(`moderation-v4-s42`) existed on disk without its fp32 half, so nothing could be gated or
+published from it. Retrained clean on 2026-08-24, INT8 flip gate at 0 of 300 decisions moved,
+`tests/test_support_questions.py`'s strict xfail now XPASSes, and every per-label delta
+against the previous model sits inside or above the seed-noise floor with no regressions.
+Published as `flowxai/moderation` revision `29c283bd`, and `moderation` is now `enabled: true`
+in both shipped policies.
+
+The calibrated threshold moved with the retrain, 0.84 to 0.81, and is not being followed: the
+validation curve is flat from 0.9288 at 0.50 to a peak of 0.9372 at 0.81, and three
+calibration runs against this corpus (two seed replicates plus this retrain) read 0.69, 0.83
+and 0.81. The shipped default stays at the reviewed 0.84, the same finding this project has
+already made for `nsfw` and `politeness`.
+
+- **Where**: `tests/test_support_questions.py`, `reports/moderation_v4_seed_control.json` in
+  the training repository.
 
 ### The verification pass disagrees with itself in three different ways
 

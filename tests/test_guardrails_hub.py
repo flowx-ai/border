@@ -329,25 +329,26 @@ def test_moderation_is_available_and_is_twelve_labels_of_thirteen() -> None:
     )
 
 
-def test_moderation_ships_disabled_in_both_policies() -> None:
-    """Available and off, which is a deliberate pair rather than an oversight.
+def test_moderation_ships_enabled_in_both_policies() -> None:
+    """Was available and off from first publication until 2026-08-24.
 
-    Measured the day it was published: it fires on 5 of 12 ordinary support questions at
+    Measured the day it was published: it fired on 5 of 12 ordinary support questions at
     0.90 to 0.98, reading "How do I reset my password?" as `cyber_intrusion` at 0.97 and
     "How do I report a suspicious message I received?" as `sexual_exploitation` at 0.90.
-    See tests/test_support_questions.py, where that is a strict xfail.
 
-    So it is enabled by nobody until the corpus gains an account-access register, and a
-    caller who wants to evaluate it on their own traffic turns it on in one line. Pinned
-    because the tempting next step is to enable it now that it exists.
+    The account-access register that fixes it landed in the corpus 2026-08-19 and the
+    retrain that adopts it shipped 2026-08-24. `test_support_questions.py`'s strict
+    xfail for this case now XPASSes rather than fails, which is what turned this test
+    the other way: enabled is now the deliberate state, and disabling it would be the
+    oversight this test used to guard against.
     """
     from flowx_border import load_policy
 
     for name in ("default", "bfsi"):
         policy = load_policy(f"policies/{name}.yaml")
-        assert not policy.enabled_for("moderation"), (
-            f"policies/{name}.yaml enables moderation, which fires on 5 of 12 ordinary "
-            "support questions. See tests/test_support_questions.py."
+        assert policy.enabled_for("moderation"), (
+            f"policies/{name}.yaml disables moderation, whose account-access fix "
+            "shipped 2026-08-24. See tests/test_support_questions.py."
         )
 
 

@@ -183,25 +183,37 @@ detectors:
 
   # T2. May be disabled per policy.
   moderation:
-    enabled: false          # see below: measured, and not ready to enforce
+    enabled: true           # the account-access register landed, see below
     on_fail: flag
-    threshold: 0.84         # its own calibration, macro F1 0.931 against 0.923 at 0.5
-    # Published, pinned and available, and deliberately off.
+    threshold: 0.84         # kept at the reviewed value rather than a fresh calibration
+    # Enabled 2026-08-24. Was off from first publication on the grounds stated below,
+    # kept for the record rather than deleted.
     #
-    # Measured 2026-08-17 on ten ordinary support questions: it fires on five of them at
+    # Measured 2026-08-17 on ten ordinary support questions: it fired on five of them at
     # 0.90 to 0.98. Four account-access questions read as `cyber_intrusion`, including
     # "How do I reset my password?" at 0.97, and "How do I report a suspicious message I
-    # received?" reads as `sexual_exploitation` at 0.90. That last one is a user trying
+    # received?" read as `sexual_exploitation` at 0.90. That last one was a user trying
     # to report abuse being labelled as the abuse.
     #
-    # Its own evaluation says mean per-language F1 0.9919 and a 0.000 false positive rate
-    # on all three mundane registers, and both are true. The registers are informational,
-    # operational and transactional prose, and an account-access question is none of
-    # those. It is the same missing-register failure as `nsfw` at 55 percent of business
-    # prose and `injection` on git hashes, in a third place.
+    # Its own evaluation said mean per-language F1 0.9919 and a 0.000 false positive rate
+    # on all three mundane registers, and both were true. The registers were
+    # informational, operational and transactional prose, and an account-access question
+    # was none of those. It was the same missing-register failure as `nsfw` at 55 percent
+    # of business prose and `injection` on git hashes, in a third place.
     #
-    # So it ships available and off. Enabling it is one line for anyone who wants to
-    # evaluate it on their own traffic, and the corpus fix is the account-access register.
+    # The fix landed 2026-08-19, a shared `mundane_account_access` register plus a
+    # constraint on all four mundane registers that stops them writing phishing-lure
+    # surface forms, and the retrain that adopts it is `flowxai/moderation` revision
+    # pinned in `models/registry.py`. `tests/test_support_questions.py`'s strict xfail
+    # for this exact case now XPASSes rather than fails, which is the corpus fix turning
+    # into a passing assertion instead of silence.
+    #
+    # Threshold is kept at 0.84 rather than moved to a fresh calibration. Three
+    # calibration runs against this corpus, two seeds and this retrain, read 0.69, 0.83
+    # and 0.81: the curve is not stable enough for a calibrated value to be more than a
+    # seed artifact, the same finding this project has already made for `nsfw` and
+    # `politeness`. 0.84 is the value already reviewed and shipped, and nothing above
+    # says it is wrong.
   injection:
     on_fail: block
     # Lower than the default: a missed injection costs more than a review. Calibrated
