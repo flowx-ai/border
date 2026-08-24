@@ -75,8 +75,17 @@ those enrichments and the module recomputes against the corpus as it stands.
 Only the third kind is a safety question, and it is the one this issue did not mention until
 2026-08-18.
 
-**The checker almost never confirms `extremism`.** Per-label agreement, from
-`reports/moderation_verification.json`:
+**Both owner decisions this section asked for are settled, 2026-08-24.**
+`docs/moderation-taxonomy-proposal.md` moves from "proposal, not decided" to accepted: the 13
+labels are final, severity is deliberately deferred to the policy threshold,
+`intellectual_property` stays out and `election_integrity` stays in, and the definition is
+**facilitation, not content**, matching the doc's own framing: "does this facilitate, solicit
+or promote serious harm", not what a text merely contains or mentions. That resolves the
+question below in the opposite direction from this section's own earlier reasoning, which is
+worth stating plainly rather than quietly overwriting.
+
+**The checker almost never confirms `extremism`, and it is a generation bug, not a taxonomy
+question.** Per-label agreement, from `reports/moderation_verification.json`:
 
 | label | agree | differ | agreement |
 |---|---|---|---|
@@ -86,52 +95,88 @@ Only the third kind is a safety question, and it is the one this issue did not m
 | `election_integrity` | 1,194 | 158 | 0.883 |
 | `defamation` | 1,249 | 103 | 0.924 |
 
-Only 9 of `extremism`'s 221 recorded disagreements are the checker returning nothing, so it is
-not failing to see anything: it is naming something else. That is a taxonomy question rather
-than a corpus one. Our 13 labels are ours, the checker reads a policy given at inference, and
-where the two carve the space differently the disagreement is the mapping and not the row.
-Worth resolving before any `extremism` figure is published, because a label the verifier and
-the generator do not agree on is a label neither of them is measuring.
+Read against the full store rather than the report's 500-row sample: **every one of the 1,201
+`label_replaced` disagreements where the corpus said `extremism` was generated single-label,
+0 of 1,201 carrying a second tag.** What the checker calls them instead is the concrete act
+the text describes, not a different topic: `violent_facilitation` on 63.6%, `weapons_cbrn` on
+31.2%, `property_crime` on 15.7% (a row can get more than one). A sample: "seeks experienced
+bomber and security plan" (`extremism` alone; checker: `violent_facilitation`, `weapons_cbrn`),
+"advice on tactics to evade a police patrol" (`extremism` alone; checker: `property_crime`).
 
-**`election_integrity` and `defamation` do have the empty-positives problem**, and it is the
-opposite shape: 78 of 108 and 60 of 72 of their recorded disagreements are rows the generator
-labelled and the checker read as carrying nothing. 1,819 rows corpus-wide are positives called
-empty. Those are the ones to regenerate.
+`moderation.py`'s `extremism` register already went through two prior fixes for a different
+failure, `prompt_version="moderation_solicitation_v4"`: v2 (2026-08-15) stopped it generating
+manifestos and logos with no violence in them, v3 (2026-08-16) stopped it substituting
+menacing group names for an actual violent act. Both fixes worked, which is exactly why every
+row now sampled here does describe a real bomb, a real weapon, a real act of sabotage: the
+content is right. What is still missing is that the taxonomy's own boundary column draws
+`extremism` against `toxicity.identity_attack` only ("an insult, not recruitment") and never
+against the operational labels, so a violent act framed inside a movement's name is exactly
+the case with two right answers and the generator only ever emits one. Since the corpus is
+`multi_label=True`, the fix is to emit both: `extremism` plus whichever operational label the
+described act already matches, not a redefinition of either label.
 
-**The 183 rows the checker calls hazardous and the corpus calls benign are a definitional
-split, not a checker error.** 74 of them sit in a `mundane_*` register, the generator's own
-name for plainly benign prose, and 64 of those 74 are `fraud_deception`. The rows are
-phishing-shaped: a security-update pretext with a same-day deadline and a `ResetPassword.it`
-lookalike domain, a utility notice closing with "to avoid service interruption" and a phone
-number, a plaintext server-room password. Ordinary transactional prose and a phishing lure
-have the same surface form, so a register that asks for one produces the other.
+- **Where**: `border_train/datagen/moderation.py`, the `extremism` register spec.
+- **Fix**: multi-label the register's own positives against the operational labels already in
+  the taxonomy, then re-run the extremism cells only, the same targeted re-ask v2 and v3 used
+  (the cache keys on prompt text, so bumping the version re-asks only what changed).
 
-The generator says which definition it applied, in its own `why` field: `keine Hilfsanfrage`,
-`nessuna richiesta di aiuto`, `pas de demande d'aide`. It labels by whether the text **asks
-for help with** a hazard, and 1,934 of 6,227 mundane rows justify themselves that way, so it
-is the operative rule rather than an aside. `docs/moderation-taxonomy-proposal.md` defines
-`fraud_deception` as "scams, phishing, social engineering, forged documents, money
-laundering", which is a statement about content, and the checker reads it that way.
+**`positive_called_empty` is 1,819 rows corpus-wide, and the report's 500-row sample pointed at
+the wrong two labels.** The full breakdown:
 
-The library settles which reading has to hold. `moderation` declares `sides` of input and
-output, and on the output side "does this ask for help" is not a coherent question, because an
-LLM's output is not a request. So the generator's rule cannot be right for half of what the
-detector does, and the 74 rows are corpus errors under the only reading that covers both
-sides.
+| label | rows |
+|---|---|
+| `sexual_exploitation` | **762** |
+| `violent_facilitation` | 190 |
+| `self_harm` | 151 |
+| `property_crime` | 149 |
+| `hate_incitement` | 130 |
+| `election_integrity` | 122 |
+| `defamation` | 90 |
+| `extremism` | 72 |
+| `illicit_drugs` | 53 |
+| `weapons_cbrn` | 42 |
+| `cyber_intrusion` | 35 |
+| `fraud_deception` | 23 |
+
+`election_integrity` and `defamation` do carry the problem, at 122 and 90, but `sexual_
+exploitation` alone is 762, five times either and 42 percent of all 1,819. The sample said
+otherwise because 78 of 108 and 60 of 72 of *its* recorded `election_integrity`/`defamation`
+disagreements were this kind, a true statement about a 500-row slice that does not generalise
+to which label most needs regenerating corpus-wide. Regenerate by this table, not the sample.
+
+**The 183 rows the checker calls hazardous and the corpus calls benign are expected
+disagreement under the accepted definition, not a corpus defect.** 74 of them sit in a
+`mundane_*` register, the generator's own name for plainly benign prose, and 64 of those 74
+are `fraud_deception`. The rows are phishing-shaped: a security-update pretext with a
+same-day deadline and a `ResetPassword.it` lookalike domain, a utility notice closing with "to
+avoid service interruption" and a phone number, a plaintext server-room password. Ordinary
+transactional prose and a phishing lure share a surface form, so a register that asks for one
+produces the other.
+
+The generator says which rule it applied, in its own `why` field: `keine Hilfsanfrage`,
+`nessuna richiesta di aiuto`, `pas de demande d'aide`, "not a request for help", on 1,934 of
+6,227 mundane rows. That rule is close kin to the now-accepted "facilitates, solicits or
+promotes": an ordinary transactional notice does none of the three regardless of its surface
+resemblance to a lure, so the corpus is right to call it benign and the checker's disagreement
+is it reading `fraud_deception`'s content-shaped definition in
+`docs/moderation-taxonomy-proposal.md` ("scams, phishing, social engineering...") rather than
+the facilitation test the taxonomy has now settled on. This section previously concluded the
+opposite, that the 74 rows were corpus errors, reasoning from a content-based reading that the
+2026-08-24 decision superseded. Corrected here rather than silently edited, in this project's
+usual way of keeping a wrong conclusion visible next to what replaced it.
 
 - **Where**: `uv run python -m border_train.read_disagreements --dump rows.json` in the
   training repo, which reads `reports/moderation_verify.gpt-oss-safeguard-20b.jsonl`.
-- **Fix**: the mundane registers need a spec that forbids the phishing surface form, since
-  asking for ordinary transactional prose is what produced it. The `*_near_miss` half of the
-  183, 109 rows, is expected behaviour for a register whose job is to sit near the boundary
-  and is a lower priority than the 74.
-- **Owner decision, the same one `extremism` needs**: whether these 13 labels are about what
-  a text contains or about what it asks for. Both halves of the corpus assume an answer and
-  they assume different ones.
+- **Fix, if any**: `docs/moderation-taxonomy-proposal.md`'s per-label boundary prose could
+  restate each definition in facilitation terms explicitly (`fraud_deception` in particular),
+  so a future labeller or checker run against the same policy does not reintroduce this
+  reading. Not a corpus regeneration: the 74 rows do not need to change. The `*_near_miss`
+  half of the 183, 109 rows, is already expected behaviour for a register whose job is to sit
+  near the boundary.
 
 The verifier deliberately edits nothing, so the disagreement list is the artifact and reading
 it is the work. The report's own `disagreements` list is a 500-row stratified sample, so its
-shares are within that sample; the table above is corpus totals from the full store.
+shares are within that sample; the tables above are corpus totals from the full store.
 
 ### Three detectors rest on fewer than 20 test positives per language
 
