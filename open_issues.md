@@ -190,32 +190,52 @@ used to state it. See `reports/SEED_CONTROL.md` and issue 4.
   Needs the generation endpoint, so it queues behind the groundedness corpus.
 - **Not a fix**: reading the minima as ceilings. Reach for the corpus before the architecture.
 
-### `pii` frames still need regenerating with varied surfaces
+### `pii` frames needed regenerating with varied surfaces, and both target types recovered
 
-Frame is what the label actually depends on: `CARD` scored 100% in the generator's own
-template, 32.5% with the neighbouring IBAN clause removed, and 18.3% in a sentence the
-generator never wrote. Template diversity first, then slots that vary independently.
+Closed 2026-08-20. Frame was what the label actually depended on: `CARD` scored 100% in the
+generator's own template, 32.5% with the neighbouring IBAN clause removed, 18.3% in a
+sentence the generator never wrote, and `DATE` scored typed F1 0.0000 on held-out frames with
+every gold span missed. Regeneration was the fix and it landed as a side effect of a
+different repair: `slots_out_of_order` was rejecting 1,260 of 6,456 items in a paid batch
+because slot order was read from the request rather than the reply, and fixing that recovered
+a corpus large enough to ship, which also broke the fixed IBAN-then-CARD adjacency the old
+templates always produced. `LOCATION` joined as an eighth type in the same retrain. Re-run on
+truly held-out frames, `border_train.heldout_ner_eval` against `artifacts_local/piiguard-full`:
 
-**The two data files this issue also asked for are built and wired**, so the regeneration is
-all that is left and it will pick them up:
-
-| | what it does | where |
+| type | before | after |
 |---|---|---|
-| month names | dates written as words in 26 languages, so `DATE` is a multi-token span at all | `border_train/month_names.py`, called by `pii_fill.make_date` at a 0.5 share |
-| names in script | Greek and Bulgarian people written in Greek and Cyrillic, surname agreeing in gender | `_IN_SCRIPT_NAMES` and `make_person` in `border_train/pii_fill.py` |
+| `CARD` | 18.3% in a novel sentence | **F1 0.8170, recall 1.0000**, precision 0.6906 |
+| `DATE` | F1 0.0000, every span missed | **F1 1.0000** |
+| `PERSON`, `EMAIL`, `IBAN`, `PHONE` | 1.0000 | 1.0000, unchanged |
 
-Both were listed here as outstanding until 2026-08-18 and both had landed. The month table
-had no test until then either, and writing one found that Finnish generated `14. maaliskuu
-2024` half the time, a bare nominative no Finnish writer produces, because the partitive was
-built in the template over the nominative stem while the genitive column already held it
-correctly. One written Finnish date exists across the 26,455 rows of `pii_frames` and
-`piiguard`, so the fix precedes any corpus that uses it.
+CARD's recall is perfect and its precision is not: 233 spurious spans against 520 gold, so it
+over-tags card-shaped digit runs. `checksummed.py` already validates any redacted PAN
+independently, so an over-tagged span costs a caller unnecessary redaction rather than a
+leak, the same direction of error this project's own bar decisions keep choosing. Not chased
+further here because nothing measured says it is worse than before, only that it is now
+visible.
+
+**Two things this measurement could not answer, both left as smaller open work rather than
+folded into this closure.** `NATIONAL_ID` remains weak on held-out frames, F1 0.1429, which is
+the same long-standing gap `CLAUDE.md` documents and this regeneration did not target.
+`LOCATION` read F1 0.0000 on held-out frames with **zero gold spans**, an artifact of the
+harness rather than the model: `heldout_ner_eval`'s hand-written probes predate the type and
+none of them carry a place name. That is a vacuous measurement in exactly the shape this
+project keeps finding, so it is named rather than reported as a score. Adding a handful of
+hand-written LOCATION probes to the held-out set is the next small step, not a retrain.
+
+Also found and fixed the same day: `heldout_ner_eval.py`'s "languages where it tags things
+that are not there" table read `by_locale`, which sums every axis, printed directly under a
+header about the 26-row entity-free-prose axis specifically. It showed 8 languages at 8 to 11
+spans each, which was CARD's broader over-tagging on non-zero axes leaking into a section
+about clean prose. A `by_locale_zero` cut, scoped the same way the summary line above it
+always was, now agrees with it: 2 languages, 1 span each.
+
+The two data files this issue also asked for, month names and in-script person names, were
+built and wired before this and are unaffected by anything above.
 
 - **Where**: `tests/test_month_names.py` and `tests/test_person_names.py` in the training
-  repo, 459 and the person set respectively, parametrised over all 26.
-- **Fix**: regenerate the frames. `DATE` is the type to read afterwards, since it scored
-  typed F1 0.0000 with every gold span missed on held-out frames, and a multi-token date is
-  the thing it had never seen.
+  repo. `artifacts_local/piiguard-full/heldout_ner_eval.json` carries the measurement above.
 
 ## 2. `groundedness` is published, disabled, and one call in four is wrong
 
