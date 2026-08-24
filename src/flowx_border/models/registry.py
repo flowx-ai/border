@@ -300,7 +300,7 @@ MODELS: Final[dict[str, ModelSpec]] = {
     "moderation": ModelSpec(
         model_id="flowxai/moderation",
         repo="flowxai/moderation",
-        revision="7df4570d1326d28a506b0e446afede95bfe2956e",
+        revision="9acf05edb5b28588d99db297d7a98c8757ff4d30",
         filename="onnx/model.int8.onnx",
         sha256="7caaf54902872573802b9927573ac0025aacf2db35ad1043430c1264221b0f2f",
         extra_files=("tokenizer.json", "config.json"),
