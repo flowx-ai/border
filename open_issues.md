@@ -432,6 +432,27 @@ matching how the rest of this file already tracks a documented model limitation.
 suite against the live published weights: 2109 passed, 21 skipped, 5 xfailed, zero
 failures.
 
+**Diagnosed 2026-08-24, not fixed: the documented "two-period source" reflex was never
+about periods.** Re-tested against the live published weights with variables isolated one
+at a time, in `training/docs/groundedness-held-out-probes.md`. The period contributes
+nothing, the qualifying clause contributes nothing; the actual trigger is the second
+sentence's own length, a sharp threshold between five and eight words, and it is the
+sentence boundary rather than word count, since the identical words joined into one
+sentence with "and" flips the verdict straight back. Checked against the corpus: a real
+length gap between `supported` (345 chars, 4.489 sentences) and the two ungrounded labels
+(289 to 308 chars, about 4.0 sentences) exists in the direction the ablation predicts, but
+every label averages around four sentences, so a source of one or two sentences, the
+length this flips on, barely exists in training. The model was not rewarded for a
+shortcut here so much as never taught what a short source looks like.
+
+Not a fix, and not the corpus plan this section names below, which targets specific
+semantic gaps already tried without moving the target metric. Two untried paths: a
+length-balanced corpus slice, the same fix already adopted for `nsfw`, `toxicity` and
+`bias` against their own length confounds, or a length floor in the library that reports
+`groundedness_source_too_short` rather than guessing. Thirteen `judge()` calls, no GPU, no
+generation endpoint, and not yet the many-fact diagnostic set this would need before
+either path is worth acting on.
+
 ## No retrain delta in this project has a measured noise floor, closed 2026-08-24
 
 A seed control was run for the first time on 2026-08-18: the same `moderation` corpus, the
