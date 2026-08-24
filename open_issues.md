@@ -6,7 +6,14 @@ a wish list.
 
 Ordered by what a caller would notice first, not by effort.
 
-Last reviewed 2026-08-24, at `flowx-border` 0.3.0. Three open, seven closed. Every remaining item needs either a paid generation run or a retrain; nothing left is a documentation or bookkeeping gap.
+Last reviewed 2026-08-24, at `flowx-border` 0.3.0. Two open, eight closed. Every remaining item needs either a paid generation run or a retrain; nothing left is a documentation or bookkeeping gap.
+
+**The noise-floor item closed the same day it was extended.** `injection` and `topic_scope`
+were the two detectors named as never having a seed replicate; both ran two seeds on
+2026-08-24 and came back inside their own floor, `topic_scope` needing a `--seed` override
+added to `border_train.train_embed` first, since it had none. Every detector with a reported
+retrain delta in this project now has a measured noise floor. See `reports/SEED_CONTROL.md`
+in the training repository.
 
 **Three items closed the same day, and the count went from seven to four.** `pii`
 over-redaction, the largest caller-visible number in the project, closed with a LOCATION
@@ -400,7 +407,7 @@ matching how the rest of this file already tracks a documented model limitation.
 suite against the live published weights: 2109 passed, 21 skipped, 5 xfailed, zero
 failures.
 
-## 3. No retrain delta in this project has a measured noise floor
+## No retrain delta in this project has a measured noise floor, closed 2026-08-24
 
 A seed control was run for the first time on 2026-08-18: the same `moderation` corpus, the
 same hyperparameters, seed 42 against seed 1337. Per-label F1 moved by a mean of 0.0073 and a
@@ -474,12 +481,48 @@ the directory it happened to be sitting in.**
 2026-08-14, the day the shipped model was trained on it, so `artifacts/toxicity-full` and
 `artifacts_local/toxicity-full` describe the same run.
 
-This closes the three the 2026-08-14 table named. It does not close the item's title as a
-general claim: `injection` and `topic_scope` have never had a seed replicate either, and
-`injection`'s reported deltas are pass rates on a fixed probe set rather than a per-language F1
-comparison, so the same procedure would need adapting rather than repeating as written.
+This closed the three the 2026-08-14 table named. It did not close the item's title as a
+general claim at the time: `injection` and `topic_scope` had never had a seed replicate, and
+`injection`'s reported deltas were pass rates on a fixed probe set rather than a
+per-language F1 comparison, which read as needing an adapted procedure rather than the one
+already in hand.
+
+**Both closed the same day.** `injection`'s own trainer already writes a standard
+per-language eval report regardless of how its retrain deltas have historically been read, so
+`compare_runs` needed no adaptation:
+
+| | |
+|---|---|
+| per-label spread, mean / max | 0.0032 / 0.0070 |
+| per-language spread, mean / max | 0.0082 / 0.0455 |
+| languages over 0.10 spread | 0 of 26 |
+| calibrated threshold, two seeds | 0.02, 0.02 |
+| verdict | every label inside the floor |
+
+`injection`'s calibrated threshold is stable across seeds, unlike every other detector in
+this section, and the shipped policy default sits far above it (0.35 to 0.43) by deliberate
+choice: a missed injection costs more than a review, not because calibration was noisy.
+
+`topic_scope` trains through `border_train.train_embed`, which had neither a `--seed`
+override nor a `run.json`; both were added, matching `train.py`'s mechanism. Its report has
+no `per_label` block, so the comparison is `top1_accuracy` and the per-node breakdown
+directly, in `reports/topic_scope_seed_control.json`:
+
+| | |
+|---|---|
+| top1_accuracy, two seeds | 0.8391, 0.8478 |
+| top1_accuracy, shipped | 0.8571 |
+| per-node spread, mean / max | 0.0543 / 0.2222 |
+| widest node | `insurance/claims/home`, 0.7778 and 1.0000 |
+
+The aggregate is stable. The per-node figures are not, on a corpus of 15 nodes and roughly
+five test examples each, the same shape as `nsfw`'s Maltese cell on 9 to 10 positives: a
+per-node score at this size is a property of the draw, not a per-node quality claim.
+
+Every detector with a reported retrain delta in this project now has a measured noise floor.
 
 - **Where**: `reports/bias_seed_control.json`, `reports/toxicity_seed_control.json`,
+  `reports/injection_seed_control.json`, `reports/topic_scope_seed_control.json`,
   `reports/SEED_CONTROL.md`.
 
 ## Closed while writing this
