@@ -387,10 +387,138 @@
     },
     "groundedness": {
       "budget_ms": 300.0,
-      "caveats": [],
+      "caveats": [
+        "the score above is per language and asks whether the detector fires at all, not which of its 2 labels applies. Per label the weakest with support is not_grounded at 0.8903, against a macro of 0.8979 here.",
+        "no calibrated threshold recorded, so this detector runs at the policy default. Several detectors in this family reported nothing at 0.5 while separating positives from negatives well below it."
+      ],
       "in_core": true,
-      "metrics": null,
-      "metrics_note": "no evaluation artifact was available at collection time. A rules-based detector has none by nature; a model-backed one missing this is a gap.",
+      "metrics": {
+        "best": 0.9583,
+        "headline": {
+          "means": "both halves of a minimal pair correct",
+          "name": "pair_accuracy",
+          "value": 0.8015
+        },
+        "languages_evaluated": 26,
+        "languages_without_a_count": [],
+        "macro": 0.8979,
+        "median": 0.9024,
+        "metric": "exact_match_accuracy",
+        "n_means": "examples evaluated",
+        "per_language": {
+          "az": {
+            "n": 126,
+            "score": 0.8889
+          },
+          "bg": {
+            "n": 122,
+            "score": 0.9098
+          },
+          "cs": {
+            "n": 122,
+            "score": 0.8852
+          },
+          "da": {
+            "n": 126,
+            "score": 0.9206
+          },
+          "de": {
+            "n": 122,
+            "score": 0.9344
+          },
+          "el": {
+            "n": 126,
+            "score": 0.9048
+          },
+          "en": {
+            "n": 124,
+            "score": 0.9194
+          },
+          "es": {
+            "n": 120,
+            "score": 0.925
+          },
+          "et": {
+            "n": 126,
+            "score": 0.8889
+          },
+          "fi": {
+            "n": 120,
+            "score": 0.9083
+          },
+          "fr": {
+            "n": 126,
+            "score": 0.8651
+          },
+          "ga": {
+            "n": 122,
+            "score": 0.9098
+          },
+          "hr": {
+            "n": 124,
+            "score": 0.8306
+          },
+          "hu": {
+            "n": 130,
+            "score": 0.8769
+          },
+          "it": {
+            "n": 130,
+            "score": 0.8692
+          },
+          "lt": {
+            "n": 120,
+            "score": 0.8833
+          },
+          "lv": {
+            "n": 120,
+            "score": 0.925
+          },
+          "mt": {
+            "n": 120,
+            "notes": [
+              "absent from the base model's pretraining corpus, which is worth knowing but has not been shown to bound the score: nsfw went from 0.000 to 1.000 here on more examples"
+            ],
+            "score": 0.875
+          },
+          "nl": {
+            "n": 126,
+            "score": 0.9127
+          },
+          "pl": {
+            "n": 124,
+            "score": 0.8548
+          },
+          "pt": {
+            "n": 120,
+            "score": 0.9583
+          },
+          "ro": {
+            "n": 126,
+            "score": 0.881
+          },
+          "sk": {
+            "n": 122,
+            "score": 0.9016
+          },
+          "sl": {
+            "n": 124,
+            "score": 0.9032
+          },
+          "sv": {
+            "n": 124,
+            "score": 0.9113
+          },
+          "tr": {
+            "n": 122,
+            "score": 0.9016
+          }
+        },
+        "threshold": null,
+        "threshold_chosen_by": null,
+        "total_examples": 3214,
+        "worst": 0.8306
+      },
       "requires": {},
       "sides": [
         "output"
@@ -1811,10 +1939,10 @@
   "latency": {
     "per_detector_ms": {
       "banned_terms": {
-        "p95": 0.165
+        "p95": 0.166
       },
       "bias": {
-        "p95": 19.571
+        "p95": 18.653
       },
       "code_present": {
         "p95": 0.007
@@ -1823,46 +1951,46 @@
         "p95": 0.028
       },
       "encoded_payload": {
-        "p95": 0.192
+        "p95": 0.181
       },
       "gibberish": {
-        "p95": 27.422
+        "p95": 27.393
       },
       "groundedness": {
         "error": "flowxai/groundedness is not in the local cache and the hub is unreachable because HF_HUB_OFFLINE is set.\n  repo      flo"
       },
       "injection": {
-        "p95": 21.643
+        "p95": 18.822
       },
       "internal_domains": {
-        "p95": 0.184
+        "p95": 0.158
       },
       "invisible_text": {
-        "p95": 0.031
+        "p95": 0.029
       },
       "json_schema": {
         "p95": 0.001
       },
       "language_id": {
-        "p95": 0.253
+        "p95": 0.226
       },
       "markup_injection": {
-        "p95": 0.194
+        "p95": 0.166
       },
       "moderation": {
-        "p95": 22.189
+        "p95": 19.103
       },
       "nsfw": {
-        "p95": 21.553
+        "p95": 18.865
       },
       "output_format": {
         "p95": 0.001
       },
       "output_leakage": {
-        "p95": 28.229
+        "p95": 23.806
       },
       "pii": {
-        "p95": 28.18
+        "p95": 24.328
       },
       "politeness": {
         "error": "flowxai/politeness is not in the local cache and the hub is unreachable because HF_HUB_OFFLINE is set.\n  repo      flowx"
@@ -1871,23 +1999,23 @@
         "p95": 0.001
       },
       "regulated_advice": {
-        "p95": 22.238
+        "p95": 19.117
       },
       "repetition": {
-        "p95": 0.354
+        "p95": 0.298
       },
       "secrets": {
-        "p95": 0.035
+        "p95": 0.028
       },
       "sql_injection": {
-        "p95": 0.173
+        "p95": 0.152
       },
       "summary_support": {
-        "p95": 0.664
+        "p95": 0.557
       },
       "system_prompt_leakage": {
         "describes": "the path where the detector reported leakage_unverifiable rather than the path where it does its work, because the reference configuration does not give it what it needs",
-        "p95": 0.239
+        "p95": 0.188
       },
       "token_limit": {
         "describes": "the path where the detector reported token_limit_unconfigured rather than the path where it does its work, because the reference configuration does not give it what it needs",
@@ -1897,7 +2025,7 @@
         "error": "flowxai/topic-scope is not in the local cache and the hub is unreachable because HF_HUB_OFFLINE is set.\n  repo      flow"
       },
       "toxicity": {
-        "p95": 21.148
+        "p95": 19.003
       },
       "url_reachability": {
         "describes": "the path where there was nothing to fetch. The reference input contains no URLs, and the suite blocks outbound connections, so this figure excludes the request that is the whole cost of the detector. Its budget is a deadline it enforces on itself rather than a measurement, because it depends on a network the library does not control",
