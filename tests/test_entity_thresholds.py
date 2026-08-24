@@ -1,27 +1,30 @@
 # SPDX-License-Identifier: Apache-2.0
-"""Per-entity score bars on `pii`, and why `person` needs one.
+"""Per-entity score bars on `pii`, and the one this file used to argue `person` needed.
 
-`person` is the one entity type with no shape to check. Every other has one: a checksum
-for CARD and IBAN, a format for EMAIL and PHONE, a length and a scheme for NATIONAL_ID.
-So `entity_shapes.py` can reject a malformed IBAN and has nothing to say about a
-capitalised word, and an unfamiliar capitalised token mid-sentence lands in `person`.
+`person` was the one entity type with no shape to check, before `location` existed.
+Every other type has one: a checksum for CARD and IBAN, a format for EMAIL and PHONE, a
+length and a scheme for NATIONAL_ID. So `entity_shapes.py` could reject a malformed IBAN
+and had nothing to say about a capitalised word, and an unfamiliar capitalised token
+mid-sentence landed in `person` because there was nowhere else for it to go.
 
-Measured over 234 ordinary rows in 26 languages: 43 of 51 damaging `pii` findings were
-`person`, and the spans were place names. An ablation inside fixed frames separated the
-variables and neither is what the failures looked like:
+Measured over 234 ordinary rows in 26 languages on 2026-08-19: 43 of 51 damaging `pii`
+findings were `person`, and the spans were place names, `Regensburg` and `Valletta`
+among them. A score bar at 0.90 papered over it, removing 30 of the 43 at no measured
+cost to real names.
 
-    Berlin, Paris, Siemens, Volkswagen    never tagged, familiar from pretraining
-    Regensburg, Valletta, Plattling       tagged 0.51 to 0.97
-    Grelmshof, an invented token          tagged 0.89 to 0.97
-    any of them sentence-initial          not tagged, capitalisation is orthography
+**That bar is gone as of 2026-08-20, when the model gained `location` as an eighth
+type.** The problem was never `person`'s to solve: a place had nowhere correct to go
+in a 7-type schema, and giving it one made the bar's job obsolete rather than smaller.
+Every `person` finding across the same 234 rows is now checked by hand and is a genuine
+person, zero toponyms. `national_id` and `phone` keep their bars in the shipped policy,
+because both address a genuinely bimodal score that `location` does not touch, and this
+file still exercises the `entity_thresholds` mechanism generically through them.
 
-So it is unfamiliarity rather than knowledge of place names, and a bar on confidence
-reaches it where a stoplist of toponyms could not.
-
-The trap this must avoid is in `test_a_person_named_after_a_place_is_still_found`. Place
-names are common surnames, so a fix making toponym shape predict "not an entity" would
-trade a visible over-redaction for an invisible hole, which `entity_shapes.py` already
-refuses to do. A bar on score does not have that failure mode, and the test pins it.
+The trap the old bar had to avoid, and `location` avoids the same way: place names are
+common surnames, so a fix making toponym shape predict "not an entity" would trade a
+visible over-redaction for an invisible hole, which `entity_shapes.py` refuses to do.
+Tagging the two apart, rather than scoring them apart, has the same property: nothing
+here drops a span, it names it.
 """
 
 from __future__ import annotations
@@ -103,57 +106,50 @@ def test_entity_thresholds_must_be_a_mapping(detector: PiiDetector) -> None:
 
 
 @pytest.mark.slow
-def test_a_place_name_below_the_bar_is_dropped_and_recorded(
+def test_a_place_name_is_tagged_location_not_dropped_from_person(
     warmed: PiiDetector,
 ) -> None:
-    """The point of the option, and the record still shows what the bar did."""
+    """The bar this option existed for is gone, and this is why.
+
+    Until 2026-08-20 the model had no LOCATION type, so a place name had nowhere correct
+    to go and landed in `person`. `entity_thresholds: {person: 0.90}` in the shipped
+    policy compensated by dropping the low end of that distribution. The retrain
+    that added LOCATION made the bar's job obsolete rather than smaller: a place is
+    now tagged as what it is, architecturally, not filtered by confidence.
+    """
     from flowx_border.detectors.base import Context
 
     detector = warmed
     text = "The service calls at Vilshofen before continuing to the terminus."
     ctx = Context()
 
-    without = detector.run(text, config(), ctx)
-    assert any(f.label == "person" and f.action == "redact" for f in without), (
-        "the case this option exists for no longer reproduces: "
-        f"{[(f.label, round(f.score, 3)) for f in without]}"
+    findings = detector.run(text, config(), ctx)
+    assert any(f.label == "location" for f in findings), (
+        f"the place was not tagged location at all: "
+        f"{[(f.label, round(f.score, 3)) for f in findings]}"
     )
-
-    with_bar = detector.run(text, config(entity_thresholds={"person": 0.90}), ctx)
-    assert not any(f.label == "person" for f in with_bar), (
-        f"the bar did not drop it: {[(f.label, round(f.score, 3)) for f in with_bar]}"
+    assert not any(f.label == "person" for f in findings), (
+        "a toponym is still landing in person, which is the failure the bar used to "
+        f"paper over: {[(f.label, round(f.score, 3)) for f in findings]}"
     )
-    assert any("below_entity_threshold" in f.label for f in with_bar), (
-        "the bar dropped a span and recorded nothing, which leaves a record "
-        "indistinguishable from a text that had no name-shaped token in it"
-    )
-    assert all(
-        f.action == "log" for f in with_bar if "below_entity_threshold" in f.label
-    ), "a bar's own record must never carry the policy's action"
 
 
 @pytest.mark.slow
-def test_a_person_named_after_a_place_is_still_found(warmed: PiiDetector) -> None:
-    """The hole a stoplist of toponyms would have punched, and the bar does not.
+def test_a_person_named_after_a_place_is_found_as_a_person(warmed: PiiDetector) -> None:
+    """The hole a stoplist of toponyms would have punched, now closed by tagging.
 
-    Place names are common surnames. The model already separates the two by context, so
-    raising a score bar keeps that: a person in a person frame scores far above 0.90
-    while the same token as a place scores below it.
+    Place names are common surnames. Before LOCATION existed, the model separated the
+    two by context and a score bar kept that separation from being undone by
+    over-redaction elsewhere. Now the separation is the label itself: a place-shaped
+    surname used as a person's name is tagged `person`, and no bar is needed to protect
+    that, because there is no longer a competing `person` reading of an actual place to
+    filter out.
     """
     from flowx_border.detectors.base import Context
 
     detector = warmed
     ctx = Context()
-    cfg = config(entity_thresholds={"person": 0.90})
 
     person = "The parcel was signed for by Frau Regensburg on Tuesday morning."
-    found = [f for f in detector.run(person, cfg, ctx) if f.label == "person"]
+    found = [f for f in detector.run(person, config(), ctx) if f.label == "person"]
     assert found, "a person whose surname is a place name was not found"
-    assert max(f.score for f in found) >= 0.90, (
-        "a real person scored under the bar, which is the hole this test exists to "
-        f"prevent: {[(f.label, round(f.score, 3)) for f in found]}"
-    )
-
-    place = "The parcel was delivered to Regensburg on Tuesday morning."
-    kept = [f for f in detector.run(place, cfg, ctx) if f.label == "person"]
-    assert not kept, f"the place survived the bar: {[round(f.score, 3) for f in kept]}"

@@ -37,23 +37,26 @@ detectors:
     on_fail: redact
     threshold: 0.4          # lower threshold: prefer over-redaction to a leak
     options:
-      entities: [CARD, DATE, EMAIL, IBAN, NATIONAL_ID, PERSON, PHONE]
-      # No `entity_actions` here, deliberately, so DATE stays at the `redact` above.
-      # policies/default.yaml drops DATE to `flag` because a delivery date is not
-      # personal data and redacting every date damages ordinary text. In this sector a
-      # date next to a name is usually a date of birth, and the line above already says
+      entities: [CARD, DATE, EMAIL, IBAN, LOCATION, NATIONAL_ID, PERSON, PHONE]
+      # No `entity_actions` here, deliberately, so DATE and LOCATION both stay at the
+      # `redact` above. policies/default.yaml drops DATE to `flag` because a delivery
+      # date is not personal data and redacting every date damages ordinary text, and
+      # `location` the same way, since a rail timetable naming a city is not personal
+      # data either. In this sector a date next to a name is usually a date of birth
+      # and a place is usually an address, and the line above already says
       # over-redaction is the preferred error, so the divergence is the point rather
       # than an omission.
       #
-      # No `entity_thresholds` either, for the same reason and it is worth stating rather
-      # than leaving as an absence. default.yaml puts a 0.90 bar on PERSON because an
-      # unfamiliar capitalised token mid-sentence lands there and place names were being
-      # redacted out of ordinary prose. That bar cost nothing measurable, 1.0000 recall
-      # over 668 held-out spans, but "nothing measurable" is not "nothing", and the
-      # trade it makes is a small risk of a missed person against a visible
-      # over-redaction. This policy has already chosen the other side of exactly that
-      # trade twice, in the threshold above and in the DATE decision, so it takes the
-      # over-redaction here too.
+      # No `entity_thresholds` either. Until 2026-08-20 that omission carried a real
+      # cost: default.yaml put a 0.90 bar on PERSON because an unfamiliar capitalised
+      # token mid-sentence had nowhere else to go and place names were being redacted
+      # out of ordinary prose, and skipping the bar here meant this policy over-redacted
+      # more than default.yaml did on exactly the cases the bar was fixing. LOCATION
+      # closed that gap architecturally rather than by threshold, so default.yaml's bar
+      # is gone too, and there is no longer a divergence to explain here: neither
+      # policy needs entity_thresholds for PERSON, and this section keeps the two
+      # bars that remain, national_id and phone, out for the same reason it always
+      # has, preferring over-redaction to a leak on a genuinely bimodal score.
   output_leakage:
     on_fail: block          # personal data on the way out is a reportable event
     threshold: 0.4

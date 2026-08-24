@@ -325,6 +325,17 @@ def sweep() -> dict[str, object]:
         "kettle. An earlier version of this note said most were places named after "
         "people, which was an impression and not a count. Still damage: a caller who "
         "asked for ordinary prose back does not get it.\n\n"
+        "**0.1709 to 0.1282 on 2026-08-20, and the person bar above is gone.** The "
+        "model gained `location` as an eighth type, so a toponym is now tagged what it "
+        "is rather than filtered by score: zero exceptions found across the same 234 "
+        "rows, checked by hand. `entity_thresholds.person` had nothing left to filter "
+        "and only cost real redactions, `Tiina`, `Jänis`, `Anders`, `Müller` and "
+        "`Marinescu` among them, so it is gone from the shipped policy. The metric "
+        "reads worse than the bar-kept configuration measured the same day, 0.1282 "
+        "against 0.1026, and that is expected rather than a regression: this metric "
+        "counts over-redaction only, so it cannot distinguish a real name correctly "
+        "redacted from one incorrectly left alone. `pii:person` findings rise from 38 "
+        "to 56 with the bar gone, and every one checked is genuine.\n\n"
         "Strict, so whoever fixes it is told rather than left to notice."
     ),
     strict=True,
