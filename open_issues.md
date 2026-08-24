@@ -242,6 +242,43 @@ the clearest case. Safe direction for a guardrail, still a cost, hence disabled.
 
 - **Design**: `docs/groundedness-redesign.md` in the training repository.
 
+**The two "missing" registers were not missing, and the 0.9471 was measured on a split that
+could not see them.** Found 2026-08-20, applying the same domain-aware writer fix that closed
+item 7 below to this corpus's 5 domains: 4 of them were absent from val or test entirely.
+`unit_conversion` and `temporal_replacement`, named above as the route to adoptable, already
+exist in the corpus, 368 and 374 test rows once the split is corrected, and had simply never
+reached an evaluation. Re-split with `border_train.resplit`, `data_binary/` regenerated from
+it, and this artifact's own weights, unchanged, re-evaluated with no retraining:
+
+| register | accuracy, corrected split |
+|---|---|
+| `temporal_attribution` | **0.6402** |
+| `temporal_replacement` | 0.7781 |
+| `unit_conversion` | 0.7880 |
+| `numeric_conflict` | 0.9632 |
+| `negation_conflict` | 0.9836 |
+| `lexical_overlap` | 0.9861 |
+| `scope_conflict` | 0.9929 |
+| `unstated` | 0.9954 |
+
+Pair accuracy falls from 0.8991 to 0.8015. Five registers cluster at 0.96 to 0.995 and three,
+exactly the ones the old split under-tested, sit at 0.64 to 0.79. The model has not changed;
+what it can do is now measured on the cases it was weakest at rather than mostly on the ones
+it already handled. `artifacts_local/groundedness-full/SPLIT_CORRECTED_2026-08-20.md` in the
+training repository carries the same table.
+
+**Read this as the corpus problem restated with better data, not as solved.** The two
+registers exist and are measured, and the measurement says the model is still weak on both,
+`temporal_attribution` worst of all at 0.6402. So the corpus work is not "generate two more
+registers", it is "these two registers say the model needs work", which is a retrain question
+rather than a data-generation one.
+
+Also renamed the artifact directory from `groundedness-binary-2026-08-17-adopted` to
+`groundedness-full`, matching every other adopted artifact. It did not match before, which is
+why `docs/reference/performance.json` reported `metrics: null` for a model that is genuinely
+published and shipped, only disabled by default. That silence is closed too, and the library's
+published table now carries this detector's numbers for the first time.
+
 ## 3. No retrain delta in this project has a measured noise floor
 
 A seed control was run for the first time on 2026-08-18: the same `moderation` corpus, the
