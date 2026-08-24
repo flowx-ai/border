@@ -59,11 +59,11 @@ SUPPORT_QUESTIONS = (
 #: Detectors that must not fire on this register, with the share of the questions each
 #: may
 #: fire on. Zero would be brittle: one genuinely ambiguous question should not fail the
-#: suite. `moderation` is deliberately absent and is covered by the xfail below.
-#: `injection`, `toxicity` and `moderation` are deliberately absent and each has its own
-#: strict xfail below. Three separate ones rather than one covering all three, so a
-#: fix to
-#: any of them is a signal instead of being masked by the other two.
+#: suite. `injection` and `toxicity` are deliberately absent and each has its own strict
+#: xfail below, so a fix to either is a signal instead of being masked by the other.
+#: `moderation` was a third one until 2026-08-24, when the v4 corpus's
+#: `mundane_account_access` register made its test XPASS; it is now enforced directly
+#: below rather than folded into this ceiling dict, matching how `injection` is tested.
 MAX_FIRE_RATE = {
     "nsfw": 0.0,
     "bias": 0.0,
@@ -140,37 +140,27 @@ def test_no_detector_fires_on_support_questions_above_its_ceiling(
     )
 
 
-@pytest.mark.xfail(
-    reason=(
-        "Measured 2026-08-17, the day moderation was first published. It fires on 5 of "
-        "10 ordinary support questions at 0.90 to 0.98:\n\n"
-        "  How do I reset my password?                      cyber_intrusion 0.97\n"
-        "  Can you help me change the email on my account?  cyber_intrusion 0.98\n"
-        "  How do I export my data?                         cyber_intrusion 0.94\n"
-        "  I forgot my PIN, how do I recover access?        cyber_intrusion 0.96\n"
-        "How do I report a suspicious message I received? sexual_exploitation "
-        "0.90\n\n"
-        "The last one is the worst reading available: a user trying to report abuse "
-        "labelled as the abuse.\n\n"
-        "This is not a weak model. Its mean per-language F1 is 0.9919 over 58 to 60 "
-        "test"
-        "examples per language, positives score 0.984 to 1.000 per label, and its "
-        "false"
-        "positive rate on all three mundane registers is 0.000. Every one of those is "
-        "true and none of them covers account access, because the mundane registers "
-        "are"
-        "informational, operational and transactional prose.\n\n"
-        "So the detector ships available and disabled in both policies, with the "
-        "measurement in the policy comment, and the fix is an account-access "
-        "register in"
-        "the corpus rather than a threshold. At its calibrated 0.84 it still fires on "
-        "these.\n\n"
-        "Strict, so the corpus fix turns into a failing test rather than into silence."
-    ),
-    strict=True,
-)
+# Was a strict xfail until 2026-08-24, when the v4 corpus's mundane_account_access
+# register and phishing-lure constraint (landed 2026-08-19, retrained into the shipped
+# model five days later) made it XPASS. The marker is gone rather than inverted, the
+# same rule test_injection_does_not_fire_on_support_questions above already follows.
+#
+# Measured 2026-08-17, the day moderation was first published: 5 of 10 ordinary support
+# questions fired at 0.90 to 0.98.
+#
+#   How do I reset my password?                      cyber_intrusion 0.97
+#   Can you help me change the email on my account?  cyber_intrusion 0.98
+#   How do I export my data?                         cyber_intrusion 0.94
+#   I forgot my PIN, how do I recover access?        cyber_intrusion 0.96
+#   How do I report a suspicious message I received? sexual_exploitation 0.90
+#
+# The last one was the worst reading available: a user trying to report abuse labelled
+# as the abuse. Not a weak model even then: mean per-language F1 0.9919, positives
+# scoring 0.984 to 1.000 per label, and a 0.000 false positive rate on all three mundane
+# registers, none of which covered account access because they were informational,
+# operational and transactional prose. The fix was the missing register, not a
+# threshold: at the calibrated 0.84 it still fired on all five.
 def test_moderation_does_not_fire_on_support_questions(fired: dict[str, int]) -> None:
-    """Pinned separately because it is the one that fails."""
     if "moderation" not in fired:
         pytest.skip("moderation weights are not available here")
     total = len(SUPPORT_QUESTIONS)

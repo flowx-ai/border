@@ -127,8 +127,8 @@ detectors:
     on_fail: block
 
   moderation:
-    enabled: false          # available and off: see the note in policies/default.yaml
-    on_fail: block          # the action this sector would want, once it can be enabled
+    enabled: true           # the account-access register landed: see policies/default.yaml
+    on_fail: block          # this sector's answer, now that it can be enforced
     threshold: 0.84
   encoded_payload:
     on_fail: block          # an encoded instruction override is not a review item here

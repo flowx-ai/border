@@ -300,9 +300,9 @@ MODELS: Final[dict[str, ModelSpec]] = {
     "moderation": ModelSpec(
         model_id="flowxai/moderation",
         repo="flowxai/moderation",
-        revision="0b445577dd9e11b33521a6c96dcee8b1d27af3ac",
+        revision="29c283bd6e24b73c55cde9eed26f8e966d209f56",
         filename="onnx/model.int8.onnx",
-        sha256="f7950676f8d29ae8553f6f5cabb4a230727eb602d88ee989e05d677d020c8f03",
+        sha256="379136c4adfd514058466b5df6fa2cf85005f53d15f6e6d44643e5df7dacd3d2",
         extra_files=("tokenizer.json", "config.json"),
         trained_max_length=96,
         trained_languages=frozenset(LANGUAGES),
@@ -311,16 +311,20 @@ MODELS: Final[dict[str, ModelSpec]] = {
             "taxonomy. `child_safety` is deliberately not trained: the label covers "
             "sexualisation of minors and grooming, generating either synthetically is "
             "not acceptable at any severity, and it needs a vetted source with "
-            "recorded "
-            "provenance instead. The corpus generator excludes it by name and a test "
-            "keeps it excluded. Trained 2026-08-17: mean per-language F1 0.9919, worst "
-            "language 0.966 (mt), calibrated threshold 0.84, 1 of 300 decisions moved "
-            "by the INT8 export and that one within 0.0003 of the threshold. Positives "
-            "score 0.984 to 1.000 per label and the false positives sit in the "
-            "near-miss registers, worst `fraud_deception_near_miss` at 0.058. All "
-            "three "
-            "mundane registers are at 0.000, which is the nsfw failure mode not "
-            "repeating: this corpus carried ordinary prose from the first run."
+            "recorded provenance instead. The corpus generator excludes it by name and "
+            "a test keeps it excluded. Retrained 2026-08-24 on the v4 corpus, which "
+            "added a shared `mundane_account_access` register and a constraint that "
+            "stops the mundane registers writing phishing-lure surface forms, both "
+            "landed 2026-08-19. That is the fix for the detector reading ordinary "
+            "support questions as hazards, 'How do I reset my password?' at "
+            "`cyber_intrusion` 0.97 on the model this one replaces. "
+            "`tests/test_support_questions.py`'s strict xfail for that case now "
+            "XPASSes. Mean per-language F1 0.9925, worst language 0.957 (mt), 0 of 300 "
+            "decisions moved by the INT8 export. The calibrated threshold is not "
+            "authoritative: three runs against this corpus read 0.69, 0.83 and 0.81 on "
+            "a validation curve flat from 0.9288 to 0.9372 across the whole 0.50 to "
+            "0.95 range, so the shipped policy default stays at the reviewed 0.84 "
+            "rather than following any single calibration."
         ),
     ),
     "nsfw": ModelSpec(
