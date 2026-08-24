@@ -382,6 +382,47 @@ Thirteen times wider on the widest cell. Two further consequences, both concrete
   differ by an order of magnitude across detectors, so re-measure per detector rather than
   reusing 0.0188 or 0.3294.
 
+**`bias` and `toxicity` were seed-controlled on 2026-08-24, the two of the original three still
+missing one. Both are inside their own floor against the model that actually ships.**
+
+    bias        per-label floor      mean spread 0.0059, max 0.0124
+                per-language floor   mean spread 0.0066, max 0.0256, 0 of 26 over 0.10
+                calibrated threshold 0.89, 0.95, against a shipped default of 0.5
+    toxicity    per-label floor      mean spread 0.0049, max 0.0114
+                per-language floor   mean spread 0.0065, max 0.0454, 0 of 26 over 0.10
+                calibrated threshold 0.46, 0.54, against a shipped default of 0.5
+
+Every label in both detectors reads `inside the floor`. Neither calibrated pair brackets
+usefully either, which is the same flat-curve finding `configs/bias.yaml` and
+`configs/toxicity.yaml` already state as the reason 0.5 ships instead of the calibrated value:
+two more seeds, two more thresholds nowhere near each other or the default, which is what a
+flat validation curve predicts rather than a new finding.
+
+The `+0.0206` this item asked about turned out to be the wrong question to re-ask, and finding
+that out is the part worth recording. `bias` was retrained again on 2026-08-17, nine times the
+corpus, closing part of item 1 above, so the model that claim was about has not shipped since
+that date. `border-train-l4`'s own disk still carried the pre-2026-08-17 artifact under the
+name `artifacts/bias-full`, and running `compare_runs --against` that directory first, before
+noticing the date, produced exactly the shape a real effect would: one label at +0.0609, a
+plausible-looking win. It was the corpus change arriving twice in one comparison, once as the
+real 2026-08-17 retrain and once again as the stale directory standing in for the thing it
+replaced. Re-run against `artifacts_local/bias-full/bias_eval.json`, the artifact actually
+published, and every label moved inside the floor. Same lesson as `nsfw-full-preretrain`
+carrying the higher score under the older name: **read the report the baseline came from, not
+the directory it happened to be sitting in.**
+
+`toxicity`'s own baseline needed no such correction: its corpus has been stable since
+2026-08-14, the day the shipped model was trained on it, so `artifacts/toxicity-full` and
+`artifacts_local/toxicity-full` describe the same run.
+
+This closes the three the 2026-08-14 table named. It does not close the item's title as a
+general claim: `injection` and `topic_scope` have never had a seed replicate either, and
+`injection`'s reported deltas are pass rates on a fixed probe set rather than a per-language F1
+comparison, so the same procedure would need adapting rather than repeating as written.
+
+- **Where**: `reports/bias_seed_control.json`, `reports/toxicity_seed_control.json`,
+  `reports/SEED_CONTROL.md`.
+
 ## Closed while writing this
 
 **Every published model now keeps both halves, fp32 and quantised, and the count of four
