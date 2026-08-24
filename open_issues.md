@@ -461,6 +461,21 @@ calls run so far: a length-balanced corpus slice, the same fix already adopted f
 reporting `groundedness_source_too_short` rather than guessing. No GPU spend, no generation
 endpoint used for any of it.
 
+**Paused here 2026-08-24. Next steps, none started:**
+
+1. Build `border_train.groundedness_length_ablation` as a real module rather than ad-hoc
+   `judge()` calls in a shell: currencies beyond EUR, magnitudes spanning single digits to
+   millions, fee/charge framing crossed against plain-statement framing, and at least two
+   more languages so this is not another English-only finding. Target something like 200
+   to 300 pairs, enough to report a rate rather than a handful of anecdotes.
+2. Only after that set exists, decide between the two paths above on its numbers, not on
+   the roughly twenty calls run today. Whichever is chosen, re-run the 42 hand-written
+   probes and the notation ablation afterward, since both already touch money amounts and
+   either fix could move them without anyone having asked it to.
+3. If the rate turns out to be low and confined to small currency amounts specifically,
+   a library-side length floor is the cheaper and lower-risk of the two and should be
+   tried first: it needs no retrain and no generation spend.
+
 ## No retrain delta in this project has a measured noise floor, closed 2026-08-24
 
 A seed control was run for the first time on 2026-08-18: the same `moderation` corpus, the
