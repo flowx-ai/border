@@ -188,9 +188,11 @@ MODELS: Final[dict[str, ModelSpec]] = {
     "gibberish": ModelSpec(
         model_id="flowxai/gibberish",
         repo="flowxai/gibberish",
-        revision="5cd15c2c87ff605d01f7bff52b5eb9b23788d3e6",
+        # Test positives per language went from 9-12 to 28-32 on 2026-08-20, the same
+        # thickening campaign as nsfw. Mean per-language F1 0.9664 -> 0.9915.
+        revision="9d71506eb25cc4ac140c6ccbcf7b2af0f88b80a0",
         filename="onnx/model.int8.onnx",
-        sha256="7e57cd2516054708d6c5ac63b7b849e2d0dad7884426dce34cce5ebd1919865e",
+        sha256="1fcca6c00698340e47d02a884468879a780be84a3c9a355764b9b97452f95e60",
         extra_files=("tokenizer.json", "config.json"),
         trained_max_length=32,
         trained_languages=frozenset(LANGUAGES),
@@ -200,8 +202,8 @@ MODELS: Final[dict[str, ModelSpec]] = {
             "library windows at trained_max_length - 2, and a window larger "
             "than the model ever saw is extrapolation. The ONNX sequence "
             "axis is dynamic, so nothing stops a larger window except that "
-            "it would be wrong. Macro F1 0.966 after the corpus rebuild, "
-            "worst language 0.870."
+            "it would be wrong. Retrained 2026-08-20 on the thickened "
+            "corpus: macro F1 0.9915, worst language 0.9892."
         ),
     ),
     "injection": ModelSpec(
@@ -324,33 +326,46 @@ MODELS: Final[dict[str, ModelSpec]] = {
     "nsfw": ModelSpec(
         model_id="flowxai/nsfw",
         repo="flowxai/nsfw",
-        revision="9585fcf77242d5479de37d43578265d6057be6fb",
+        # Test positives per language went from 9-10 to 23-24 on 2026-08-20, above the
+        # bar `toxicity` set at 19-20 when it came off this same list. Mean per-language
+        # F1 0.9337 -> 0.9738, and Maltese's seed-to-seed spread, the number that named
+        # the original problem, went 0.3294 -> 0.1179 on the new corpus: more positives
+        # made the score mean something rather than just raising it.
+        revision="6c54edcd94ab9454d84f8510f2217e9329508c66",
         filename="onnx/model.int8.onnx",
-        sha256="3c29d003bb2a5d1595b9a61f831c17318deb07d49b05119e0893bac3b5b9c8ce",
+        sha256="f8abb31c288bd45d9833d128f14b4ad43179397472aba9fb15cb8e0e8821baed",
         extra_files=("tokenizer.json", "config.json"),
         trained_max_length=96,
         trained_languages=frozenset(LANGUAGES),
         notes=(
-            "XLM-RoBERTa base, 2 labels. The 2026-08-14 retrain: mean "
-            "per-language F1 0.9337, worst language 0.600, threshold 0.76. "
-            "Lower than the 0.976 of the superseded rebuild on purpose, "
-            "which fired on 55 percent of ordinary business prose because "
-            "its corpus held only hard negatives."
+            "XLM-RoBERTa base, 2 labels. Retrained 2026-08-20 on the "
+            "thickened corpus: mean per-language F1 0.9738, worst language "
+            "0.8679. The calibrated threshold is not authoritative: two "
+            "seeds read 0.63 and 0.86 with a flat validation curve, macro "
+            "F1 0.8969 to 0.9190 across 0.50 to 0.95, so the shipped policy "
+            "keeps 0.76 unchanged. Lower than the 0.976 of the pre-2026-08-14 "
+            "rebuild on purpose, which fired on 55 percent of ordinary "
+            "business prose because its corpus held only hard negatives."
         ),
     ),
     "politeness": ModelSpec(
         model_id="flowxai/politeness",
         repo="flowxai/politeness",
-        revision="824708066cfb2711a501100fa7f60150605460ee",
+        # Test positives per language went from 15-16 to 20-21 on 2026-08-20, the
+        # same thickening campaign as nsfw and gibberish. Mean per-language F1
+        # 0.9619 -> 0.9779, worst language (mt) 0.7879 -> 0.8261.
+        revision="63c3e6f1519eb4597c73e858cd71bde633cc0257",
         filename="onnx/model.int8.onnx",
-        sha256="0a58cdbf68b7964eb0dcc52228ed518e12b48ebe151800121705b628229f9930",
+        sha256="ce977510b5071c3d2e1876b6fbecfdb2648443bc3374664558d5bc7daed1be8c",
         extra_files=("tokenizer.json", "config.json"),
         trained_max_length=96,
         trained_languages=frozenset(LANGUAGES),
         notes=(
-            "XLM-RoBERTa base, 1 label. Calibrated threshold 0.89. "
-            "Single-digit per-language positives, so the score is "
-            "understated rather than a ceiling."
+            "XLM-RoBERTa base, 1 label. Retrained 2026-08-20 on the "
+            "thickened corpus. The calibrated threshold is not "
+            "authoritative: two seeds read 0.10 and 0.36, so the shipped "
+            "policy keeps 0.89 unchanged, the same flat-curve finding as "
+            "nsfw from the same campaign."
         ),
     ),
     "regulated_advice": ModelSpec(
