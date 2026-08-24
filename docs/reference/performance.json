@@ -1811,58 +1811,58 @@
   "latency": {
     "per_detector_ms": {
       "banned_terms": {
-        "p95": 0.163
+        "p95": 0.165
       },
       "bias": {
-        "p95": 18.376
+        "p95": 19.571
       },
       "code_present": {
         "p95": 0.007
       },
       "disclosure": {
-        "p95": 0.029
+        "p95": 0.028
       },
       "encoded_payload": {
-        "p95": 0.187
+        "p95": 0.192
       },
       "gibberish": {
-        "p95": 26.44
+        "p95": 27.422
       },
       "groundedness": {
         "error": "flowxai/groundedness is not in the local cache and the hub is unreachable because HF_HUB_OFFLINE is set.\n  repo      flo"
       },
       "injection": {
-        "p95": 18.333
+        "p95": 21.643
       },
       "internal_domains": {
-        "p95": 0.154
+        "p95": 0.184
       },
       "invisible_text": {
-        "p95": 0.025
+        "p95": 0.031
       },
       "json_schema": {
         "p95": 0.001
       },
       "language_id": {
-        "p95": 0.228
+        "p95": 0.253
       },
       "markup_injection": {
-        "p95": 0.165
+        "p95": 0.194
       },
       "moderation": {
-        "p95": 18.466
+        "p95": 22.189
       },
       "nsfw": {
-        "p95": 18.737
+        "p95": 21.553
       },
       "output_format": {
         "p95": 0.001
       },
       "output_leakage": {
-        "p95": 23.463
+        "p95": 28.229
       },
       "pii": {
-        "p95": 23.427
+        "p95": 28.18
       },
       "politeness": {
         "error": "flowxai/politeness is not in the local cache and the hub is unreachable because HF_HUB_OFFLINE is set.\n  repo      flowx"
@@ -1871,23 +1871,23 @@
         "p95": 0.001
       },
       "regulated_advice": {
-        "p95": 18.631
+        "p95": 22.238
       },
       "repetition": {
-        "p95": 0.295
+        "p95": 0.354
       },
       "secrets": {
-        "p95": 0.028
+        "p95": 0.035
       },
       "sql_injection": {
-        "p95": 0.142
+        "p95": 0.173
       },
       "summary_support": {
-        "p95": 0.546
+        "p95": 0.664
       },
       "system_prompt_leakage": {
         "describes": "the path where the detector reported leakage_unverifiable rather than the path where it does its work, because the reference configuration does not give it what it needs",
-        "p95": 0.188
+        "p95": 0.239
       },
       "token_limit": {
         "describes": "the path where the detector reported token_limit_unconfigured rather than the path where it does its work, because the reference configuration does not give it what it needs",
@@ -1897,7 +1897,7 @@
         "error": "flowxai/topic-scope is not in the local cache and the hub is unreachable because HF_HUB_OFFLINE is set.\n  repo      flow"
       },
       "toxicity": {
-        "p95": 18.474
+        "p95": 21.148
       },
       "url_reachability": {
         "describes": "the path where there was nothing to fetch. The reference input contains no URLs, and the suite blocks outbound connections, so this figure excludes the request that is the whole cost of the detector. Its budget is a deadline it enforces on itself rather than a measurement, because it depends on a network the library does not control",

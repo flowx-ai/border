@@ -64,33 +64,33 @@ At a 396 character reference input, 1 thread, CPUExecutionProvider. Romanian pro
 
 | Detector | p95 ms | Budget ms | note |
 |---|---|---|---|
-| `banned_terms` | 0.163 | 5.0 | – |
-| `bias` | 18.376 | 225.0 | – |
+| `banned_terms` | 0.165 | 5.0 | – |
+| `bias` | 19.571 | 225.0 | – |
 | `code_present` | 0.007 | 5.0 | – |
-| `disclosure` | 0.029 | 5.0 | – |
-| `encoded_payload` | 0.187 | 5.0 | – |
-| `gibberish` | 26.440 | 225.0 | – |
+| `disclosure` | 0.028 | 5.0 | – |
+| `encoded_payload` | 0.192 | 5.0 | – |
+| `gibberish` | 27.422 | 225.0 | – |
 | `groundedness` | – | 300.0 | weights unavailable |
-| `injection` | 18.333 | 225.0 | – |
-| `internal_domains` | 0.154 | 5.0 | – |
-| `invisible_text` | 0.025 | 5.0 | – |
+| `injection` | 21.643 | 225.0 | – |
+| `internal_domains` | 0.184 | 5.0 | – |
+| `invisible_text` | 0.031 | 5.0 | – |
 | `json_schema` | 0.001 | 5.0 | – |
-| `language_id` | 0.228 | 5.0 | – |
-| `markup_injection` | 0.165 | 5.0 | – |
-| `moderation` | 18.466 | 150.0 | – |
-| `nsfw` | 18.737 | 225.0 | – |
+| `language_id` | 0.253 | 5.0 | – |
+| `markup_injection` | 0.194 | 5.0 | – |
+| `moderation` | 22.189 | 150.0 | – |
+| `nsfw` | 21.553 | 225.0 | – |
 | `output_format` | 0.001 | 5.0 | – |
-| `output_leakage` | 23.463 | 225.0 | – |
-| `pii` | 23.427 | 225.0 | – |
+| `output_leakage` | 28.229 | 225.0 | – |
+| `pii` | 28.180 | 225.0 | – |
 | `politeness` | – | 225.0 | weights unavailable |
 | `postal_code` | 0.001 | 5.0 | – |
-| `regulated_advice` | 18.631 | 225.0 | – |
-| `repetition` | 0.295 | 5.0 | – |
-| `secrets` | 0.028 | 1.0 | – |
-| `sql_injection` | 0.142 | 5.0 | – |
-| `summary_support` | 0.546 | 5.0 | – |
-| `system_prompt_leakage` | 0.188 | 5.0 | the unconfigured path |
+| `regulated_advice` | 22.238 | 225.0 | – |
+| `repetition` | 0.354 | 5.0 | – |
+| `secrets` | 0.035 | 1.0 | – |
+| `sql_injection` | 0.173 | 5.0 | – |
+| `summary_support` | 0.664 | 5.0 | – |
+| `system_prompt_leakage` | 0.239 | 5.0 | the unconfigured path |
 | `token_limit` | 0.001 | 5.0 | the unconfigured path |
 | `topic_scope` | – | 300.0 | weights unavailable |
-| `toxicity` | 18.474 | 225.0 | – |
+| `toxicity` | 21.148 | 225.0 | – |
 | `url_reachability` | 0.005 | 3000.0 | the unconfigured path |

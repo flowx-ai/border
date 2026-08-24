@@ -134,38 +134,37 @@ MODELS: Final[dict[str, ModelSpec]] = {
     "piiguard": ModelSpec(
         model_id="flowxai/piiguard",
         repo="flowxai/piiguard",
-        # The 26-locale retrain, published 2026-08-16. It replaced the nine-locale
-        # artifact this entry pinned until then, and the superseded ONNX exports were
-        # deleted from the repo rather than left beside it: a stale file at the old
-        # pinned filename is a model the library would go on fetching for as long as
-        # anybody forgot to move the pin.
-        revision="246866fa594820aab1a6fe8a71abd83cfaa5078c",
-        # fp16, and specifically not onnx/model.onnx, which is no longer published
-        # either: the fp32 export kept its weights in a sibling model.onnx.data, so the
-        # .onnx file alone was 1.8 MB of graph. Loading it without the sidecar fails,
-        # and hashing it would attest a graph rather than a model.
-        #
-        # fp16 rather than INT8 for this artifact. The export gate for a tagger compares
-        # decoded character spans, and fp16 changed no span set on 300 texts and lost no
-        # covered character.
+        # Gained an eighth entity type, LOCATION, on 2026-08-20. The 26-locale retrain
+        # this entry pinned before had no way to say "place" and tagged one as PERSON
+        # instead: measured over 234 ordinary rows, every toponym that reached the
+        # library came back mislabelled, `Regensburg` and `Valletta` among them, and
+        # the policy carried a score bar on `person` to compensate. That bar is gone
+        # from `policies/default.yaml` as of this revision, because its only job was
+        # filtering toponyms mislabelled as person, and this model does that by
+        # tagging rather than by confidence: zero exceptions found across the same
+        # 234 rows.
+        revision="ed1fa965e00a503d6a5b1dbfcc4ccf405167c794",
+        # fp16 again. The tagger's export gate compares decoded character spans, and
+        # INT8 moved 1 of 300 span sets with Gather already the narrowest op set left to
+        # narrow, so there was nothing left to try. fp16 changed 0 of 300.
         filename="onnx/model.fp16.onnx",
-        sha256="d47475fa20ee0e296b6d5dd2fc606ceddae441200899b33963b392b787cc0733",
+        sha256="89c924a1b5b5badfa0d91e317b3cb03cf9b058433618a8f736272792e469bff0",
         extra_files=("tokenizer.json", "config.json"),
         trained_max_length=96,
-        # All 26. This read as 9 until 2026-08-16, which was true of the artifact then
-        # pinned and false the moment the retrain was published. A language list is a
-        # fact about one set of weights, so it moves when the revision above moves.
         trained_languages=frozenset(LANGUAGES),
         notes=(
-            "XLM-RoBERTa base, BIO tagging over 7 entity types (CARD, DATE, "
-            "EMAIL, IBAN, NATIONAL_ID, PERSON, PHONE), trained on all 26 "
-            "supported languages. Held out, it misses nothing: token coverage "
-            "is 1.0 on every entity type and no sensitive token is left "
-            "uncovered. What it gets wrong is the type name, NATIONAL_ID worst "
-            "at 0.1429 F1 with every span found and 16 of 208 named right. In "
-            "the training generator, locale en is labelled United Kingdom but "
-            "uses the German Steuer-IdNr algorithm as a numeric fallback, so do "
-            "not claim English national IDs are checksum validated."
+            "XLM-RoBERTa base, BIO tagging over 8 entity types (CARD, DATE, "
+            "EMAIL, IBAN, LOCATION, NATIONAL_ID, PERSON, PHONE), trained on "
+            "all 26 supported languages. LOCATION F1 0.9938 on the held-out "
+            "split, PERSON recall unchanged at 1.0000. Over 234 ordinary "
+            "rows: person findings fall from 66 to 56, all of them genuine "
+            "since none are toponyms any more, and national_id false "
+            "positives fall from 8 to 4. NATIONAL_ID is still the weak type, "
+            "worst F1 with every span found and the type name wrong more "
+            "often than right. In the training generator, locale en is "
+            "labelled United Kingdom but uses the German Steuer-IdNr "
+            "algorithm as a numeric fallback, so do not claim English "
+            "national IDs are checksum validated."
         ),
     ),
     "bias": ModelSpec(

@@ -1,5 +1,5 @@
 {
-  "any_detector_damages_a_row": 0.2051,
+  "any_detector_damages_a_row": 0.1624,
   "detectors": {
     "bias": {
       "damages": 0.0,
@@ -26,8 +26,8 @@
       "fires": 0.0214
     },
     "pii": {
-      "damages": 0.1709,
-      "fires": 0.4017
+      "damages": 0.1282,
+      "fires": 0.4744
     },
     "regulated_advice": {
       "damages": 0.0,
@@ -35,7 +35,7 @@
     },
     "topic_scope": {
       "damages": 0.0,
-      "fires": 0.3803
+      "fires": 0.4658
     },
     "toxicity": {
       "damages": 0.0,
