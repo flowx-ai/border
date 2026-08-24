@@ -432,26 +432,34 @@ matching how the rest of this file already tracks a documented model limitation.
 suite against the live published weights: 2109 passed, 21 skipped, 5 xfailed, zero
 failures.
 
-**Diagnosed 2026-08-24, not fixed: the documented "two-period source" reflex was never
-about periods.** Re-tested against the live published weights with variables isolated one
-at a time, in `training/docs/groundedness-held-out-probes.md`. The period contributes
-nothing, the qualifying clause contributes nothing; the actual trigger is the second
-sentence's own length, a sharp threshold between five and eight words, and it is the
-sentence boundary rather than word count, since the identical words joined into one
-sentence with "and" flips the verdict straight back. Checked against the corpus: a real
-length gap between `supported` (345 chars, 4.489 sentences) and the two ungrounded labels
-(289 to 308 chars, about 4.0 sentences) exists in the direction the ablation predicts, but
-every label averages around four sentences, so a source of one or two sentences, the
-length this flips on, barely exists in training. The model was not rewarded for a
-shortcut here so much as never taught what a short source looks like.
+**Diagnosed 2026-08-24, not fixed, and narrowed twice in one sitting: the documented
+"two-period source" reflex was never about periods, and it is not a general property of
+short sources either.** Full progression in `training/docs/groundedness-held-out-probes.md`.
+Re-tested against the live published weights with variables isolated one at a time: the
+period contributes nothing, the qualifying clause contributes nothing, the sentence
+boundary does, joining identical words into one sentence flips the verdict straight back.
+That much held.
 
-Not a fix, and not the corpus plan this section names below, which targets specific
-semantic gaps already tried without moving the target metric. Two untried paths: a
-length-balanced corpus slice, the same fix already adopted for `nsfw`, `toxicity` and
-`bias` against their own length confounds, or a length floor in the library that reports
-`groundedness_source_too_short` rather than guessing. Thirteen `judge()` calls, no GPU, no
-generation endpoint, and not yet the many-fact diagnostic set this would need before
-either path is worth acting on.
+What did not hold was the scope. A five-domain, paraphrased-candidate, three-length set found
+four of five domains read correctly at every length including bare, contradicting a general
+"short sources are unreliable" claim. The flip reproduced perfectly on money, three
+independent fee examples, all confidently right padded and confidently wrong bare. Crossing
+magnitude against framing narrowed it again: a 12 million EUR fee is length-insensitive, a
+non-fee balance at 5 EUR shows a weaker version of the gap, a non-monetary quantity at a
+comparable magnitude shows none. Currency, not magnitude, is closer to the operative
+variable, amplified by fee or charge framing specifically, and that is not yet a settled rule
+either.
+
+Recorded as three narrowings inside one sitting rather than a single clean mechanism,
+deliberately, because a plausible explanation from a handful of examples is a hypothesis
+until it survives a fact it was not built to explain, and this file has now made that mistake
+about groundedness enough times to name it as the pattern rather than the exception. Not a
+fix. Two paths still untried, and neither is worth acting on until a real many-fact,
+many-currency, many-language diagnostic set exists rather than the roughly twenty `judge()`
+calls run so far: a length-balanced corpus slice, the same fix already adopted for `nsfw`,
+`toxicity` and `bias` against their own length confounds, or a library-side length floor
+reporting `groundedness_source_too_short` rather than guessing. No GPU spend, no generation
+endpoint used for any of it.
 
 ## No retrain delta in this project has a measured noise floor, closed 2026-08-24
 
