@@ -17,7 +17,7 @@ from __future__ import annotations
 import pytest
 
 from flowx_border.detectors.base import DetectorConfig
-from flowx_border.detectors.pii import PiiDetector
+from flowx_border.detectors.pii import entity_actions
 
 
 def config(**options: object) -> DetectorConfig:
@@ -26,45 +26,34 @@ def config(**options: object) -> DetectorConfig:
     )
 
 
-@pytest.fixture(scope="module")
-def detector() -> PiiDetector:
-    return PiiDetector()
+def test_no_override_leaves_every_entity_at_the_policy_action() -> None:
+    assert entity_actions(config()) == {}
+    assert entity_actions(config(entity_actions={})) == {}
 
 
-def test_no_override_leaves_every_entity_at_the_policy_action(
-    detector: PiiDetector,
-) -> None:
-    assert detector._entity_actions(config()) == {}
-    assert detector._entity_actions(config(entity_actions={})) == {}
-
-
-def test_an_override_is_read_case_insensitively(detector: PiiDetector) -> None:
+def test_an_override_is_read_case_insensitively() -> None:
     """A policy is written by hand and the detector table spells these upper case."""
-    assert detector._entity_actions(config(entity_actions={"DATE": "FLAG"})) == {
-        "date": "flag"
-    }
+    assert entity_actions(config(entity_actions={"DATE": "FLAG"})) == {"date": "flag"}
 
 
-def test_an_unknown_entity_raises_rather_than_being_ignored(
-    detector: PiiDetector,
-) -> None:
-    """The same refusal `_wanted_entities` makes, for the same reason.
+def test_an_unknown_entity_raises_rather_than_being_ignored() -> None:
+    """The same refusal `wanted_entities` makes, for the same reason.
 
     A policy that wrote `dates: flag` and was ignored would keep redacting every date
     while its author believed otherwise, and nothing in the evidence record would show
     the override had not applied.
     """
     with pytest.raises(ValueError, match="unknown entity type 'dates'"):
-        detector._entity_actions(config(entity_actions={"dates": "flag"}))
+        entity_actions(config(entity_actions={"dates": "flag"}))
 
 
-def test_an_unknown_action_raises(detector: PiiDetector) -> None:
+def test_an_unknown_action_raises() -> None:
     with pytest.raises(ValueError, match="which is not one of"):
-        detector._entity_actions(config(entity_actions={"date": "ignore"}))
+        entity_actions(config(entity_actions={"date": "ignore"}))
 
 
-def test_a_non_mapping_raises(detector: PiiDetector) -> None:
+def test_a_non_mapping_raises() -> None:
     """`entity_actions: [date]` is the plausible mistake, and a list has no action in
     it."""
     with pytest.raises(ValueError, match="must be a mapping"):
-        detector._entity_actions(config(entity_actions=["date"]))
+        entity_actions(config(entity_actions=["date"]))

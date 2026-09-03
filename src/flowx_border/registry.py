@@ -245,6 +245,29 @@ def missing_for(policy: Policy, side: str | None = None) -> tuple[str, ...]:
     return tuple(out)
 
 
+def _pii_model_unavailable(policy: Policy) -> str | None:
+    """The model `pii` would need for this policy, if that model cannot be provided.
+
+    `missing_for` answers "is the `pii` detector object loaded", which is a question
+    about the default model, piiguard. It is not a question about `options.model`:
+    the object is loaded (piiguard's weights resolve fine) even when a policy asks
+    for `cee-pii` and this install has no cee-pii weights, so `missing_for` alone
+    would let `assert_satisfiable` wave that policy through and the failure would
+    surface for the first time inside a scan. This is the one place that gap is
+    closed, and it is `pii`-specific by necessity: no other detector in the
+    catalogue lets a policy pick among more than one model.
+    """
+    if not policy.enabled_for("pii"):
+        return None
+    from flowx_border.models.registry import available
+
+    raw = policy.for_detector("pii").options.get("model", "piiguard")
+    model_id = str(raw).strip().lower()
+    if model_id != "piiguard" and not available(model_id):
+        return model_id
+    return None
+
+
 def assert_satisfiable(policy: Policy, side: str | None = None) -> None:
     """Refuse to scan when a policy asks for a check that would silently not happen.
 
@@ -266,6 +289,20 @@ def assert_satisfiable(policy: Policy, side: str | None = None) -> None:
             "its on_fail to 'flag' or 'log' so the gap is recorded rather than hidden."
         )
 
+    unavailable_model = _pii_model_unavailable(policy)
+    if unavailable_model is not None and policy.for_detector("pii").on_fail in (
+        "block",
+        "redact",
+        "rewrite",
+    ):
+        # spec_for's own message, not a paraphrase: it names the repo, so the fix
+        # is the same one this file's own comment tells someone loading the model
+        # directly, rather than a second, differently-worded description of the
+        # same gap.
+        from flowx_border.models.registry import spec_for
+
+        spec_for(unavailable_model)
+
 
 def deployment_notes(policy: Policy) -> tuple[str, ...]:
     """What this policy needs from the machine, beyond a CPU and the base install.
@@ -282,8 +319,28 @@ def deployment_notes(policy: Policy) -> tuple[str, ...]:
     enabled = [
         detector_id for detector_id in CATALOGUE if policy.enabled_for(detector_id)
     ]
+    requirements = {
+        requirement: list(detectors)
+        for requirement, detectors in requirements_for(enabled).items()
+    }
+
+    # `Spec.requires` is per detector id and cee-pii's GPU need is per model
+    # selected within one id, so it cannot live in CATALOGUE the way every other
+    # requirement here does. `pii` on CPU is the common case and stays silent;
+    # `pii: {options: {model: cee-pii}}` is the one line this file has to add by
+    # hand rather than read off the table. Measured, not asserted: on one CPU
+    # thread cee-pii runs roughly 10x slower than a spaCy small pipeline and 44x
+    # slower than on an L4, well past the 225 ms pii budget for anything but a
+    # short reference input.
+    if policy.enabled_for("pii"):
+        raw = policy.for_detector("pii").options.get("model", "piiguard")
+        if str(raw).strip().lower() == "cee-pii":
+            requirements.setdefault("gpu", [])
+            if "pii" not in requirements["gpu"]:
+                requirements["gpu"].append("pii")
+
     return tuple(
         f"{requirement}: {REQUIREMENTS[requirement]}. Required by "
-        f"{', '.join(detectors)}."
-        for requirement, detectors in requirements_for(enabled).items()
+        f"{', '.join(sorted(detectors))}."
+        for requirement, detectors in sorted(requirements.items())
     )

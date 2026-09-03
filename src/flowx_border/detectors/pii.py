@@ -131,6 +131,27 @@ ENTITY_TYPES: Final[tuple[str, ...]] = (
 #: heard of, and the failure would be an override that is silently ignored.
 _ACTIONS: Final[frozenset[str]] = frozenset(get_args(Action))
 
+#: Model ids `options.model` accepts. `MODEL_ID` (piiguard) is the default and stays the
+#: fast, windowed BIO path below; anything else dispatches to `detectors/ceepii.py`
+#: entirely, a different architecture (GLiNER span extraction, not sequence tagging)
+#: that shares only the entity vocabulary and the shape gate.
+KNOWN_MODELS: Final[frozenset[str]] = frozenset({MODEL_ID, "cee-pii"})
+
+
+def _resolve_model_id(cfg: DetectorConfig) -> str:
+    """Which model this scan's `pii` uses, from `options.model`.
+
+    Unknown names raise for the reason every option here does: silently falling back
+    to piiguard would make a typo in `model: cee-pi` read as "use the default", which
+    is the same silent no-op `wanted_entities` refuses for an entity type.
+    """
+    raw = cfg.options.get("model", MODEL_ID)
+    model_id = str(raw).strip().lower()
+    if model_id not in KNOWN_MODELS:
+        known = ", ".join(sorted(KNOWN_MODELS))
+        raise ValueError(f"pii: unknown model {model_id!r}. Known: {known}.")
+    return model_id
+
 
 def trained_languages(model_id: str = MODEL_ID) -> frozenset[str] | None:
     """Languages the loaded weights were trained on, or None if that cannot be known.
@@ -333,6 +354,183 @@ def _join_adjacent(
     return out
 
 
+def apply_shape_gate(
+    entity: str,
+    value: str,
+    span: tuple[int, int],
+    score: float,
+    *,
+    actions: dict[str, Action],
+    bars: dict[str, float],
+    on_fail: Action,
+    validate: bool,
+    detector_id: str,
+    tier: str,
+    model_id: str | None,
+    model_revision: str | None,
+) -> list[Finding]:
+    """Whether a tagged span survives to a Finding, and what it becomes if not.
+
+    Shared between `PiiDetector.run` and `detectors/ceepii.py`, and deliberately
+    model-agnostic: whether an EMAIL has an `@` in it does not depend on which model
+    tagged it, so the correction, drop and checksum logic in `entity_shapes.py` and
+    `checksummed.py` reads only the entity type and the matched text. Extracted here so
+    two detectors backed by two different architectures apply the same gate rather than
+    two gates that could quietly disagree.
+    """
+
+    def noted(label: str) -> Finding:
+        return Finding(
+            detector_id=detector_id,
+            tier=tier,
+            label=label,
+            score=1.0,
+            span=span,
+            action="log",
+            model_id=model_id,
+            model_revision=model_revision,
+        )
+
+    out: list[Finding] = []
+    if validate:
+        # Before the gate, not after: a span corrected to `email` has to be judged as
+        # an email, and `person` passes any gate at all, so a correction applied
+        # afterwards would never be checked.
+        correction = corrected_label(entity, value)
+        if correction is not None:
+            out.append(noted(f"{RELABELLED_PREFIX}{entity.lower()}"))
+            entity = correction
+    if validate and not is_possible(entity, value):
+        # Dropped, and recorded. A silently removed finding leaves a record
+        # indistinguishable from one where the model found nothing.
+        out.append(noted(f"{REJECTED_PREFIX}{entity.lower()}"))
+        return out
+    # After the relabelling on purpose. A span corrected from `person` to an `email`
+    # is an email, so it faces the email bar rather than the one that stopped being
+    # relevant when the correction landed.
+    if score < bars.get(entity.lower(), 0.0):
+        out.append(noted(f"{BELOW_BAR_PREFIX}{entity.lower()}"))
+        return out
+    if validate and checksum_state(entity, value) is False:
+        # Kept. A checksum failure is as likely to be a typo, a test number or a span
+        # whose boundary moved, and all three are still personal data. See
+        # detectors/entity_shapes.py for why this does not drop.
+        out.append(noted(f"{UNVERIFIED_PREFIX}{entity.lower()}"))
+    out.append(
+        Finding(
+            detector_id=detector_id,
+            tier=tier,
+            label=entity,
+            score=round(score, 6),
+            span=span,
+            action=actions.get(entity, on_fail),
+            model_id=model_id,
+            model_revision=model_revision,
+        )
+    )
+    return out
+
+
+def wanted_entities(
+    cfg: DetectorConfig, entity_types: tuple[str, ...] = ENTITY_TYPES
+) -> frozenset[str]:
+    """Which entity types this policy asks for, from `options.entities`.
+
+    An unknown name raises. A policy asking for `creditcard` when the model tags `card`
+    would otherwise disable card detection and report success, which is the same
+    silent-no-op the policy loader refuses for detector ids. `entity_types` is a
+    parameter rather than always `ENTITY_TYPES` so `ceepii.run` can validate against the
+    types it can actually produce, which today happen to be the same eight but are not
+    the same fact.
+    """
+    requested = cfg.options.get("entities")
+    if not requested:
+        return frozenset(entity_types)
+    names = frozenset(str(name).strip().lower() for name in requested)
+    unknown = sorted(names - set(entity_types))
+    if unknown:
+        raise ValueError(
+            f"pii: unknown entity type(s) {', '.join(unknown)}. This model tags "
+            f"{', '.join(entity_types)}. A misspelled type would silently disable "
+            "that check."
+        )
+    return names
+
+
+def entity_actions(
+    cfg: DetectorConfig, entity_types: tuple[str, ...] = ENTITY_TYPES
+) -> dict[str, Action]:
+    """Per-entity overrides of the detector's action, from `options.entity_actions`.
+
+    See `wanted_entities` for why `entity_types` is a parameter rather than a constant.
+    """
+    raw = cfg.options.get("entity_actions")
+    if not raw:
+        return {}
+    if not isinstance(raw, dict):
+        raise ValueError(
+            "pii: entity_actions must be a mapping of entity type to action, for "
+            "example {date: flag}."
+        )
+    out: dict[str, Action] = {}
+    for name, action in raw.items():
+        entity = str(name).strip().lower()
+        if entity not in entity_types:
+            raise ValueError(
+                f"pii: entity_actions names unknown entity type {entity!r}. This "
+                f"model tags {', '.join(entity_types)}. A misspelled type would "
+                "silently leave that entity at the detector's own action."
+            )
+        chosen = str(action).strip().lower()
+        if chosen not in _ACTIONS:
+            raise ValueError(
+                f"pii: entity_actions gives {entity!r} the action {chosen!r}, "
+                f"which is not one of {', '.join(sorted(_ACTIONS))}."
+            )
+        out[entity] = cast(Action, chosen)
+    return out
+
+
+def entity_thresholds(
+    cfg: DetectorConfig, entity_types: tuple[str, ...] = ENTITY_TYPES
+) -> dict[str, float]:
+    """Per-entity minimum scores, from `options.entity_thresholds`.
+
+    See `wanted_entities` for why `entity_types` is a parameter rather than a constant.
+    """
+    raw = cfg.options.get("entity_thresholds")
+    if not raw:
+        return {}
+    if not isinstance(raw, dict):
+        raise ValueError(
+            "pii: entity_thresholds must be a mapping of entity type to a score, "
+            "for example {person: 0.9}."
+        )
+    out: dict[str, float] = {}
+    for name, value in raw.items():
+        entity = str(name).strip().lower()
+        if entity not in entity_types:
+            raise ValueError(
+                f"pii: entity_thresholds names unknown entity type {entity!r}. "
+                f"This model tags {', '.join(entity_types)}. A misspelled type "
+                "would silently leave that entity at the detector's own threshold."
+            )
+        try:
+            bar = float(value)
+        except (TypeError, ValueError):
+            raise ValueError(
+                f"pii: entity_thresholds gives {entity!r} the value {value!r}, "
+                "which is not a number."
+            ) from None
+        if not 0.0 <= bar <= 1.0:
+            raise ValueError(
+                f"pii: entity_thresholds gives {entity!r} the bar {bar}, which is "
+                "outside 0.0 to 1.0."
+            )
+        out[entity] = bar
+    return out
+
+
 class PiiDetector:
     """NER over ONNX, windowed, with spans that index the caller's string."""
 
@@ -414,6 +612,21 @@ class PiiDetector:
         labels = self._labels
         tokenizer = _tokenizer()
 
+        if self.model_id is None:
+            # The other half of what `warm()` sets, lazily. Nothing calls `warm()` on
+            # the scan path today: `session_for` above already loads and caches the
+            # session lazily on its own, so a caller who never calls `warm()`
+            # explicitly still gets a working scan, and until this was added, the
+            # evidence record silently attested nothing for it. `attestation_for` is
+            # a dict read against a spec `resolve` already verified, not a hash or a
+            # download, so doing it here costs nothing `session_for` had not already
+            # paid for on this same call.
+            from flowx_border.models.registry import attestation_for
+
+            self.model_id, self.model_revision, self.weights_sha256 = attestation_for(
+                MODEL_ID
+            )
+
         # Encode once, without special tokens, so that a token index maps directly to a
         # character offset in the caller's string for every window.
         encoded = tokenizer.encode(text, add_special_tokens=False)
@@ -492,12 +705,41 @@ class PiiDetector:
         if not text.strip():
             return []
 
+        model_id = _resolve_model_id(cfg)
+        if model_id != MODEL_ID:
+            # A different architecture entirely (GLiNER span extraction, not BIO
+            # sequence tagging over ONNX windows), so it is a different module rather
+            # than a branch threaded through the fifteen methods below. Imported here,
+            # not at module scope: pii.py must import cleanly without ceepii's
+            # dependencies, and ceepii.py already imports `wanted_entities` and
+            # `apply_shape_gate` from this module at its own module scope, so a
+            # module-level import here would be a cycle.
+            from flowx_border.detectors import ceepii
+            from flowx_border.models.registry import attestation_for
+
+            # evidence.attest reads this instance's own model_id/model_revision/
+            # weights_sha256 for the record's top-level detector attestation,
+            # separately from the per-Finding fields ceepii.run already sets. Set
+            # here so a scan that selected cee-pii attests cee-pii there too, not
+            # whatever piiguard was left at. This is correct for one scan at a time,
+            # which is what every test and every documented use of this library
+            # does; it is not safe against two threads sharing this instance and
+            # scanning under different `options.model` values concurrently, since
+            # both would be racing to set the same three attributes. Fixing that
+            # needs the record built from what each call actually used rather than
+            # from mutable state on a shared object, which is a larger change than
+            # wiring in a second model.
+            self.model_id, self.model_revision, self.weights_sha256 = attestation_for(
+                model_id
+            )
+            return ceepii.run(text, cfg, model_id=model_id)
+
         threads = int(cfg.options.get("threads", self._threads or DEFAULT_THREADS))
         window_tokens = cfg.options.get("window_tokens")
         overlap = int(cfg.options.get("window_overlap", DEFAULT_OVERLAP))
-        wanted = self._wanted_entities(cfg)
-        actions = self._entity_actions(cfg)
-        bars = self._entity_thresholds(cfg)
+        wanted = wanted_entities(cfg)
+        actions = entity_actions(cfg)
+        bars = entity_thresholds(cfg)
 
         merged = {
             span: value
@@ -516,200 +758,35 @@ class PiiDetector:
             if score < cfg.threshold:
                 continue
             value = text[span[0] : span[1]]
-            if validate:
-                # Before the gate, not after: a span corrected to `email` has to be
-                # judged as an email, and `person` passes any gate at all, so a
-                # correction applied afterwards would never be checked.
-                correction = corrected_label(entity, value)
-                if correction is not None:
-                    was = entity.lower()
-                    out.append(self._noted(f"{RELABELLED_PREFIX}{was}", span))
-                    entity = correction
-            if validate and not is_possible(entity, value):
-                # Dropped, and recorded. A silently removed finding leaves a record
-                # indistinguishable from one where the model found nothing.
-                out.append(self._noted(f"{REJECTED_PREFIX}{entity.lower()}", span))
-                continue
-            # After the relabelling on purpose. A span corrected from `person` to an
-            # `email` is an email, so it faces the email bar rather than the one that
-            # stopped being relevant when the correction landed.
-            if score < bars.get(entity.lower(), 0.0):
-                out.append(self._noted(f"{BELOW_BAR_PREFIX}{entity.lower()}", span))
-                continue
-            if validate and checksum_state(entity, value) is False:
-                # Kept. A checksum failure is as likely to be a typo, a test number or a
-                # span whose boundary moved, and all three are still personal data. See
-                # detectors/entity_shapes.py for why this does not drop.
-                out.append(self._noted(f"{UNVERIFIED_PREFIX}{entity.lower()}", span))
-            out.append(
-                Finding(
+            out.extend(
+                apply_shape_gate(
+                    entity,
+                    value,
+                    span,
+                    score,
+                    actions=actions,
+                    bars=bars,
+                    on_fail=cfg.on_fail,
+                    validate=validate,
                     detector_id=self.id,
                     tier=self.tier,
-                    label=entity,
-                    score=round(score, 6),
-                    span=span,
-                    action=actions.get(entity, cfg.on_fail),
                     model_id=self.model_id,
                     model_revision=self.model_revision,
                 )
             )
         return out
 
-    def _noted(self, label: str, span: tuple[int, int]) -> Finding:
-        """A shape decision, always at `log` and never at the policy's action.
-
-        The caller is told what the gate did without the gate itself being able to block
-        a response. Score 1.0 because it is a fact rather than a confidence.
-        """
-        return Finding(
-            detector_id=self.id,
-            tier=self.tier,
-            label=label,
-            score=1.0,
-            span=span,
-            action="log",
-            model_id=self.model_id,
-            model_revision=self.model_revision,
-        )
-
     # ------------------------------------------------------------------ internals
-
-    def _wanted_entities(self, cfg: DetectorConfig) -> frozenset[str]:
-        """Which entity types this policy asks for.
-
-        An unknown name raises. A policy asking for `creditcard` when the model tags
-        `card` would otherwise disable card detection and report success, which is the
-        same silent-no-op the policy loader refuses for detector ids.
-        """
-        requested = cfg.options.get("entities")
-        if not requested:
-            return frozenset(ENTITY_TYPES)
-        names = frozenset(str(name).strip().lower() for name in requested)
-        unknown = sorted(names - set(ENTITY_TYPES))
-        if unknown:
-            raise ValueError(
-                f"pii: unknown entity type(s) {', '.join(unknown)}. This model tags "
-                f"{', '.join(ENTITY_TYPES)}. A misspelled type would silently disable "
-                "that check."
-            )
-        return names
-
-    def _entity_actions(self, cfg: DetectorConfig) -> dict[str, Action]:
-        """Per-entity overrides of the detector's action, from `options.entity_actions`.
-
-        Added 2026-08-16 because one action for seven entity types cannot express the
-        thing the measurement asked for. `tests/test_ordinary_text_sweep.py` put a block
-        or a redact on 0.756 of ordinary rows in 26 languages, and `date` alone was on
-        0.594 of them.
-
-        **A bare date is not personal data, and redacting every one protects nobody.** A
-        date of birth beside a name is; a delivery date is not, and this detector cannot
-        tell them apart. So the default policy asks for `date` at `flag`: the finding
-        is still reported, the record still says a date was seen, and the caller's text
-        keeps its dates. A policy that wants dates gone, and BFSI plausibly does, sets
-        it back to redact in one line.
-
-        This is an override rather than a shorter `entities` list because dropping
-        `date` from that list would be the silent version of the same change: the
-        detector would stop reporting dates at all, and a reader of the record could
-        not tell that from a text that had none. Reporting at a lower action is the
-        honest shape, and it is the same distinction `_noted` draws for shapes.
-
-        Unknown names raise for the reason `_wanted_entities` gives: a misspelling here
-        would leave that entity at the detector's action instead of the one the policy
-        asked for, and nothing in the record would show it.
-        """
-        raw = cfg.options.get("entity_actions")
-        if not raw:
-            return {}
-        if not isinstance(raw, dict):
-            raise ValueError(
-                "pii: entity_actions must be a mapping of entity type to action, for "
-                "example {date: flag}."
-            )
-        out: dict[str, Action] = {}
-        for name, action in raw.items():
-            entity = str(name).strip().lower()
-            if entity not in ENTITY_TYPES:
-                raise ValueError(
-                    f"pii: entity_actions names unknown entity type {entity!r}. This "
-                    f"model tags {', '.join(ENTITY_TYPES)}. A misspelled type would "
-                    "silently leave that entity at the detector's own action."
-                )
-            chosen = str(action).strip().lower()
-            if chosen not in _ACTIONS:
-                raise ValueError(
-                    f"pii: entity_actions gives {entity!r} the action {chosen!r}, "
-                    f"which is not one of {', '.join(sorted(_ACTIONS))}."
-                )
-            out[entity] = cast(Action, chosen)
-        return out
-
-    def _entity_thresholds(self, cfg: DetectorConfig) -> dict[str, float]:
-        """Per-entity minimum scores, from `options.entity_thresholds`.
-
-        Added 2026-08-19 because one threshold for seven entity types cannot express
-        what the measurement asks for, the same reason `entity_actions` exists.
-
-        **`person` is the type with no shape to check.** Every other type has one: a
-        checksum for CARD and IBAN, a format for EMAIL and PHONE, a length and a
-        scheme for NATIONAL_ID. `person` has none, so an unfamiliar capitalised token
-        mid-sentence lands there and `entity_shapes.py` has nothing to reject it with.
-        Measured over 234 ordinary rows in 26 languages, that is 43 of 51 damaging
-        `pii` findings, and the spans are place names: `Regensburg`, `Valletta`,
-        `Stenlosevej`, `Kobanya-Kispest`.
-
-        A bar works here and it was previously established that it could not. That
-        conclusion rested on the false positives scoring a median of 0.9416, which was
-        measured on the artifact superseded on 2026-08-16 and asserted to still hold
-        rather than re-taken. On the adopted model the median is 0.7392, and:
-
-            bar     false positives removed     held-out PERSON recall
-            0.90         30 of 43                    1.0000 over 668 spans
-            0.95         33 of 43                    1.0000, but loses a hand-written
-                                                     Greek honorific at 0.9118
-
-        So 0.90 costs nothing measurable and removes seven tenths of the noise. What
-        survives it is mostly places named after people, `Franjo Tudman` at 0.977 and
-        `Deak Ferenc` at 0.962, where the span does contain a person's name and the
-        finding is arguably right.
-
-        A dropped span is recorded rather than removed, at `log`, for the reason
-        `_noted` gives everywhere else here: a silently filtered finding leaves a record
-        indistinguishable from a text that had none.
-        """
-        raw = cfg.options.get("entity_thresholds")
-        if not raw:
-            return {}
-        if not isinstance(raw, dict):
-            raise ValueError(
-                "pii: entity_thresholds must be a mapping of entity type to a score, "
-                "for example {person: 0.9}."
-            )
-        out: dict[str, float] = {}
-        for name, value in raw.items():
-            entity = str(name).strip().lower()
-            if entity not in ENTITY_TYPES:
-                raise ValueError(
-                    f"pii: entity_thresholds names unknown entity type {entity!r}. "
-                    f"This model tags {', '.join(ENTITY_TYPES)}. A misspelled type "
-                    "would "
-                    "silently leave that entity at the detector's own threshold."
-                )
-            try:
-                bar = float(value)
-            except (TypeError, ValueError):
-                raise ValueError(
-                    f"pii: entity_thresholds gives {entity!r} the value {value!r}, "
-                    "which is not a number."
-                ) from None
-            if not 0.0 <= bar <= 1.0:
-                raise ValueError(
-                    f"pii: entity_thresholds gives {entity!r} the bar {bar}, which is "
-                    "outside 0.0 to 1.0."
-                )
-            out[entity] = bar
-        return out
+    #
+    # `wanted_entities`, `entity_actions` and `entity_thresholds` used to be methods
+    # here. They moved to module scope, unchanged, so `detectors/ceepii.py` can call
+    # the same option-parsing `pii: {model: cee-pii}` uses rather than a second copy
+    # that could drift. See each function's own docstring for why every option here
+    # raises on an unknown name, why `entity_actions` exists (`date` is not personal
+    # data on its own, `tests/test_ordinary_text_sweep.py` measured 0.594 of ordinary
+    # rows carrying one), and why `entity_thresholds` exists (`person` has no shape
+    # to check, and a 0.90 bar removed 30 of 43 measured place-name false positives
+    # at no cost to held-out recall).
 
     @staticmethod
     def _snap_to_words(

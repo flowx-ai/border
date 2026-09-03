@@ -32,7 +32,7 @@ from __future__ import annotations
 import pytest
 
 from flowx_border.detectors.base import DetectorConfig
-from flowx_border.detectors.pii import PiiDetector
+from flowx_border.detectors.pii import PiiDetector, entity_thresholds
 
 
 def config(threshold: float = 0.5, **options: object) -> DetectorConfig:
@@ -69,13 +69,13 @@ def warmed(detector: PiiDetector) -> PiiDetector:
     return detector
 
 
-def test_no_bar_is_the_default(detector: PiiDetector) -> None:
-    assert detector._entity_thresholds(config()) == {}
-    assert detector._entity_thresholds(config(entity_thresholds={})) == {}
+def test_no_bar_is_the_default() -> None:
+    assert entity_thresholds(config()) == {}
+    assert entity_thresholds(config(entity_thresholds={})) == {}
 
 
-def test_a_bar_is_read_and_normalised(detector: PiiDetector) -> None:
-    got = detector._entity_thresholds(config(entity_thresholds={"PERSON": "0.9"}))
+def test_a_bar_is_read_and_normalised() -> None:
+    got = entity_thresholds(config(entity_thresholds={"PERSON": "0.9"}))
     assert got == {"person": 0.9}
 
 
@@ -88,18 +88,16 @@ def test_a_bar_is_read_and_normalised(detector: PiiDetector) -> None:
         ({"person": -0.1}, "outside 0.0 to 1.0"),
     ],
 )
-def test_a_bar_that_would_not_apply_raises(
-    detector: PiiDetector, bad: dict[str, object], why: str
-) -> None:
+def test_a_bar_that_would_not_apply_raises(bad: dict[str, object], why: str) -> None:
     """Silence here is the dangerous outcome: the entity stays at the detector's own bar
     and nothing in the record shows that the policy's intent was dropped."""
     with pytest.raises(ValueError):
-        detector._entity_thresholds(config(entity_thresholds=bad))
+        entity_thresholds(config(entity_thresholds=bad))
 
 
-def test_entity_thresholds_must_be_a_mapping(detector: PiiDetector) -> None:
+def test_entity_thresholds_must_be_a_mapping() -> None:
     with pytest.raises(ValueError, match="mapping"):
-        detector._entity_thresholds(config(entity_thresholds=[0.9]))
+        entity_thresholds(config(entity_thresholds=[0.9]))
 
 
 # ------------------------------------------------------------------ end to end
