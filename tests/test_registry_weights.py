@@ -168,10 +168,12 @@ def test_an_assumed_length_says_so_in_the_notes(tmp_path: Path) -> None:
     An evidence record carries these notes, and "assumed" and "read from the
     artifact" are different claims about how the model was fed.
 
-    Uses `cee-pii` rather than `groundedness`, which this test named until
-    groundedness was published on 2026-08-17: an id in MODELS now takes the
-    published length, so the fallback under test was no longer reachable through
-    it. The id has to be one the table does not know.
+    This test has named a real detector's model id twice now, `groundedness`
+    until it was published on 2026-08-17 and then `cee-pii` until it was
+    published on 2026-09-03: an id in MODELS takes the published length, so the
+    fallback under test stopped being reachable through it both times. A model
+    id nothing in the catalogue will ever use is the only way this stops
+    breaking every time this project publishes another model.
     """
     from flowx_border.models.registry import (
         DEFAULT_TRAINED_MAX_LENGTH,
@@ -179,12 +181,12 @@ def test_an_assumed_length_says_so_in_the_notes(tmp_path: Path) -> None:
         local_spec_for,
     )
 
-    folder = tmp_path / "cee-pii-full"
+    folder = tmp_path / "an-id-with-no-published-spec-full"
     (folder / "onnx").mkdir(parents=True)
     (folder / "onnx" / "model.fp16.onnx").write_bytes(b"not a real graph")
 
     with mock.patch.dict(os.environ, {LOCAL_DIR_ENV: str(tmp_path)}):
-        spec = local_spec_for("cee-pii")
+        spec = local_spec_for("an-id-with-no-published-spec")
     assert spec is not None
     assert spec.trained_max_length == DEFAULT_TRAINED_MAX_LENGTH
     assert "never saw" in spec.notes, "a guessed length must be visibly a guess"

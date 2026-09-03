@@ -21,9 +21,10 @@ it. `resolve` checks `MODELS` first, so an id in both would load fine while its
 in both once, and their notes carried pre-retrain scores for months.
 
 **Every detector in the catalogue now has an entry**, `groundedness` included as of
-2026-08-17. Neither remaining `UNPUBLISHED` id is a detector: `cee-pii` is a
-policy-selectable alternative for `pii` with no ONNX export yet, and `semantic-mapper`
-is the 4B generative model `topic_scope` was going to use before it got its own encoder.
+2026-08-17. `cee-pii`, a policy-selectable alternative for `pii`, moved from
+`UNPUBLISHED` to `MODELS` on 2026-09-03, once its fp32 ONNX export was pushed to the
+hub. The one remaining `UNPUBLISHED` id is not a detector: `semantic-mapper` is the
+4B generative model `topic_scope` was going to use before it got its own encoder.
 Where a detector's weights cannot be obtained, `resolve` raises with the repo id in
 the message rather than falling back to a smaller model, because a security library
 that quietly substitutes a different detector is worse than one that refuses to start.
@@ -165,6 +166,55 @@ MODELS: Final[dict[str, ModelSpec]] = {
             "labelled United Kingdom but uses the German Steuer-IdNr "
             "algorithm as a numeric fallback, so do not claim English "
             "national IDs are checksum validated."
+        ),
+    ),
+    "cee-pii": ModelSpec(
+        model_id="flowxai/cee-pii",
+        repo="flowxai/cee-pii",
+        # Pushed 2026-09-03: the onnx/ folder and a card update, alongside the
+        # pytorch_model.bin already on the repo since 2026-07-06. This is the commit
+        # that added them.
+        revision="e32cce0e244d242ddf83275b5af30f5e98220849",
+        # fp32 only. GLiNER's export_to_onnx() fails on this architecture's LSTM span
+        # head (pack_padded_sequence does not survive tracing); the export here works
+        # around that with a patched forward pass exact at batch_size=1, which is the
+        # only shape this detector ever calls with. Naive dynamic INT8 destroyed the
+        # model (every real entity score below 0.004). fp16 hit a genuine operand
+        # dtype mismatch in mDeBERTa's embeddings block in onnxconverter_common, not a
+        # metadata slip, and was not shipped rather than shipped broken. See
+        # border_train/export/gliner_to_onnx.py in the training repo for both.
+        filename="onnx/model.fp32.onnx",
+        sha256="2376902c9a6dc5aed7578b24e34109e71224b219a64004058523112ead80155c",
+        extra_files=("tokenizer.json",),
+        # GLiNER's own gliner_config.json max_len, mDeBERTa-v3 base. Not the
+        # trained_max_length - 2 subword-window convention piiguard and the
+        # classifiers use: GLiNER windows in words (max_width 12) via its own span
+        # enumeration, not through this field, and detectors/ceepii.py never reads it
+        # for that reason. Recorded because it is still a true fact about the
+        # artifact, not because anything computes with it.
+        trained_max_length=384,
+        # en, ro, pl and hu only, the four of the training run's five languages that
+        # are in this library's 26. The fifth, Uzbek, is real about the weights and
+        # not a claim this library makes: LANGUAGES - {trained} silently drops
+        # anything not in LANGUAGES, so including "uz" here would have inflated
+        # coverage_note's "N of 26" count by a language outside the 26 it counts
+        # against. Say Uzbek in prose, not in a set this field's own consumers assume
+        # is a subset of the supported languages.
+        trained_languages=frozenset({"en", "ro", "pl", "hu"}),
+        notes=(
+            "GLiNER (mDeBERTa-v3 base, ~300M params), 34 entity-type prompts mapped "
+            "onto this library's types; first_name and surname are dropped rather "
+            "than merged into person, because prompting all three at once measurably "
+            "splits confidence across redundant phrasings (0.40/0.68 individually "
+            "against 0.99 for person_name alone on a real name). Verified against "
+            "the unmodified PyTorch model at export time: 7 fixtures across "
+            "en/ro/pl/hu, 0 span mismatches, max score drift 0.00001. Also trained "
+            "on Uzbek, which this library does not claim as a supported language. "
+            "No per-language evaluation table exists yet, unlike piiguard's; "
+            "quality figures for this model read 'not recorded' rather than a "
+            "number until one does. Needs a GPU to run at any usable latency: "
+            "registry.deployment_notes(policy) reports that the moment a policy "
+            "selects it."
         ),
     ),
     "bias": ModelSpec(
@@ -460,19 +510,6 @@ MODELS: Final[dict[str, ModelSpec]] = {
 #: message. Listed rather than omitted so that "not built yet" and "typo" are different
 #: errors.
 UNPUBLISHED: Final[dict[str, str]] = {
-    "cee-pii": (
-        "flowxai/cee-pii is a GLiNER model with 34 labels weighted toward central "
-        "and eastern Europe, policy-selectable for pii via options.model. The ONNX "
-        "export problem this note used to describe is solved: fp32 exported and "
-        "verified equivalent to PyTorch (0 span mismatches, max score drift 0.00001 "
-        "over 7 fixtures across en/ro/pl/hu), see "
-        "border_train/export/gliner_to_onnx.py in the training repo. What is "
-        "missing is the publish step: the onnx/ folder "
-        "and a card update have not been pushed to the hub yet, so there is no commit "
-        "sha to pin here. Test it today via FLOWX_BORDER_MODEL_DIR pointed at "
-        "artifacts_local/cee-pii-full; move this entry to MODELS once the upload lands "
-        "and name the real revision, do not invent one."
-    ),
     "semantic-mapper": (
         "flowxai/semantic-mapper is a 4B Qwen3 LoRA published as GGUF. It "
         "generates JSON against a frozen prompt, which is a local LLM call "
@@ -725,11 +762,29 @@ def companion(model_id: str, filename: str) -> Path:
         return path
 
     from huggingface_hub import hf_hub_download
+    from huggingface_hub.errors import LocalEntryNotFoundError
 
     spec = spec_for(model_id)
-    return Path(
-        hf_hub_download(repo_id=spec.repo, filename=filename, revision=spec.revision)
-    )
+    try:
+        return Path(
+            hf_hub_download(
+                repo_id=spec.repo, filename=filename, revision=spec.revision
+            )
+        )
+    except LocalEntryNotFoundError as error:
+        # The same wrapping `resolve` does for the weights file, missing here until
+        # 2026-09-03: every caller above reads this as "the weights are unavailable",
+        # and a raw huggingface_hub exception for the tokenizer or config file is the
+        # same fact in a shape nothing catches, since `engine.py` only knows to expect
+        # `ModelUnavailableError` on the scan path.
+        reason = " because HF_HUB_OFFLINE is set" if offline() else ""
+        raise ModelUnavailableError(
+            f"{spec.model_id} is missing {filename}: not in the local cache and the "
+            f"hub is unreachable{reason}.\n"
+            f"  repo      {spec.repo}\n"
+            f"  revision  {spec.revision}\n"
+            f"  file      {filename}"
+        ) from error
 
 
 def available(model_id: str) -> bool:

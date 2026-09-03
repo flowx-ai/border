@@ -14,6 +14,17 @@ suite has no reason to need them installed. What this file checks instead is
 narrower and does not overlap: that the library's own from-scratch
 tokenize/decode path, called through the public API, reproduces the specific
 result that PyTorch-vs-ONNX comparison already established was correct.
+
+`HF_HUB_OFFLINE=1` is set for the whole module, matching `test_pii.py`'s
+convention, for the same two reasons: it stops huggingface-hub revalidating a
+cached file, and it makes the "unavailable" tests below deterministic rather than
+dependent on a socket guard racing a real request. cee-pii moved from
+`UNPUBLISHED` to `MODELS` on 2026-09-03, so "unavailable" no longer means "not
+published" for it, the way it did while these tests were first written: it means
+"not in the local HF cache", the same state every other published model is in on
+a machine that has never scanned with it. The availability tests below force an
+empty cache directory rather than trust whatever happens to be on the host
+running them.
 """
 
 from __future__ import annotations
@@ -21,6 +32,8 @@ from __future__ import annotations
 import os
 
 import pytest
+
+os.environ.setdefault("HF_HUB_OFFLINE", "1")
 
 from flowx_border.detectors.base import Context, DetectorConfig
 from flowx_border.detectors.ceepii import MAPPED_ENTITY_TYPES, MODEL_ID, run
@@ -94,44 +107,66 @@ def test_no_model_option_stays_on_piiguard() -> None:
 # ------------------------------------------------------------------ availability
 
 
-def test_unavailable_raises_and_does_not_fall_back_to_piiguard() -> None:
-    """Without the local override, cee-pii is not resolvable, and `pii.run`'s
-    dispatch does not catch that and quietly answer from piiguard instead.
+def test_unavailable_raises_and_does_not_fall_back_to_piiguard(monkeypatch) -> None:  # type: ignore[no-untyped-def]
+    """cee-pii's bytes not being reachable does not fall back to piiguard.
 
-    Local only: this does not touch the network, `available()` only checks the
-    local override and the (empty, for cee-pii) MODELS table, so it belongs in
-    the default suite rather than behind @pytest.mark.slow or .network.
+    cee-pii moved from `UNPUBLISHED` to `MODELS` on 2026-09-03, so its own
+    weights not being reachable is now the same class of event as piiguard's
+    weights not being reachable: a real, published model whose bytes this
+    process has not fetched yet. `hf_hub_download` is mocked to raise the same
+    error `huggingface_hub` raises offline with nothing cached
+    (`LocalEntryNotFoundError`), matching `test_pii.py`'s own
+    `test_a_corrupted_weight_file_is_refused`, rather than trying to force an
+    empty cache directory and race the real network.
     """
+    from huggingface_hub.errors import LocalEntryNotFoundError
+
     from flowx_border.detectors.pii import PiiDetector
+    from flowx_border.models import registry
     from flowx_border.models.registry import ModelUnavailableError
 
-    if os.environ.get("FLOWX_BORDER_MODEL_DIR"):
-        pytest.skip("a local override is configured; this test wants none")
+    def _refuse(**_kwargs: object) -> str:
+        raise LocalEntryNotFoundError("not cached, offline")
+
+    monkeypatch.setattr(registry, "hf_hub_download", None, raising=False)
+    monkeypatch.setattr("huggingface_hub.hf_hub_download", _refuse)
+    # The local override has to be out of the way, or `resolve` takes it and never
+    # reaches the published path this test is about, the same caveat
+    # `test_a_corrupted_weight_file_is_refused` carries.
+    monkeypatch.setattr(registry, "local_folder", lambda model_id: None)
+    monkeypatch.setattr(registry, "local_spec_for", lambda model_id: None)
 
     detector = PiiDetector()
     with pytest.raises(ModelUnavailableError, match="cee-pii"):
         detector.run("Ionescu Bogdan", config(model="cee-pii"), Context())
 
 
-def test_a_policy_that_would_enforce_with_it_is_refused_at_load(tmp_path) -> None:  # type: ignore[no-untyped-def]
+def test_a_policy_naming_an_unknown_model_is_refused_at_load(tmp_path) -> None:  # type: ignore[no-untyped-def]
     """`assert_satisfiable`'s pre-flight check, not `run`'s. A caller who wrote
     `on_fail: redact` finds out before any text is scanned, the same guarantee
-    `missing_for` already gives a policy naming a detector that is not loaded at
-    all.
+    `missing_for` already gives a policy naming a detector that is not loaded
+    at all.
+
+    Named with the same typo `test_an_unknown_model_raises` uses, "cee-pi",
+    because cee-pii itself no longer demonstrates this: it moved from
+    `UNPUBLISHED` to `MODELS` on 2026-09-03, so `available("cee-pii")` is now
+    unconditionally true and this pre-flight check no longer flags it, which
+    is correct. Every other model-backed detector already only pre-flight
+    checks whether its model id is known at all, not whether its bytes happen
+    to be cached on this process, and `pii`'s selectable model is now the same:
+    "not yet cached" degrades at scan time, and only a genuinely unknown model
+    name is refused before one starts.
     """
     import yaml
 
     from flowx_border import load_policy, scan_input
     from flowx_border.models.registry import ModelUnavailableError
 
-    if os.environ.get("FLOWX_BORDER_MODEL_DIR"):
-        pytest.skip("a local override is configured; this test wants none")
-
     policy_path = tmp_path / "policy.yaml"
     policy_path.write_text(
         yaml.safe_dump(
             {
-                "policy_id": "ceepii-unavailable",
+                "policy_id": "ceepii-unknown-model",
                 "version": 1,
                 "description": "test",
                 "fail_mode": "open",
@@ -139,33 +174,32 @@ def test_a_policy_that_would_enforce_with_it_is_refused_at_load(tmp_path) -> Non
                     "pii": {
                         "on_fail": "redact",
                         "threshold": 0.5,
-                        "options": {"model": "cee-pii"},
+                        "options": {"model": "cee-pi"},
                     },
                 },
             }
         )
     )
     policy = load_policy(policy_path)
-    with pytest.raises(ModelUnavailableError):
+    with pytest.raises(ModelUnavailableError, match="unknown model id"):
         scan_input("Ionescu Bogdan", policy)
 
 
 def test_a_policy_that_only_flags_is_not_refused(tmp_path) -> None:  # type: ignore[no-untyped-def]
     """`log` and `flag` degrade to a gap the record shows, the same distinction
-    `assert_satisfiable`'s own docstring draws for a missing detector.
+    `assert_satisfiable`'s own docstring draws for a missing detector. Same
+    unknown-model scenario as the test above; see its docstring for why "cee-pi"
+    rather than "cee-pii".
     """
     import yaml
 
     from flowx_border import load_policy, scan_input
 
-    if os.environ.get("FLOWX_BORDER_MODEL_DIR"):
-        pytest.skip("a local override is configured; this test wants none")
-
     policy_path = tmp_path / "policy.yaml"
     policy_path.write_text(
         yaml.safe_dump(
             {
-                "policy_id": "ceepii-unavailable-flag",
+                "policy_id": "ceepii-unknown-model-flag",
                 "version": 1,
                 "description": "test",
                 "fail_mode": "open",
@@ -173,7 +207,7 @@ def test_a_policy_that_only_flags_is_not_refused(tmp_path) -> None:  # type: ign
                     "pii": {
                         "on_fail": "flag",
                         "threshold": 0.5,
-                        "options": {"model": "cee-pii"},
+                        "options": {"model": "cee-pi"},
                     },
                 },
             }

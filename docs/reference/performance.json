@@ -1928,31 +1928,31 @@
   "latency": {
     "per_detector_ms": {
       "banned_terms": {
-        "p95": 0.165
+        "p95": 0.167
       },
       "bias": {
-        "p95": 18.813
+        "p95": 18.553
       },
       "code_present": {
-        "p95": 0.007
+        "p95": 0.008
       },
       "disclosure": {
-        "p95": 0.029
+        "p95": 0.028
       },
       "encoded_payload": {
-        "p95": 0.201
+        "p95": 0.187
       },
       "gibberish": {
-        "p95": 27.338
+        "p95": 27.478
       },
       "groundedness": {
-        "p95": 12.638
+        "p95": 12.207
       },
       "injection": {
-        "p95": 19.497
+        "p95": 18.327
       },
       "internal_domains": {
-        "p95": 0.183
+        "p95": 0.159
       },
       "invisible_text": {
         "p95": 0.026
@@ -1961,64 +1961,64 @@
         "p95": 0.001
       },
       "language_id": {
-        "p95": 0.218
+        "p95": 0.225
       },
       "markup_injection": {
-        "p95": 0.163
+        "p95": 0.164
       },
       "moderation": {
-        "p95": 18.845
+        "p95": 18.316
       },
       "nsfw": {
-        "p95": 19.191
+        "p95": 18.34
       },
       "output_format": {
         "p95": 0.001
       },
       "output_leakage": {
-        "p95": 23.973
+        "p95": 23.399
       },
       "pii": {
-        "p95": 23.989
+        "p95": 23.837
       },
       "politeness": {
-        "p95": 18.968
+        "p95": 18.251
       },
       "postal_code": {
         "p95": 0.001
       },
       "regulated_advice": {
-        "p95": 19.333
+        "p95": 18.414
       },
       "repetition": {
-        "p95": 0.3
+        "p95": 0.291
       },
       "secrets": {
         "p95": 0.029
       },
       "sql_injection": {
-        "p95": 0.141
+        "p95": 0.145
       },
       "summary_support": {
-        "p95": 0.552
+        "p95": 0.546
       },
       "system_prompt_leakage": {
         "describes": "the path where the detector reported leakage_unverifiable rather than the path where it does its work, because the reference configuration does not give it what it needs",
-        "p95": 0.207
+        "p95": 0.201
       },
       "token_limit": {
         "describes": "the path where the detector reported token_limit_unconfigured rather than the path where it does its work, because the reference configuration does not give it what it needs",
         "p95": 0.001
       },
       "topic_scope": {
-        "p95": 32.351
+        "p95": 31.303
       },
       "toxicity": {
-        "p95": 19.099
+        "p95": 18.374
       },
       "url_reachability": {
         "describes": "the path where there was nothing to fetch. The reference input contains no URLs, and the suite blocks outbound connections, so this figure excludes the request that is the whole cost of the detector. Its budget is a deadline it enforces on itself rather than a measurement, because it depends on a network the library does not control",
-        "p95": 0.004
+        "p95": 0.005
       }
     },
     "provider": "CPUExecutionProvider",
@@ -2033,7 +2033,7 @@
       "needs": [
         "gpu"
       ],
-      "p95_ms": 98.734,
+      "p95_ms": 94.865,
       "quality": "not recorded",
       "reference_input": {
         "characters": 396,

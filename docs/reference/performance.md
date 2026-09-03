@@ -64,36 +64,36 @@ At a 396 character reference input, 1 thread, CPUExecutionProvider. Romanian pro
 
 | Detector | p95 ms | Budget ms | note |
 |---|---|---|---|
-| `banned_terms` | 0.165 | 5.0 | – |
-| `bias` | 18.813 | 225.0 | – |
-| `code_present` | 0.007 | 5.0 | – |
-| `disclosure` | 0.029 | 5.0 | – |
-| `encoded_payload` | 0.201 | 5.0 | – |
-| `gibberish` | 27.338 | 225.0 | – |
-| `groundedness` | 12.638 | 300.0 | – |
-| `injection` | 19.497 | 225.0 | – |
-| `internal_domains` | 0.183 | 5.0 | – |
+| `banned_terms` | 0.167 | 5.0 | – |
+| `bias` | 18.553 | 225.0 | – |
+| `code_present` | 0.008 | 5.0 | – |
+| `disclosure` | 0.028 | 5.0 | – |
+| `encoded_payload` | 0.187 | 5.0 | – |
+| `gibberish` | 27.478 | 225.0 | – |
+| `groundedness` | 12.207 | 300.0 | – |
+| `injection` | 18.327 | 225.0 | – |
+| `internal_domains` | 0.159 | 5.0 | – |
 | `invisible_text` | 0.026 | 5.0 | – |
 | `json_schema` | 0.001 | 5.0 | – |
-| `language_id` | 0.218 | 5.0 | – |
-| `markup_injection` | 0.163 | 5.0 | – |
-| `moderation` | 18.845 | 150.0 | – |
-| `nsfw` | 19.191 | 225.0 | – |
+| `language_id` | 0.225 | 5.0 | – |
+| `markup_injection` | 0.164 | 5.0 | – |
+| `moderation` | 18.316 | 150.0 | – |
+| `nsfw` | 18.340 | 225.0 | – |
 | `output_format` | 0.001 | 5.0 | – |
-| `output_leakage` | 23.973 | 225.0 | – |
-| `pii` | 23.989 | 225.0 | – |
-| `politeness` | 18.968 | 225.0 | – |
+| `output_leakage` | 23.399 | 225.0 | – |
+| `pii` | 23.837 | 225.0 | – |
+| `politeness` | 18.251 | 225.0 | – |
 | `postal_code` | 0.001 | 5.0 | – |
-| `regulated_advice` | 19.333 | 225.0 | – |
-| `repetition` | 0.300 | 5.0 | – |
+| `regulated_advice` | 18.414 | 225.0 | – |
+| `repetition` | 0.291 | 5.0 | – |
 | `secrets` | 0.029 | 1.0 | – |
-| `sql_injection` | 0.141 | 5.0 | – |
-| `summary_support` | 0.552 | 5.0 | – |
-| `system_prompt_leakage` | 0.207 | 5.0 | the unconfigured path |
+| `sql_injection` | 0.145 | 5.0 | – |
+| `summary_support` | 0.546 | 5.0 | – |
+| `system_prompt_leakage` | 0.201 | 5.0 | the unconfigured path |
 | `token_limit` | 0.001 | 5.0 | the unconfigured path |
-| `topic_scope` | 32.351 | 300.0 | – |
-| `toxicity` | 19.099 | 225.0 | – |
-| `url_reachability` | 0.004 | 3000.0 | the unconfigured path |
+| `topic_scope` | 31.303 | 300.0 | – |
+| `toxicity` | 18.374 | 225.0 | – |
+| `url_reachability` | 0.005 | 3000.0 | the unconfigured path |
 
 ## Model variants
 
@@ -103,4 +103,4 @@ its own row because a policy that selects it gets none of the figures above.
 
 | Model | Status | p95 ms | Needs | Quality |
 |---|---|---|---|---|
-| `cee-pii` | measured | 98.734 | gpu | not recorded |
+| `cee-pii` | measured | 94.865 | gpu | not recorded |
