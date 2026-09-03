@@ -172,7 +172,13 @@ def main() -> None:
             per_device_train_batch_size=settings["batch_size"],
             gradient_accumulation_steps=settings["grad_accum"],
             learning_rate=settings["learning_rate"],
-            warmup_ratio=settings["warmup_ratio"],
+            # warmup_ratio was removed as its own field in transformers 5.x.
+            # warmup_steps now does both jobs: TrainingArguments.get_warmup_steps
+            # treats a value below 1 as a ratio of total training steps, computed
+            # the same way warmup_ratio was, and a value of 1 or more as an
+            # absolute step count. config.yaml's warmup_ratio is 0.06, so this is
+            # unchanged behaviour, not a new default.
+            warmup_steps=settings["warmup_ratio"],
             weight_decay=settings["weight_decay"],
             bf16=settings["bf16"],
             logging_steps=10,
