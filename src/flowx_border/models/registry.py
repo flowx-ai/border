@@ -461,9 +461,17 @@ MODELS: Final[dict[str, ModelSpec]] = {
 #: errors.
 UNPUBLISHED: Final[dict[str, str]] = {
     "cee-pii": (
-        "flowxai/cee-pii is published but has no ONNX export, only "
-        "pytorch_model.bin. It is a GLiNER model with 34 labels weighted toward "
-        "central and eastern Europe. Wiring it means doing the ONNX export first."
+        "flowxai/cee-pii is a GLiNER model with 34 labels weighted toward central "
+        "and eastern Europe, policy-selectable for pii via options.model. The ONNX "
+        "export problem this note used to describe is solved: fp32 exported and "
+        "verified equivalent to PyTorch (0 span mismatches, max score drift 0.00001 "
+        "over 7 fixtures across en/ro/pl/hu), see "
+        "border_train/export/gliner_to_onnx.py in the training repo. What is "
+        "missing is the publish step: the onnx/ folder "
+        "and a card update have not been pushed to the hub yet, so there is no commit "
+        "sha to pin here. Test it today via FLOWX_BORDER_MODEL_DIR pointed at "
+        "artifacts_local/cee-pii-full; move this entry to MODELS once the upload lands "
+        "and name the real revision, do not invent one."
     ),
     "semantic-mapper": (
         "flowxai/semantic-mapper is a 4B Qwen3 LoRA published as GGUF. It "
@@ -575,7 +583,13 @@ def local_spec_for(model_id: str) -> ModelSpec | None:
 #: by 0.07591 at the p99 against the export gate's 0.05 ceiling, which is a different
 #: model rather than a quantisation of this one. Its fp16 export changes no decisions at
 #: a p99 of 0.01288, for 21 MB more.
-WEIGHT_NAMES: Final = ("model.int8.onnx", "model.fp16.onnx")
+#:
+#: fp32 last, added for `cee-pii`. Not a preference, an absence: naive INT8 dynamic
+#: quantisation destroyed the model (every real name below 0.004) and fp16 hit a real
+#: type-mismatch bug in mDeBERTa's embeddings block via this project's own converter,
+#: not a metadata slip this time, see border_train/export/gliner_to_onnx.py. fp32 is
+#: what passed the equivalence check, so it is what the loader is asked to find.
+WEIGHT_NAMES: Final = ("model.int8.onnx", "model.fp16.onnx", "model.fp32.onnx")
 
 
 def _weights_in(onnx_dir: Path) -> Path | None:
