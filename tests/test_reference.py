@@ -150,12 +150,17 @@ def test_the_document_names_every_detector() -> None:
 def test_the_document_carries_the_language_caveat() -> None:
     """The claim most likely to be overstated somewhere public.
 
-    Fixtures cover 26. The PII model was trained on nine. Both are true and only one of
-    them is what "supports 26 languages" sounds like.
+    `piiguard`, `pii`'s default model, is now the 26-locale retrain, so that half of
+    the old caveat (fixtures cover 26, the model covered 9) no longer holds. What
+    still needs saying, and still could be overstated, is that `pii`'s second,
+    policy-selectable model does not carry the same claim: cee-pii is trained on a
+    named few of the 26 plus a language outside the set entirely, and has no
+    per-language evaluation table yet.
     """
     text = DOC.read_text(encoding="utf-8")
-    assert "trained on nine" in text
-    assert "do not say the model covers 26" in text
+    assert "trained_languages" in text
+    assert "cee-pii" in text
+    assert "not recorded" in text
 
 
 def test_the_document_carries_the_compliance_language_rules() -> None:

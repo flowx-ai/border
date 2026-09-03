@@ -1928,97 +1928,97 @@
   "latency": {
     "per_detector_ms": {
       "banned_terms": {
-        "p95": 0.16
+        "p95": 0.165
       },
       "bias": {
-        "p95": 18.565
+        "p95": 18.813
       },
       "code_present": {
         "p95": 0.007
       },
       "disclosure": {
-        "p95": 0.028
+        "p95": 0.029
       },
       "encoded_payload": {
-        "p95": 0.193
+        "p95": 0.201
       },
       "gibberish": {
-        "error": "flowxai/gibberish is not in the local cache and the hub is unreachable because HF_HUB_OFFLINE is set.\n  repo      flowxa"
+        "p95": 27.338
       },
       "groundedness": {
-        "p95": 12.446
+        "p95": 12.638
       },
       "injection": {
-        "p95": 18.616
+        "p95": 19.497
       },
       "internal_domains": {
-        "p95": 0.156
+        "p95": 0.183
       },
       "invisible_text": {
-        "p95": 0.025
+        "p95": 0.026
       },
       "json_schema": {
         "p95": 0.001
       },
       "language_id": {
-        "p95": 0.217
+        "p95": 0.218
       },
       "markup_injection": {
-        "p95": 0.161
+        "p95": 0.163
       },
       "moderation": {
-        "error": "flowxai/moderation is not in the local cache and the hub is unreachable because HF_HUB_OFFLINE is set.\n  repo      flowx"
+        "p95": 18.845
       },
       "nsfw": {
-        "error": "flowxai/nsfw is not in the local cache and the hub is unreachable because HF_HUB_OFFLINE is set.\n  repo      flowxai/nsf"
+        "p95": 19.191
       },
       "output_format": {
         "p95": 0.001
       },
       "output_leakage": {
-        "p95": 23.449
+        "p95": 23.973
       },
       "pii": {
-        "p95": 23.344
+        "p95": 23.989
       },
       "politeness": {
-        "error": "flowxai/politeness is not in the local cache and the hub is unreachable because HF_HUB_OFFLINE is set.\n  repo      flowx"
+        "p95": 18.968
       },
       "postal_code": {
         "p95": 0.001
       },
       "regulated_advice": {
-        "p95": 18.775
+        "p95": 19.333
       },
       "repetition": {
         "p95": 0.3
       },
       "secrets": {
-        "p95": 0.031
+        "p95": 0.029
       },
       "sql_injection": {
-        "p95": 0.149
+        "p95": 0.141
       },
       "summary_support": {
-        "p95": 0.55
+        "p95": 0.552
       },
       "system_prompt_leakage": {
         "describes": "the path where the detector reported leakage_unverifiable rather than the path where it does its work, because the reference configuration does not give it what it needs",
-        "p95": 0.191
+        "p95": 0.207
       },
       "token_limit": {
         "describes": "the path where the detector reported token_limit_unconfigured rather than the path where it does its work, because the reference configuration does not give it what it needs",
         "p95": 0.001
       },
       "topic_scope": {
-        "p95": 32.508
+        "p95": 32.351
       },
       "toxicity": {
-        "p95": 18.696
+        "p95": 19.099
       },
       "url_reachability": {
         "describes": "the path where there was nothing to fetch. The reference input contains no URLs, and the suite blocks outbound connections, so this figure excludes the request that is the whole cost of the detector. Its budget is a deadline it enforces on itself rather than a measurement, because it depends on a network the library does not control",
-        "p95": 0.005
+        "p95": 0.004
       }
     },
     "provider": "CPUExecutionProvider",
@@ -2027,6 +2027,21 @@
       "description": "Romanian prose with no entities in it, so this measures the cost of looking rather than the cost of finding"
     },
     "threads": 1
+  },
+  "model_variants": {
+    "cee-pii": {
+      "needs": [
+        "gpu"
+      ],
+      "p95_ms": 98.734,
+      "quality": "not recorded",
+      "reference_input": {
+        "characters": 396,
+        "provider": "CPUExecutionProvider",
+        "threads": 1
+      },
+      "status": "measured"
+    }
   },
   "reading_this": "Every score carries its sample size in `n`. A detector that is not built has `metrics: null` rather than stale figures. `caveats` is not optional reading: it is where a score of 1.000 on four examples says so."
 }

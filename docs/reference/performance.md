@@ -64,33 +64,43 @@ At a 396 character reference input, 1 thread, CPUExecutionProvider. Romanian pro
 
 | Detector | p95 ms | Budget ms | note |
 |---|---|---|---|
-| `banned_terms` | 0.160 | 5.0 | – |
-| `bias` | 18.565 | 225.0 | – |
+| `banned_terms` | 0.165 | 5.0 | – |
+| `bias` | 18.813 | 225.0 | – |
 | `code_present` | 0.007 | 5.0 | – |
-| `disclosure` | 0.028 | 5.0 | – |
-| `encoded_payload` | 0.193 | 5.0 | – |
-| `gibberish` | – | 225.0 | weights unavailable |
-| `groundedness` | 12.446 | 300.0 | – |
-| `injection` | 18.616 | 225.0 | – |
-| `internal_domains` | 0.156 | 5.0 | – |
-| `invisible_text` | 0.025 | 5.0 | – |
+| `disclosure` | 0.029 | 5.0 | – |
+| `encoded_payload` | 0.201 | 5.0 | – |
+| `gibberish` | 27.338 | 225.0 | – |
+| `groundedness` | 12.638 | 300.0 | – |
+| `injection` | 19.497 | 225.0 | – |
+| `internal_domains` | 0.183 | 5.0 | – |
+| `invisible_text` | 0.026 | 5.0 | – |
 | `json_schema` | 0.001 | 5.0 | – |
-| `language_id` | 0.217 | 5.0 | – |
-| `markup_injection` | 0.161 | 5.0 | – |
-| `moderation` | – | 150.0 | weights unavailable |
-| `nsfw` | – | 225.0 | weights unavailable |
+| `language_id` | 0.218 | 5.0 | – |
+| `markup_injection` | 0.163 | 5.0 | – |
+| `moderation` | 18.845 | 150.0 | – |
+| `nsfw` | 19.191 | 225.0 | – |
 | `output_format` | 0.001 | 5.0 | – |
-| `output_leakage` | 23.449 | 225.0 | – |
-| `pii` | 23.344 | 225.0 | – |
-| `politeness` | – | 225.0 | weights unavailable |
+| `output_leakage` | 23.973 | 225.0 | – |
+| `pii` | 23.989 | 225.0 | – |
+| `politeness` | 18.968 | 225.0 | – |
 | `postal_code` | 0.001 | 5.0 | – |
-| `regulated_advice` | 18.775 | 225.0 | – |
+| `regulated_advice` | 19.333 | 225.0 | – |
 | `repetition` | 0.300 | 5.0 | – |
-| `secrets` | 0.031 | 1.0 | – |
-| `sql_injection` | 0.149 | 5.0 | – |
-| `summary_support` | 0.550 | 5.0 | – |
-| `system_prompt_leakage` | 0.191 | 5.0 | the unconfigured path |
+| `secrets` | 0.029 | 1.0 | – |
+| `sql_injection` | 0.141 | 5.0 | – |
+| `summary_support` | 0.552 | 5.0 | – |
+| `system_prompt_leakage` | 0.207 | 5.0 | the unconfigured path |
 | `token_limit` | 0.001 | 5.0 | the unconfigured path |
-| `topic_scope` | 32.508 | 300.0 | – |
-| `toxicity` | 18.696 | 225.0 | – |
-| `url_reachability` | 0.005 | 3000.0 | the unconfigured path |
+| `topic_scope` | 32.351 | 300.0 | – |
+| `toxicity` | 19.099 | 225.0 | – |
+| `url_reachability` | 0.004 | 3000.0 | the unconfigured path |
+
+## Model variants
+
+A model a detector runs only when a policy names it, not the one it runs by
+default. `pii`'s row above always measures `piiguard`; a variant here needs
+its own row because a policy that selects it gets none of the figures above.
+
+| Model | Status | p95 ms | Needs | Quality |
+|---|---|---|---|---|
+| `cee-pii` | measured | 98.734 | gpu | not recorded |

@@ -80,6 +80,30 @@ shipped `bfsi` policy closes T0 and T1 and leaves T2 and T3 open.
 Unknown keys are rejected rather than ignored. A typo in a policy file should stop
 the process, not silently disable a check.
 
+## Selecting a model
+
+A detector's `options` can name which model backs it, where more than one exists.
+`pii` has two: `piiguard`, the default, and `flowxai/cee-pii`, selected by name.
+
+```yaml
+detectors:
+  pii:
+    enabled: true
+    on_fail: redact
+    threshold: 0.5
+    options:
+      model: cee-pii
+      entities: [person, email, phone]
+```
+
+Selecting a model is a deployment decision, not just a policy one, and the two
+consequences are different. If the model is unavailable, `load_policy` refuses a
+policy that would enforce with it (`on_fail` other than `flag` or `log`) before any
+text is scanned, the same way it refuses a policy naming an unknown detector.
+`registry.deployment_notes(policy)` separately reports what the selection asks of
+the deployment, such as a GPU, so a caller finds out at load time rather than from a
+latency graph in production.
+
 ## On thresholds
 
 A threshold left at a plausible-looking default is how a detector becomes a no-op

@@ -86,10 +86,22 @@ redact raises `DetectorUnavailableError` before any scan happens, rather than le
 text through as if it were checked.
 
 **26 languages is a claim about the rule-based detectors and about fixtures, not about
-every model.** Every detector has fixtures in all 26. The PII model, `piiguard`, was
-trained on nine of them: English, Romanian, Bulgarian, Hungarian, Slovenian, Croatian,
-German, Italian and French. The other seventeen are untested for that detector. Say
-nine, or say "fixtures in 26, model coverage in 9", but do not say the model covers 26.
+every model.** Every detector has fixtures in all 26. `pii`'s default model, `piiguard`,
+is trained on all 26; `registry.MODELS["piiguard"].trained_languages` is the source, and
+it moves when the pinned weights do. The card's held-out numbers are per language, not
+one aggregate, because an aggregate hides exactly the tail this project exists to show.
+
+**`pii` has a second, policy-selectable model, and it does not carry the same claim.**
+`pii: { options: { model: cee-pii } }` switches the detector to `flowxai/cee-pii`, a
+GLiNER model trained on Romanian, Polish, Hungarian, Uzbek and both English variants.
+Four of those (`en`, `ro`, `pl`, `hu`) are in the 26; Uzbek is not a language this
+library claims at all. No per-language evaluation table exists for cee-pii yet, so its
+model card and this file both say "not recorded" rather than a number for the other 22.
+Selecting it also changes the deployment: it needs a GPU to run at any usable latency,
+`pii`'s own 225 ms budget is unchanged and does not apply to it, and
+`registry.deployment_notes(policy)` reports the requirement the moment a policy
+switches it on, the same mechanism `network` and `dependency` already use for the
+detectors below.
 
 **Two languages are weaker than the rest by construction.** Maltese is not in the base
 model's pretraining set, and Maltese and Azerbaijani national identifiers have no public

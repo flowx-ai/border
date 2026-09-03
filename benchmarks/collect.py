@@ -516,6 +516,61 @@ def latency_for(detectors: dict[str, Any]) -> dict[str, Any]:
     return out
 
 
+def model_variants_for() -> dict[str, Any]:
+    """Latency for a policy-selectable model that is not a detector's default.
+
+    `pii`'s own entry in `latency_for` always measures `piiguard`, because that is
+    what a policy gets without naming a model. cee-pii only runs when a policy asks
+    for it by name, so it needs its own measurement rather than a row in the
+    detector table it does not otherwise appear in.
+
+    One entry, `cee-pii`, hardcoded rather than generalised: it is the only
+    detector with a second model today, and a second one arriving is the moment to
+    write the loop, not before.
+
+    Quality is not collected here at all, published or not: no per-language
+    evaluation exists for cee-pii yet, so every reader of this file, not just the
+    ones that got a `--artifacts` directory, sees `"quality": "not recorded"`
+    rather than a metrics block that only some collection runs would fill in.
+    """
+    from flowx_border.detectors import ceepii
+    from flowx_border.detectors.base import DetectorConfig
+    from flowx_border.detectors.ceepii import MODEL_ID
+    from flowx_border.models.registry import ModelUnavailableError, available
+    from test_budgets import (
+        REFERENCE_INPUT,  # type: ignore[import-not-found]
+        p95,  # type: ignore[import-not-found]
+    )
+
+    entry: dict[str, Any] = {"quality": "not recorded", "needs": ["gpu"]}
+    if not available(MODEL_ID):
+        entry["status"] = "unavailable"
+        entry["why"] = (
+            "weights are not published yet and no local override provides them"
+        )
+        return {MODEL_ID: entry}
+
+    cfg = DetectorConfig(on_fail="flag", options={})
+    try:
+        ceepii.run("warmup", cfg, model_id=MODEL_ID)
+    except ModelUnavailableError as error:  # pragma: no cover - see available() above
+        entry["status"] = "unavailable"
+        entry["why"] = str(error)[:160]
+        return {MODEL_ID: entry}
+
+    measured = p95(
+        lambda: ceepii.run(REFERENCE_INPUT, cfg, model_id=MODEL_ID), 12, None
+    )
+    entry["status"] = "measured"
+    entry["p95_ms"] = round(measured, 3)
+    entry["reference_input"] = {
+        "characters": len(REFERENCE_INPUT),
+        "threads": 1,
+        "provider": "CPUExecutionProvider",
+    }
+    return {MODEL_ID: entry}
+
+
 def collect(artifacts: Path | None) -> dict[str, Any]:
     from flowx_border.detectors.catalogue import CATALOGUE, CORE, REQUIREMENTS
     from flowx_border.registry import loaded_detectors
@@ -567,6 +622,7 @@ def collect(artifacts: Path | None) -> dict[str, Any]:
         "artifacts_read_from": artifacts.name if artifacts else None,
         "detectors": detectors,
         "latency": latency_for(loaded),
+        "model_variants": model_variants_for(),
     }
 
 
@@ -636,6 +692,27 @@ def to_markdown(data: dict[str, Any]) -> str:
             continue
         note = "the unconfigured path" if "describes" in timing else "–"
         lines.append(f"| `{name}` | {timing['p95']:.3f} | {budget} | {note} |")
+
+    lines += [
+        "",
+        "## Model variants",
+        "",
+        "A model a detector runs only when a policy names it, not the one it runs by",
+        "default. `pii`'s row above always measures `piiguard`; a variant here needs",
+        "its own row because a policy that selects it gets none of the figures above.",
+        "",
+        "| Model | Status | p95 ms | Needs | Quality |",
+        "|---|---|---|---|---|",
+    ]
+    for model_id, variant in sorted(data["model_variants"].items()):
+        p95_cell = f"{variant['p95_ms']:.3f}" if "p95_ms" in variant else "–"
+        needs = ", ".join(variant.get("needs", [])) or "–"
+        lines.append(
+            f"| `{model_id}` | {variant['status']} | {p95_cell} | {needs} "
+            f"| {variant['quality']} |"
+        )
+        if "why" in variant:
+            lines.append(f"| | | | | {variant['why']} |")
     return "\n".join(lines) + "\n"
 
 
