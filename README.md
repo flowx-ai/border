@@ -126,9 +126,10 @@ from `benchmarks/collect.py`.
 
 ## Known issues
 
-[open_issues.md](open_issues.md) lists what is measured, unfixed and why, with the
-number attached to each. Four detectors have documented false positives on ordinary
-text, and two of them are disabled in the shipped policies for that reason.
+Four detectors have documented false positives on ordinary text, and two of them are
+disabled in the shipped policies for that reason. `docs/reference/performance.md` carries
+the measured numbers, and `docs/detectors.md` says which detectors a fresh install cannot
+load.
 
 ## Contributing
 
