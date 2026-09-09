@@ -149,13 +149,27 @@ CATALOGUE: Final[MappingProxyType[str, Spec]] = MappingProxyType(
         "sql_injection": Spec(
             "T1", frozenset({OUTPUT}), 5.0, frozenset({"dependency"})
         ),
-        # The moderation model trained on 2026-08-11: a multi-label hazard classifier on
-        # a Qwen3-0.6B base, replacing what llamaguard_7b and shieldgemma_2b provide
-        # without their weights. A budget of its own rather than the encoder one because
-        # the base is 0.6B where the other classifiers are 278M, and it is a second
-        # architecture rather than a session shared with them. This comment read "150 ms
-        # rather than 75" until 2026-08-17; 75 was withdrawn on 2026-08-12 and the
-        # encoder budget is the 225.0 above. training/ has the pipeline.
+        # The moderation model trained on 2026-08-11: a multi-label hazard
+        # classifier, replacing what llamaguard_7b and shieldgemma_2b provide without
+        # their weights.
+        #
+        # **This said "on a Qwen3-0.6B base" until 2026-09-09 and it was never true of
+        # the shipped artifact.** `flowxai/moderation` at the pinned revision is
+        # XLMRobertaForSequenceClassification, the same base as every other classifier
+        # here. The deviation is deliberate and `training/configs/moderation.yaml`
+        # records why: comparability with its eight siblings, an export and calibration
+        # path already proven on that base, and the 26-language claim resting on it.
+        #
+        # The 150 ms budget was justified by the Qwen attribution, "the base is 0.6B
+        # where the other classifiers are 278M, and it is a second architecture rather
+        # than a session shared with them". Both halves are false, so this budget has no
+        # stated rationale and is tighter than the 225.0 its identical siblings get. It
+        # stays at 150.0 here because a budget change belongs in its own commit with a
+        # measurement, never folded in with a documentation fix.
+        #
+        # This also read "150 ms rather than 75" until 2026-08-17; 75 was withdrawn on
+        # 2026-08-12 and the encoder budget is the 225.0 above. training/ has the
+        # pipeline.
         "moderation": Spec("T2", frozenset({INPUT, OUTPUT}), 150.0),
         "injection": Spec("T2", frozenset({INPUT}), 225.0),
         "regulated_advice": Spec("T2", frozenset({OUTPUT}), 225.0),
