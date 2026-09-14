@@ -141,6 +141,47 @@ ever call the other function, so only the caller can decide whether a line here 
 note or a hole. If you scan one direction only, treat a non-empty result mentioning an
 enforcing action as fatal.
 
+## Describing a taxonomy: say what a node is, never what it is not
+
+`topic_scope` takes its taxonomy from the policy rather than from weights, so the wording
+of a node is a configuration decision with a measurable effect. One rule governs it: a
+bi-encoder compares meanings and has no representation for negation.
+
+A disallowed node reading `companies other than this one` does not embed as an exclusion.
+It embeds roughly as "confidential details of companies", which is near every question
+anyone asks in a data room, so the node matches the traffic it was written to let through.
+
+    # reads as the thing it was meant to exclude
+    disallowed:
+      - path: other_companies
+        description: companies other than this one
+
+    # reads as itself
+    disallowed:
+      - path: competitor_financials
+        description: competitor revenue, margins and customer lists
+
+**This fails in the direction that looks safe**, which is why it is worth stating here
+rather than leaving to a docstring. An over-broad disallowed node refuses real work
+rather than admitting bad work, so it presents as a strict boundary rather than a broken
+one, and the only symptom is a refusal rate nobody has a baseline for.
+
+A deployment reported the effect on 2026-09-14 against their own taxonomy and their own
+720 ordinary questions: three of their four disallowed nodes were phrased by exclusion,
+and rewriting them positively took refusals from 132 to 96. That is their measurement on
+their data, not a benchmark in this repository, and the mechanism is what generalises
+rather than the figure.
+
+Two related things when writing one:
+
+- **Sweep the threshold on your own taxonomy.** More nodes mean more chances of a
+  spurious near-match, so the bar moves with the taxonomy. `policies/default.yaml`
+  carries the sweep behind the shipped 0.85 and the reason a previous 0.45 could reject
+  nothing at all.
+- **The runner-up is available.** The detector emits `nearest__<path>` at `action: log`
+  carrying the closest allowed node and its score, so the margin between the winning node
+  and the best allowed one is computable per scan without changing anything.
+
 ## On thresholds
 
 A threshold left at a plausible-looking default is how a detector becomes a no-op
