@@ -144,6 +144,14 @@ class TopicScopeDetector:
         from flowx_border.models.onnx import session_for
 
         loaded = session_for(MODEL_ID, threads=threads)
+        if self.model_id is None:
+            # See `PiiDetector._scores`. `warm` is not on the scan path, and an
+            # unattested finding reads as a rule's in an evidence record.
+            from flowx_border.models.registry import attestation_for
+
+            self.model_id, self.model_revision, self.weights_sha256 = attestation_for(
+                MODEL_ID
+            )
         tokenizer = self._tokenizer()
         tokenizer.enable_truncation(  # type: ignore[attr-defined]
             loaded.spec.trained_max_length

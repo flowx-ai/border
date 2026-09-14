@@ -132,8 +132,9 @@ def scored() -> dict[str, object]:
     # comparison against the gold three-way string can never match it. Using the
     # detector's own `_verdict`/`_reads_grounded` is what `test_t3.py`'s `is_grounded`
     # already does for the same reason: it measures the decision, not the vocabulary.
-    grounded_min = detector._scheme.grounded_min
-    is_binary = len(detector._scheme.reportable) == 1
+    scheme = detector._label_scheme()
+    grounded_min = scheme.grounded_min
+    is_binary = len(scheme.reportable) == 1
 
     per_shape: dict[str, list[int]] = {}
     binary_correct = 0

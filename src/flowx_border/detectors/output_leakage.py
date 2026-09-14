@@ -63,9 +63,22 @@ class OutputLeakageDetector:
     tier = "T1"
     sides = frozenset({OUTPUT})
 
-    model_id: str | None = None
-    model_revision: str | None = None
-    weights_sha256: str | None = None
+    # Read through from the PiiDetector rather than copied at warm. This detector's
+    # whole design is that there is never a second copy of anything, and a mirrored
+    # field is a second copy that goes stale: `PiiDetector` fills its attestation in
+    # lazily on its first scan, so an unwarmed process attested nothing here while the
+    # detector it delegates to attested correctly.
+    @property
+    def model_id(self) -> str | None:
+        return self._pii.model_id
+
+    @property
+    def model_revision(self) -> str | None:
+        return self._pii.model_revision
+
+    @property
+    def weights_sha256(self) -> str | None:
+        return self._pii.weights_sha256
 
     def __init__(
         self, *, threads: int | None = None, shared: PiiDetector | None = None
@@ -84,9 +97,6 @@ class OutputLeakageDetector:
 
     def warm(self) -> None:
         self._pii.warm()
-        self.model_id = self._pii.model_id
-        self.model_revision = self._pii.model_revision
-        self.weights_sha256 = self._pii.weights_sha256
 
     def run(self, text: str, cfg: DetectorConfig, ctx: Context) -> list[Finding]:
         known = list(ctx.sources)

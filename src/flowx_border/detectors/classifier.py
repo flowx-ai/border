@@ -173,6 +173,16 @@ class ClassifierDetector:
 
         if self._labels is None:
             self._read_config()
+        if self.model_id is None:
+            # See `PiiDetector._scores`: `warm` is the only other thing that sets these,
+            # nothing calls it on the scan path, and a finding that attests no weights
+            # is indistinguishable in a record from one a rule produced. This class
+            # backs eight detector ids, so it was eight of them.
+            from flowx_border.models.registry import attestation_for
+
+            self.model_id, self.model_revision, self.weights_sha256 = attestation_for(
+                self._model_id
+            )
         labels = self._labels or {}
 
         tokenizer = self._tokenizer()

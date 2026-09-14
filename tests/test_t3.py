@@ -30,8 +30,18 @@ from flowx_border.detectors.topic_scope import (
     TopicScopeError,
     fold_path,
 )
+from flowx_border.types import Finding
 
 CFG = DetectorConfig(on_fail="flag", threshold=0.5)
+
+
+def _decided(findings: list[Finding]) -> list[tuple[str, tuple[int, int] | None]]:
+    """What two detectors have to agree on, which is not the whole Finding.
+
+    The attestation fields are asserted separately, by the test that is about them.
+    """
+    return [(f.label, f.span) for f in findings]
+
 
 SOURCE = (
     "Our savings account pays 3.1 percent annual interest. "
@@ -287,7 +297,7 @@ def is_grounded(grounded: GroundednessDetector, source: str, sentence: str) -> b
     which is where its temporal-contradiction probe sits.
     """
     scored = grounded.judge(source, sentence, 1)
-    return grounded._reads_grounded(scored, grounded._scheme.grounded_min)
+    return grounded._reads_grounded(scored, grounded._label_scheme().grounded_min)
 
 
 #: A source of the length the model was trained on, 163 to 1019 characters with a median
@@ -338,7 +348,7 @@ def test_the_cases_the_model_does_get_right(
     assert is_grounded(grounded, PROBE_SOURCE, sentence) == want_grounded, (
         f"{case}: { ({k: round(v, 4) for k, v in scored.items()}) }"
     )
-    if grounded._scheme is THREE_WAY:
+    if grounded._label_scheme() is THREE_WAY:
         # Only a three-way artifact can be asked which kind of not-grounded it is, and
         # that distinction is the reason the scheme exists, so it is still asserted.
         assert max(scored, key=lambda label: scored[label]) == expected, (
@@ -525,7 +535,6 @@ def test_an_escalated_scan_records_what_escalated_it() -> None:
 def test_always_true_records_that_reason_instead() -> None:
     from flowx_border.detectors.base import Context as Ctx
     from flowx_border.engine import run_scan
-    from flowx_border.types import Finding
 
     class Quiet:
         id = "topic_scope"
@@ -550,7 +559,6 @@ def test_the_escalation_reason_does_not_change_the_verdict() -> None:
     # It is action `log`, so it belongs in the record and not in the decision.
     from flowx_border.detectors.base import Context as Ctx
     from flowx_border.engine import run_scan
-    from flowx_border.types import Finding
 
     class Quiet:
         id = "topic_scope"
@@ -579,7 +587,6 @@ def test_the_escalation_record_does_not_read_as_a_detection() -> None:
     """
     from flowx_border.detectors.base import Context as Ctx
     from flowx_border.engine import run_scan
-    from flowx_border.types import Finding
 
     class Quiet:
         id = "topic_scope"
@@ -783,3 +790,112 @@ def test_the_rule_layer_is_reachable_from_the_detector() -> None:
         "The fixed rate of 4.3 percent applies for the first five years.",
     )
     assert found is not None and found[0] == "numeric_conflict"
+
+
+# ----------------------------------------------------- the detector nobody warmed
+
+
+def _cold() -> GroundednessDetector:
+    """A groundedness detector in the state a fresh process leaves it in.
+
+    Availability is probed on a throwaway, because probing it on the instance under test
+    would warm the thing the test is about. A subprocess is not needed even though the
+    bug only ever showed up in a fresh process: the session cache is module-level and
+    shared, but `_scheme` and the attestation are per instance, which is the whole
+    reason a second identical scan behaved differently from the first.
+    """
+    from flowx_border.models.registry import ModelUnavailableError
+
+    try:
+        GroundednessDetector()._ensure_config()
+    except ModelUnavailableError as error:
+        pytest.skip(f"groundedness weights not available: {error}")
+    return GroundednessDetector()
+
+
+def test_the_label_scheme_is_read_rather_than_defaulted() -> None:
+    """`_scheme` held THREE_WAY as a placeholder until 2026-09-14.
+
+    The published artifact is binary, so the placeholder named a label the model does
+    not produce. None is what makes skipping the load a type error rather than a wrong
+    answer: there is no scheme to read until one has been read.
+    """
+    from flowx_border.detectors.groundedness import SCHEMES
+
+    detector = _cold()
+    assert detector._scheme is None
+    assert detector._label_scheme() in SCHEMES
+    assert detector._scheme is detector._label_scheme()
+
+
+def test_an_unwarmed_scan_reaches_its_second_source(
+    grounded: GroundednessDetector,
+) -> None:
+    """`KeyError: 'supported'`, three frames inside a comparison, until 2026-09-14.
+
+    Two sources that both fail to ground the sentence is the trigger. The first sets
+    `fallback` through the `fallback is None` short circuit, so only the second reaches
+    `scored[grounded_label]`, and cold that label is not a key the model produces.
+
+    The engine catches it, so what a caller saw was a `detector_error` finding at score
+    1.0: a fail-closed deployment refused its first output and allowed the identical
+    second one. Reported against 0.6.0 on 2026-09-14 by a deployment doing exactly that.
+    """
+    cold = _cold()
+    text = (
+        "This answer was generated by an AI assistant. "
+        "Zebras were first domesticated in 1742."
+    )
+    ctx = Context(
+        sources=(
+            "The platform is deployed into the customer's own environment.",
+            "Support is available during European business hours.",
+        )
+    )
+    assert _decided(cold.run(text, CFG, ctx)) == _decided(grounded.run(text, CFG, ctx))
+
+
+def test_an_unwarmed_scan_applies_the_artifacts_own_bar(
+    grounded: GroundednessDetector,
+) -> None:
+    """The half that raised nothing, and is therefore the worse half.
+
+    `grounded_min` differs between the schemes, None for three-way and 0.78 for binary,
+    so an unwarmed detector fell back to argmax. One source gives the KeyError nothing
+    to fire on, and the temporal-contradiction probe scores grounded at 0.7681: above
+    the argmax 0.5, below the bar. So it returned no finding at all, silently, on the
+    one case the bar was chosen to catch.
+    """
+    cold = _cold()
+    ctx = Context(sources=(PROBE_SOURCE,))
+    sentence = "Withdrawals are free from the day the account opens."
+    assert _decided(cold.run(sentence, CFG, ctx)) == _decided(
+        grounded.run(sentence, CFG, ctx)
+    )
+    assert [label for label, _span in _decided(cold.run(sentence, CFG, ctx))] == [
+        "not_grounded"
+    ]
+
+
+def test_an_unwarmed_finding_still_attests_its_weights(
+    grounded: GroundednessDetector,
+) -> None:
+    """An evidence record is the product, so an unattested finding is a defective one.
+
+    `warm` was the only thing that set these and nothing calls `warm` on the scan path,
+    so a finding from a fresh process carried no model_id, which in a record is
+    indistinguishable from one `secrets` produced. `PiiDetector` had already fixed its
+    half and said so in a comment; groundedness, topic_scope, output_leakage and the
+    eight ids `ClassifierDetector` backs had not.
+    """
+    cold = _cold()
+    ctx = Context(sources=(PROBE_SOURCE,))
+    findings = cold.run(
+        "Withdrawals are free from the day the account opens.", CFG, ctx
+    )
+    assert findings
+    assert cold.model_id == grounded.model_id
+    assert cold.model_revision == grounded.model_revision
+    assert cold.weights_sha256 == grounded.weights_sha256
+    assert all(f.model_id == grounded.model_id for f in findings)
+    assert all(f.model_revision == grounded.model_revision for f in findings)

@@ -125,9 +125,17 @@ class GroundednessDetector:
         self.sides: frozenset[str] = spec.sides
         self._threads = threads
         self._labels: dict[int, str] | None = None
-        # Which label set the loaded artifact uses. Set at warm by
-        # `_read_config`, never guessed.
-        self._scheme: LabelScheme = THREE_WAY
+        # Which label set the loaded artifact uses. None until `_read_config` has run,
+        # and read through `_label_scheme` rather than directly, so a read that skips
+        # the load is a type error rather than a wrong answer.
+        #
+        # This held THREE_WAY as a placeholder until 2026-09-14, and the placeholder was
+        # a correctness bug rather than a default. `run` binds `grounded_label` and
+        # `grounded_min` from the scheme before it calls `judge`, and `judge` held the
+        # only lazy read, so an unwarmed detector scored a whole scan against the labels
+        # of an artifact this library no longer loads. See the cold-start section of
+        # tests/test_t3.py.
+        self._scheme: LabelScheme | None = None
         self._cache: dict[tuple[str, str, int], dict[str, float]] = {}
         self._lock = threading.Lock()
 
@@ -183,8 +191,52 @@ class GroundednessDetector:
                 f"{known}. A mismatch would invert verdicts silently, so it is refused "
                 "here rather than discovered from a scan."
             )
+        # Labels first, so a second thread that sees `_scheme` set is guaranteed to
+        # see `_labels` too. That ordering is why `_ensure_config` needs no lock: the
+        # read is idempotent, and the only way to observe it half-done is barred by the
+        # order of these two lines.
         self._labels = labels
         self._scheme = scheme
+
+    def _ensure_config(self) -> None:
+        """Read what `warm` reads, if `warm` has not: the labels and the attestation.
+
+        `warm` is documented across this package as an optimisation, and this is what
+        keeps that true here. A detector that is merely slow when cold is expected; one
+        that is wrong when cold is a different thing, and this detector was the second
+        kind for as long as the scheme had a default.
+        """
+        if self._scheme is None:
+            self._read_config()
+        if self.model_id is None:
+            # The other half of what `warm` sets. Nothing calls `warm` on the scan path,
+            # so without this an unwarmed process produced findings and an evidence
+            # record that attested no weights at all, which reads exactly like a
+            # rule-based detector. `attestation_for` is a dict read against a spec
+            # `resolve` already verified, not a hash or a download. See
+            # `PiiDetector._scores`, which carries the full reasoning.
+            from flowx_border.models.registry import attestation_for
+
+            self.model_id, self.model_revision, self.weights_sha256 = attestation_for(
+                MODEL_ID
+            )
+
+    def _label_scheme(self) -> LabelScheme:
+        """The loaded artifact's label set, loading its config on first need.
+
+        Every read of the scheme goes through here rather than through the attribute,
+        which is the point: `_scheme` is typed optional, so a future read that skips
+        this fails `mypy --strict` instead of silently naming a label the model does not
+        produce.
+        """
+        self._ensure_config()
+        scheme = self._scheme
+        if scheme is None:  # pragma: no cover - _read_config sets it or raises
+            raise RuntimeError(
+                f"the {MODEL_ID} label scheme was not read, so a verdict could not be "
+                "named."
+            )
+        return scheme
 
     # ------------------------------------------------------------------ inference
 
@@ -218,8 +270,7 @@ class GroundednessDetector:
         if hit is not None:
             return hit
 
-        if self._labels is None:
-            self._read_config()
+        self._ensure_config()
         labels = self._labels or {}
 
         loaded = session_for(MODEL_ID, threads=threads)
@@ -293,13 +344,17 @@ class GroundednessDetector:
             out.append(self._truncated("sources", len(sources), max_sources))
             sources = sources[:max_sources]
 
-        grounded_label = self._scheme.grounded
+        # Both of these are bound before the first `judge` call, which is what made
+        # the ordering load-bearing: `judge` reading the config a line later was already
+        # too late for the values this scan runs on.
+        scheme = self._label_scheme()
+        grounded_label = scheme.grounded
         # None keeps the argmax behaviour every three-way artifact shipped with. A
         # binary
         # artifact needs a number: its argmax is 0.5, and the temporal probe
         # sits at 0.7757, so argmax alone puts that case back on the grounded side. See
         # LabelScheme.
-        grounded_min_raw = options.get("grounded_min", self._scheme.grounded_min)
+        grounded_min_raw = options.get("grounded_min", scheme.grounded_min)
         grounded_min = None if grounded_min_raw is None else float(grounded_min_raw)
         use_rules = bool(options.get("rules", True))
 
@@ -391,7 +446,7 @@ class GroundednessDetector:
     def _reads_grounded(
         self, scored: dict[str, float], grounded_min: float | None
     ) -> bool:
-        grounded_label = self._scheme.grounded
+        grounded_label = self._label_scheme().grounded
         if grounded_min is None:
             return max(scored, key=lambda label: scored[label]) == grounded_label
         return scored[grounded_label] >= grounded_min
@@ -404,9 +459,10 @@ class GroundednessDetector:
         still its highest score. Reporting the argmax then would report `grounded` as a
         finding, so the verdict is the best of the reportable labels instead.
         """
+        scheme = self._label_scheme()
         if self._reads_grounded(scored, grounded_min):
-            return self._scheme.grounded
-        reportable = [name for name in self._scheme.reportable if name in scored]
+            return scheme.grounded
+        reportable = [name for name in scheme.reportable if name in scored]
         if not reportable:  # pragma: no cover - a scheme always has one
             return max(scored, key=lambda label: scored[label])
         return max(reportable, key=lambda label: scored[label])
