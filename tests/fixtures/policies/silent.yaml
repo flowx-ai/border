@@ -1,0 +1,24 @@
+# A policy shaped like the one reported on 2026-09-15: it states a threshold where the
+# author thought about it and omits it everywhere else, on the reasonable assumption that
+# an omitted key inherits the value the detector ships at. It does not. Every omission
+# resolves to DetectorPolicy's flat 0.5.
+#
+# Kept as a fixture rather than built in the test, because the defect is a property of a
+# document a caller writes, and a dict literal does not go through the YAML path.
+policy_id: silent-thresholds
+version: 1
+description: A policy that states three thresholds and inherits nothing.
+
+detectors:
+  injection:
+    on_fail: block
+    threshold: 0.5
+  moderation:
+    enabled: true
+    on_fail: flag
+  nsfw:
+    enabled: true
+    on_fail: flag
+  topic_scope:
+    enabled: false
+    on_fail: flag

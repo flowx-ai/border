@@ -151,6 +151,14 @@ detectors:
   politeness:
     enabled: true
     on_fail: flag
+    # Stated 2026-09-15, and it was 0.5 before that because nothing stated it. An
+    # omitted threshold does not inherit the value chosen for the detector, it gets
+    # DetectorPolicy's flat 0.5, so this file enabled the one detector it turns on that
+    # `default.yaml` leaves off and then ran it at a bar nobody picked. Every other
+    # deviation here is deliberate and says so beside itself; this one was silence.
+    # Found by `registry.threshold_notes`, which exists because a deployment hit the
+    # same thing on `moderation` and `injection`.
+    threshold: 0.89
 
   # Disabled even here, and especially here. Every scan would put a third party in
   # the request path of a regulated assistant, and this file fails T1 closed, so an

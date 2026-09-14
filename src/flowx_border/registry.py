@@ -353,6 +353,70 @@ def side_notes(policy: Policy, side: str) -> tuple[str, ...]:
     return tuple(out)
 
 
+def threshold_notes(policy: Policy) -> tuple[str, ...]:
+    """Enabled detectors this policy fires at a different bar than the shipped one.
+
+    `side_notes` above exists because a policy can silently do nothing. This exists
+    because a policy can silently do something else, and it was found the same way: from
+    outside, by a deployment measuring its own traffic.
+
+    **The episode, 2026-09-15.** `DetectorPolicy.threshold` defaults to 0.5 for every
+    detector. A deployment's policy stated a threshold on three detectors and omitted it
+    on the other twenty-seven, on the reasonable assumption that an omitted key inherits
+    the value this project chose. It does not. They ran `moderation` at 0.5 against the
+    shipped 0.80 and `injection` at 0.5 against the shipped 0.43, for the life of the
+    document, and reported a 43 percent moderation fire rate on ordinary investor
+    questions. Four of their nine findings scored 0.5422 to 0.6669 and exist only at
+    their bar; the five above 0.87 fire either way. So the over-firing was partly
+    theirs, and the under-firing on `injection` was worse for being on the one
+    model-backed detector in their configuration that can block, where a miss is
+    invisible.
+
+    Both directions from one cause, which is why this reports a difference rather than a
+    breach: a policy above the shipped bar is quieter than intended and one below it is
+    noisier, and only a caller knows which they meant.
+
+    It cannot report whether the key was *omitted*, because `_resolve` fills defaults
+    before anything sees the document, deliberately, so that two policies meaning the
+    same thing hash the same. Comparing the resolved value against the shipped one is
+    the better question anyway: the deployment above had stated 0.5 on `injection`
+    explicitly and was still 0.07 below stock.
+
+    Lines rather than an exception, for `deployment_notes`' reasons.
+    `policies/bfsi.yaml` deviates from `default.yaml` on nine detectors on purpose, so a
+    non-empty result here is a deliberate profile as often as it is a mistake, and the
+    caller is the only one who can tell.
+
+    It found a tenth on its first run, and that one was not deliberate. `bfsi.yaml`
+    enables `politeness`, which `default.yaml` leaves off, and stated no threshold for
+    it, so the stricter of the two shipped policies ran it at 0.5 against the 0.89
+    chosen for that detector. Every other deviation in that file carries a comment
+    saying why; this one carried silence. Fixed in the same commit, which is the
+    argument for the function: the defect was in our own artifact and three rounds of
+    reading that file by hand had not found it.
+    """
+    out = []
+    for detector_id, spec in sorted(CATALOGUE.items()):
+        shipped = spec.shipped_threshold
+        if shipped is None or not policy.enabled_for(detector_id):
+            continue
+        configured = policy.for_detector(detector_id).threshold
+        if configured == shipped:
+            continue
+        direction = "below" if configured < shipped else "above"
+        on_fail = policy.for_detector(detector_id).on_fail
+        blocking = (
+            f" It is set to {on_fail}, so this is the bar at which text is stopped."
+            if on_fail in ("block", "redact", "rewrite")
+            else ""
+        )
+        out.append(
+            f"{detector_id} fires at {configured}, {direction} the {shipped} "
+            f"chosen for policies/default.yaml.{blocking}"
+        )
+    return tuple(out)
+
+
 def deployment_notes(policy: Policy) -> tuple[str, ...]:
     """What this policy needs from the machine, beyond a CPU and the base install.
 

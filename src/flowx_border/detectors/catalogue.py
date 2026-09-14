@@ -73,6 +73,27 @@ class Spec(NamedTuple):
     # enable the detector, not from a paragraph they may not have read.
     requires: frozenset[str] = frozenset()
 
+    # The threshold `policies/default.yaml` sets for this detector, or None where that
+    # policy states none. A field rather than a paragraph for the same reason `requires`
+    # is one, and for a sharper one found from outside on 2026-09-15.
+    #
+    # `DetectorPolicy.threshold` defaults to 0.5 for every detector, so a policy that
+    # omits the key does not inherit the value this project chose, it gets 0.5. Eight of
+    # the ten model-backed detectors ship at something else, between `gibberish` at 0.37
+    # and `politeness` at 0.89, and `policies/` is not packaged, so a caller who pip
+    # installs the library and writes their own policy has no copy of those values at
+    # all. A deployment ran `moderation` at 0.5 against the shipped 0.80 and `injection`
+    # at 0.5 against the shipped 0.43 for the life of their policy document, which is
+    # over-firing on one detector and under-firing on their only blocking one, and
+    # nothing anywhere said so.
+    #
+    # This does not change the default. It gives `registry.threshold_notes` something to
+    # compare against, so the condition is audible at load rather than deducible only by
+    # reading a file that is not distributed. `policies/bfsi.yaml` deviates deliberately
+    # and is not pinned to these values; `tests/test_thresholds_shipped.py` pins
+    # `default.yaml` in both directions.
+    shipped_threshold: float | None = None
+
 
 CATALOGUE: Final[MappingProxyType[str, Spec]] = MappingProxyType(
     {
@@ -88,16 +109,18 @@ CATALOGUE: Final[MappingProxyType[str, Spec]] = MappingProxyType(
         # are off by default rather than making the detector optional. See its module
         # docstring.
         "invisible_text": Spec("T0", frozenset({INPUT, OUTPUT}), 5.0),
-        "pii": Spec("T1", frozenset({INPUT, OUTPUT}), 225.0),
-        "output_leakage": Spec("T1", frozenset({OUTPUT}), 225.0),
-        "gibberish": Spec("T1", frozenset({INPUT}), 225.0),
+        "pii": Spec("T1", frozenset({INPUT, OUTPUT}), 225.0, shipped_threshold=0.5),
+        "output_leakage": Spec("T1", frozenset({OUTPUT}), 225.0, shipped_threshold=0.5),
+        "gibberish": Spec("T1", frozenset({INPUT}), 225.0, shipped_threshold=0.37),
         # Ported from the Guardrails Hub, 2026-08-11. Rules rather than models, so they
         # sit at T1 with a rule-sized budget. T1 rather than T0 because each can be
         # wrong in a way a deployment has to be able to switch off: banned_terms and
         # internal_domains need a list only the deployer has, and markup_injection fires
         # on a coding assistant doing its job.
         "banned_terms": Spec("T1", frozenset({INPUT, OUTPUT}), 5.0),
-        "system_prompt_leakage": Spec("T1", frozenset({OUTPUT}), 5.0),
+        "system_prompt_leakage": Spec(
+            "T1", frozenset({OUTPUT}), 5.0, shipped_threshold=0.5
+        ),
         "markup_injection": Spec("T1", frozenset({INPUT, OUTPUT}), 5.0),
         # Added 2026-08-16. T1 with a rule-sized budget because it is character
         # trigrams over a packaged profile rather than a model: it has to answer before
@@ -125,7 +148,9 @@ CATALOGUE: Final[MappingProxyType[str, Spec]] = MappingProxyType(
         # T1 and both sides. The decode is what makes the rules reachable: a base64
         # blob's surface text carries no attack, so `injection` scores it as clean, and
         # a credential inside one was reported as `pii:iban` before this existed.
-        "encoded_payload": Spec("T1", frozenset({INPUT, OUTPUT}), 5.0),
+        "encoded_payload": Spec(
+            "T1", frozenset({INPUT, OUTPUT}), 5.0, shipped_threshold=0.5
+        ),
         "code_present": Spec("T1", frozenset({INPUT, OUTPUT}), 5.0),
         # From llm-guard's TokenLimit, which was declined during the port because a
         # token count depends on the tokenizer of the model being called. The answer is
@@ -170,20 +195,26 @@ CATALOGUE: Final[MappingProxyType[str, Spec]] = MappingProxyType(
         # This also read "150 ms rather than 75" until 2026-08-17; 75 was withdrawn on
         # 2026-08-12 and the encoder budget is the 225.0 above. training/ has the
         # pipeline.
-        "moderation": Spec("T2", frozenset({INPUT, OUTPUT}), 150.0),
-        "injection": Spec("T2", frozenset({INPUT}), 225.0),
-        "regulated_advice": Spec("T2", frozenset({OUTPUT}), 225.0),
-        "toxicity": Spec("T2", frozenset({INPUT, OUTPUT}), 225.0),
-        "nsfw": Spec("T2", frozenset({INPUT, OUTPUT}), 225.0),
-        "bias": Spec("T2", frozenset({OUTPUT}), 225.0),
-        "politeness": Spec("T2", frozenset({OUTPUT}), 225.0),
+        "moderation": Spec(
+            "T2", frozenset({INPUT, OUTPUT}), 150.0, shipped_threshold=0.8
+        ),
+        "injection": Spec("T2", frozenset({INPUT}), 225.0, shipped_threshold=0.43),
+        "regulated_advice": Spec(
+            "T2", frozenset({OUTPUT}), 225.0, shipped_threshold=0.5
+        ),
+        "toxicity": Spec(
+            "T2", frozenset({INPUT, OUTPUT}), 225.0, shipped_threshold=0.81
+        ),
+        "nsfw": Spec("T2", frozenset({INPUT, OUTPUT}), 225.0, shipped_threshold=0.76),
+        "bias": Spec("T2", frozenset({OUTPUT}), 225.0, shipped_threshold=0.77),
+        "politeness": Spec("T2", frozenset({OUTPUT}), 225.0, shipped_threshold=0.89),
         # The only detector that leaves the machine, and the only one whose budget is a
         # deadline it enforces on itself rather than a figure somebody measured: it
         # depends on a network the library does not control.
         "url_reachability": Spec(
             "T3", frozenset({OUTPUT}), 3000.0, frozenset({"network"})
         ),
-        "topic_scope": Spec("T3", frozenset({INPUT}), 300.0),
+        "topic_scope": Spec("T3", frozenset({INPUT}), 300.0, shipped_threshold=0.85),
         "groundedness": Spec("T3", frozenset({OUTPUT}), 300.0),
     }
 )

@@ -190,3 +190,55 @@ F1 of 0.000 at 0.5 in all 26 languages, because their scores separate positives
 from negatives well below it. The shipped policies carry calibrated values, and a
 detector whose threshold is not listed there has not been calibrated yet. Treat
 that as unmeasured rather than as correct.
+
+### An omitted threshold is not an inherited one
+
+**Omitting `threshold` gives you 0.5, not the value the detector ships at.**
+`DetectorPolicy.threshold` defaults to a flat 0.5 for every detector in the
+catalogue, and `load_policy` fills it in before anything else sees the document. So
+a policy that says nothing about a threshold has not deferred the decision, it has
+made one.
+
+For eight of the ten model-backed detectors that is nowhere near the shipped value:
+
+| detector | `policies/default.yaml` | what an omission gives you |
+|---|---|---|
+| `gibberish` | 0.37 | 0.5, less sensitive |
+| `injection` | 0.43 | 0.5, less sensitive |
+| `nsfw` | 0.76 | 0.5, more sensitive |
+| `bias` | 0.77 | 0.5, more sensitive |
+| `moderation` | 0.80 | 0.5, more sensitive |
+| `toxicity` | 0.81 | 0.5, more sensitive |
+| `topic_scope` | 0.85 | 0.5, more sensitive |
+| `politeness` | 0.89 | 0.5, more sensitive |
+
+The reason this is easy to miss twice over: the package ships `src/flowx_border`
+and not `policies/`, so an installed copy of the library does not contain the file
+those numbers live in. `flowx_border.detectors.catalogue.CATALOGUE[id].shipped_threshold`
+carries them, and `tests/test_thresholds_shipped.py` pins that table against the
+policy file in both directions.
+
+It fails quietly in both directions, and they are not equally bad. Below the shipped
+bar the detector over-fires, which is visible: a caller sees refusals and
+investigates. Above it the detector under-fires, which produces no finding, no
+evidence record and nothing to notice, and that is the direction an omission takes
+`injection` and `gibberish`.
+
+`registry.threshold_notes(policy)` names every enabled detector whose resolved
+threshold differs from the shipped one, and says the configured action, so a lowered
+bar on a blocking detector reads differently from one on a `log`:
+
+```python
+from flowx_border import load_policy
+from flowx_border.registry import threshold_notes
+
+for line in threshold_notes(load_policy("policy.yaml")):
+    print(line)
+```
+
+It reports rather than corrects, for the reason `deployment_notes` does: a policy
+above the shipped bar may be a deliberate profile, and only the caller knows.
+`policies/bfsi.yaml` produces nine such lines on purpose. It produced a tenth that
+was not on purpose, and that is why this section exists: that file enables
+`politeness`, stated no threshold for it, and had been running it at 0.5 against
+0.89 since it was written.
