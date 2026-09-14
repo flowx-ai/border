@@ -99,6 +99,46 @@ MAX_FIRE_RATE: dict[str, float] = {
     # given while it was failing, kept rather than tightened to what it now measures: a
     # ceiling set to the current value fails on the next honest ambiguous row.
     "regulated_advice": 0.10,
+    # Both added 2026-09-14, and the reason they are being added rather than adjusted is
+    # the point. `over_ceiling` iterates this dict and KNOWN_OVER, not the detectors the
+    # sweep actually measured, so a detector in neither is not held to anything. These
+    # two were in neither: `moderation` fired on 0.0983 of ordinary rows and
+    # `topic_scope` on 0.3248, and nothing in the suite would have failed if either had
+    # doubled. `test_every_measured_detector_has_a_ceiling` below refuses that state.
+    #
+    # `moderation` measures 0.0769 on the v7 retrain adopted the same day. Its
+    # ceiling is 0.10 rather than 0.08, following `regulated_advice`: a ceiling set
+    # to the current value fails on the next honest ambiguous row.
+    "moderation": 0.10,
+    # `topic_scope` measures 0.2863 and is the one entry here that is not a false
+    # positive rate. It asks whether text is outside a configured taxonomy, and the
+    # sweep's rows are ordinary business prose scanned against the default policy's
+    # taxonomy, so a fire is often correct. It is also T3, so it runs on escalation and
+    # its rate moves when a lower tier's does. 0.35 bounds it without pretending the
+    # measured value is a target; `open_issues.md` item 8 is the abstention work that
+    # would make this a meaningful rate rather than a bound.
+    "topic_scope": 0.35,
+    # Moved here from KNOWN_OVER on 2026-09-14 when its strict xfail XPASSed at 0.2436.
+    # **That is the row set, not the detector.** The rows were re-drawn when the
+    # moderation corpus was regenerated, pii's weights and configuration are untouched,
+    # and the margin is one row of 234. Enforced from here because an XPASSing strict
+    # xfail has to become one thing or the other, and the honest reading is that pii is
+    # newly guarded rather than newly fixed.
+    "pii": 0.25,
+    # Both added 2026-09-14 by the completeness test below, on its first run, which is
+    # the argument for having written it: three rounds of reading this dict by hand had
+    # not noticed either.
+    #
+    # `disclosure` fires on every row and 1.0 is the correct ceiling, not a surrender.
+    # It is a T0 rule asking whether the output carries the disclosure the policy
+    # requires, and the sweep's rows are bare sentences that carry none, so a fire is
+    # the policy working rather than a false positive. It is `flag`, so it damages
+    # nothing. A ceiling below 1.0 here would fail on correct behaviour.
+    "disclosure": 1.0,
+    # `secrets` is a T0 regex-and-entropy rule and fires on 1 row of 234, an ordinary
+    # string that clears its entropy bar. 0.05 is the same ceiling the other rule-shaped
+    # detectors carry.
+    "secrets": 0.05,
 }
 
 #: The one that is over its ceiling today, split out so the nine above stay enforced. A
@@ -113,9 +153,7 @@ MAX_FIRE_RATE: dict[str, float] = {
 #:
 #: The ceilings here are where each should be, not where it is. Measured values are in
 #: the xfail reason on the test that carries them.
-KNOWN_OVER: dict[str, float] = {
-    "pii": 0.25,
-}
+KNOWN_OVER: dict[str, float] = {}
 
 #: Labels that are a detector reporting it could not run, rather than a finding about
 #: the text. These are the third rule working and are counted separately.
@@ -484,41 +522,44 @@ def test_no_detector_fires_above_its_measured_ceiling(sweep: dict[str, object]) 
     )
 
 
-@pytest.mark.xfail(
-    reason=(
-        "Re-measured 2026-09-14 on the v5 rows: pii fires on 0.2521 against its 0.25 "
-        "ceiling, which is 59 rows of 234 where 58 would clear it. One row.\n\n"
-        "**Every number in this reason was stale, for the second time, and the label "
-        "in one of them no longer exists.** It read `pii` at 0.4017 firing and 0.0769 "
-        "damaging, with `regulated_advice` at 0.5256 beside it, and broke pii's "
-        "findings down as 86 `date`, 60 `pii_below_entity_threshold_person` and 42 "
-        "redactions. `regulated_advice` left this dict on 2026-08-20 and the person "
-        "bar was removed on the same day LOCATION landed, so that middle count had "
-        "been describing a label the detector stopped emitting. A number inside an "
-        "xfail reason is prose, nothing recomputes prose, and this is the file that "
-        "says so.\n\n"
-        "What pii's 206 findings over these rows actually are: 114 `location` at "
-        "`flag`, 56 `date` at `flag`, and 36 redactions. So the firing rate and the "
-        "damage rate are still deliberately different questions. Two thirds of the "
-        "firing is an entity recorded rather than cut out of the caller's text, this "
-        "test measures noise in the evidence record, and the one above measures damage "
-        "to the caller's text.\n\n"
-        "The damage rate is also not what it looks like, and the control is in "
-        "`ordinary_text_rates.json`. This read 14 of 19 damaged rows until 2026-09-14 "
-        "and the segment pass in ClassifierDetector moved it: 27 damaged rows now, 12 "
-        "of them pii alone redacting a real name, email or phone number the mundane "
-        "rows contain, which is the detector working. pii itself did not move, its 206 "
-        "findings splitting the same way as before. **The residual that did move is "
-        "the rows blocked outright on innocuous text, 5 before and 15 now, 9 injection "
-        "and "
-        "6 nsfw.** That is the price of closing the padding evasion and it is the "
-        "number to watch, not the damage rate.\n\n"
-        "Split from the enforcing test on purpose. Folding these two into one xfail "
-        "over the whole table would stop a toxicity or nsfw regression failing "
-        "anything, which is a known failure being used as cover for an unknown one."
-    ),
-    strict=True,
+#: The reason `pii` carried while it was the one detector over its ceiling, kept
+#: verbatim because two of its three rewrites were this project's own named failure
+#: mode and the third is the reason the entry could finally be removed. It stopped
+#: being an xfail reason on 2026-09-14, when the dict emptied.
+_PII_KNOWN_OVER_HISTORY = (
+    "Re-measured 2026-09-14 on the v5 rows: pii fires on 0.2521 against its 0.25 "
+    "ceiling, which is 59 rows of 234 where 58 would clear it. One row.\n\n"
+    "**Every number in this reason was stale, for the second time, and the label "
+    "in one of them no longer exists.** It read `pii` at 0.4017 firing and 0.0769 "
+    "damaging, with `regulated_advice` at 0.5256 beside it, and broke pii's "
+    "findings down as 86 `date`, 60 `pii_below_entity_threshold_person` and 42 "
+    "redactions. `regulated_advice` left this dict on 2026-08-20 and the person "
+    "bar was removed on the same day LOCATION landed, so that middle count had "
+    "been describing a label the detector stopped emitting. A number inside an "
+    "xfail reason is prose, nothing recomputes prose, and this is the file that "
+    "says so.\n\n"
+    "What pii's 206 findings over these rows actually are: 114 `location` at "
+    "`flag`, 56 `date` at `flag`, and 36 redactions. So the firing rate and the "
+    "damage rate are still deliberately different questions. Two thirds of the "
+    "firing is an entity recorded rather than cut out of the caller's text, this "
+    "test measures noise in the evidence record, and the one above measures damage "
+    "to the caller's text.\n\n"
+    "The damage rate is also not what it looks like, and the control is in "
+    "`ordinary_text_rates.json`. This read 14 of 19 damaged rows until 2026-09-14 "
+    "and the segment pass in ClassifierDetector moved it: 27 damaged rows now, 12 "
+    "of them pii alone redacting a real name, email or phone number the mundane "
+    "rows contain, which is the detector working. pii itself did not move, its 206 "
+    "findings splitting the same way as before. **The residual that did move is "
+    "the rows blocked outright on innocuous text, 5 before and 15 now, 9 injection "
+    "and "
+    "6 nsfw.** That is the price of closing the padding evasion and it is the "
+    "number to watch, not the damage rate.\n\n"
+    "Split from the enforcing test on purpose. Folding these two into one xfail "
+    "over the whole table would stop a toxicity or nsfw regression failing "
+    "anything, which is a known failure being used as cover for an unknown one."
 )
+
+
 def test_the_detector_known_to_be_over_its_ceiling(
     sweep: dict[str, object],
 ) -> None:
@@ -529,6 +570,37 @@ def test_the_detector_known_to_be_over_its_ceiling(
     """
     over = over_ceiling(sweep, KNOWN_OVER)
     assert not over, "still over ceiling:\n" + "\n".join(over)
+
+
+def test_every_measured_detector_has_a_ceiling(sweep: dict[str, object]) -> None:
+    """A detector in neither ceiling dict is held to nothing, and nothing said so.
+
+    `over_ceiling` iterates the ceilings it is given, not the detectors the sweep
+    measured, so a detector absent from both MAX_FIRE_RATE and KNOWN_OVER is skipped
+    silently by every assertion in this file. It is not a small gap: `moderation` fired
+    on 0.0983 of ordinary rows and `topic_scope` on 0.3248 while in that state, both
+    above every enforced ceiling here, and a regression in either would have failed
+    nothing. Found 2026-09-14 by reading `over_ceiling` rather than by a failure, which
+    is the point of writing this down as a test.
+
+    Asserted against the detectors that actually fired, so adding a detector to the
+    default policy forces a deliberate ceiling rather than inheriting silence. The
+    non-finding labels are already filtered out of `fired` by the fixture, so a detector
+    reporting that it could not run does not appear here and cannot be given a ceiling
+    by accident.
+    """
+    fired = sweep["fired"]
+    assert isinstance(fired, collections.Counter)
+    ungoverned = sorted(set(fired) - set(MAX_FIRE_RATE) - set(KNOWN_OVER))
+    rows = sweep["rows"]
+    assert isinstance(rows, int)
+    assert not ungoverned, (
+        "these detectors fired on ordinary text and are in neither MAX_FIRE_RATE nor "
+        "KNOWN_OVER, so no assertion in this file constrains them:\n"
+        + "\n".join(f"  {d}: {fired[d] / rows:.4f} fired" for d in ungoverned)
+        + "\n\nGive each one a ceiling with the measurement beside it. A detector with "
+        "no ceiling is not a detector that passed."
+    )
 
 
 def test_the_sweep_actually_covers_every_language(sweep: dict[str, object]) -> None:

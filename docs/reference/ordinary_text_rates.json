@@ -1,9 +1,9 @@
 {
-  "any_detector_damages_a_row": 0.1154,
+  "any_detector_damages_a_row": 0.1197,
   "detectors": {
     "bias": {
       "damages": 0.0,
-      "fires": 0.0299
+      "fires": 0.047
     },
     "disclosure": {
       "damages": 0.0,
@@ -11,44 +11,44 @@
     },
     "gibberish": {
       "damages": 0.0,
-      "fires": 0.0043
+      "fires": 0.0385
     },
     "injection": {
-      "damages": 0.0385,
-      "fires": 0.0385
+      "damages": 0.0427,
+      "fires": 0.0427
     },
     "language_id": {
       "damages": 0.0,
-      "fires": 1.0
+      "fires": 0.9744
     },
     "moderation": {
       "damages": 0.0,
-      "fires": 0.0983
+      "fires": 0.0769
     },
     "nsfw": {
-      "damages": 0.0256,
-      "fires": 0.0256
+      "damages": 0.0427,
+      "fires": 0.0427
     },
     "pii": {
-      "damages": 0.0598,
-      "fires": 0.2521
+      "damages": 0.0385,
+      "fires": 0.2436
     },
     "regulated_advice": {
       "damages": 0.0,
-      "fires": 0.0598
+      "fires": 0.0641
+    },
+    "secrets": {
+      "damages": 0.0043,
+      "fires": 0.0043
     },
     "topic_scope": {
       "damages": 0.0,
-      "fires": 0.3248
-    },
-    "toxicity": {
-      "damages": 0.0,
-      "fires": 0.0171
+      "fires": 0.2863
     }
   },
   "measured_on": "2026-09-14",
-  "note": "Re-measured 2026-09-14 after ClassifierDetector gained a segment pass, so this entry is the detectors moving rather than the rows: rows_content_sha256 is unchanged from the previous entry. Four detectors now score each sentence as well as the whole text, which closes an evasion in which appending two inert sentences took every one of ten plainly-worded hazards below threshold. It costs precision, and the cost is here: any_detector_damages_a_row goes 0.0812 to 0.1154, 19 damaged rows to 27, and moderation fires 0.0043 to 0.0983 and injection 0.0043 to 0.0385, injection being the one that damages rather than flags. topic_scope moves 0.2778 to 0.3248 without being segmented at all, because it is T3 and escalates when a lower tier flags. toxicity moves 0.0256 to 0.0171 for the mirror reason: it is never segmented, and the rows injection now blocks are rows it no longer scores. See _SEGMENTED in detectors/classifier.py for the per-detector table and for why bias, toxicity, politeness and gibberish are left out.",
+  "note": "Re-measured 2026-09-14 after the moderation v7 corpus retrain was adopted at threshold 0.80. **Both the rows and a detector changed in this entry, so no rate here is comparable with the one above it.** rows_content_sha256 moved from 7e0dfa86848b to 6864838498d9 because ordinary_rows draws its corpus half from the moderation corpus mundane_* registers, and regenerating that corpus re-drew them. The row set is also better than it was: the v7 corpus carries five mundane registers where v5 carried four, so the sweep now includes enterprise prose, which is the register the retrain was generated to fix. That is the third distinct reason this file has been rewritten, after a sampling artifact and a deliberate behaviour change, and the row hash is what tells the three apart.\n\nWhat must not be read out of the comparison: pii reads 0.2436 against 0.2521 and is now under its 0.25 ceiling, so its strict xfail XPASSed and it moves into MAX_FIRE_RATE. That is the row set, not the detector. pii is unchanged in this entry, the margin is one row of 234, and two ordinary rows carrying a name would put it back over. Read it as newly enforced rather than as newly fixed.\n\nWhat is attributable to the retrain, because it is the only detector whose weights moved: moderation fires on 0.0769 against 0.0983, having been given a ceiling of 0.10 in the same commit. It had no entry in MAX_FIRE_RATE or KNOWN_OVER at all until then, so its rate was guarded by nothing, and neither was topic_scope's. over_ceiling iterates the ceilings rather than the measured detectors, so a detector in neither dict is silently unguarded; a completeness test now fails if one is.\n\nSee _SEGMENTED in detectors/classifier.py for the per-detector segmentation table. moderation stays in it: the v7 corpus removed the length imbalance it was generated to remove and the padding evasion did not move, 52/60 to 54/60 by suffix with segmentation off, so the corpus was not the cause and the segment pass is load-bearing rather than a stopgap.",
   "policy": "policies/default.yaml",
   "rows": 234,
-  "rows_content_sha256": "7e0dfa86848b4955f30d0f25873b33c11965a37347bb599dc9f13e0dfbaa3dbf"
+  "rows_content_sha256": "6864838498d965ae650744b3202aa92179418ba9055f16586bf0c6616e8efa3d"
 }

@@ -93,9 +93,25 @@ _MAX_SEGMENTS: Final = 24
 #:   politeness         0.017 -> 0.068    1/21 ->   0/21   1/21 ->  0/21   0.05
 #:
 #: The first four are on: each closes an evasion and stays inside its ordinary-text
-#: ceiling. `moderation` has no ceiling recorded and is the largest gain in the set, 60
-#: of 60 prefix evasions closed, so it is on with its rate written down here rather than
-#: hidden by the absence of a ceiling.
+#: ceiling.
+#:
+#: **`moderation` was retrained on 2026-09-14 to remove the cause this table assumed,
+#: and the cause was not there. That is the most useful line in this file.** The v7
+#: corpus was generated specifically to stop length reading as a negative prior, and it
+#: succeeded: its long band went from 114 positives against 1,030 negatives to 1,278
+#: against 1,187, and positive median length from 80 characters to 109 against the
+#: negatives' 105. Re-measured on the adopted model at its 0.80 threshold:
+#:
+#:   moderation (v7)    0.098 -> 0.077   53/60 ->   2/60  51/60 ->  0/60   0.10
+#:
+#: Segmentation off, the retrained model is evaded on 53 of 60 by suffix where the
+#: superseded one was evaded on 52, and both catch 60 of 60 bare. So the corpus was
+#: never the cause, the dilution happens inside a single forward pass before max-pooling
+#: across windows can see it, and the segment pass is load-bearing rather than a stopgap
+#: held until a retrain. The retrain did make the mitigation more effective, 10 residual
+#: suffix evasions down to 2, and it also cut the ordinary-text cost from 0.098 to
+#: 0.077, which is what earned `moderation` the 0.10 ceiling it now has in
+#: MAX_FIRE_RATE. It had none when this table was first written.
 #:
 #: **`gibberish` is off despite being affordable on its own numbers, and the reason is
 #: a second-order effect worth stating.** It is T1 and a gibberish input short circuits

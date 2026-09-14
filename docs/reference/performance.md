@@ -26,7 +26,7 @@ means the score is unverified rather than good or bad.
 | `json_schema` | T1 | built | – | – | – | – | – | – |
 | `language_id` | T1 | built | – | – | – | – | – | – |
 | `markup_injection` | T1 | built | – | – | – | – | – | – |
-| `moderation` | T2 | built | f1 | 0.971 | 0.978 | 0.863 | 1454 | positive examples |
+| `moderation` | T2 | built | f1 | 0.980 | 0.988 | 0.857 | 1623 | positive examples |
 | `nsfw` | T2 | built | f1 | 0.974 | 0.980 | 0.868 | 622 | positive examples |
 | `output_format` | T1 | built | – | – | – | – | – | – |
 | `output_leakage` | T1 | built | – | – | – | – | – | – |
@@ -51,7 +51,7 @@ means the score is unverified rather than good or bad.
 - **`groundedness`**: the score above is per language and asks whether the detector fires at all, not which of its 2 labels applies. Per label the weakest with support is not_grounded at 0.8903, against a macro of 0.8979 here.
 - **`groundedness`**: no calibrated threshold recorded, so this detector runs at the policy default. Several detectors in this family reported nothing at 0.5 while separating positives from negatives well below it.
 - **`injection`**: the score above is per language and asks whether the detector fires at all, not which of its 3 labels applies. Per label the weakest with support is jailbreak at 0.9603, against a macro of 0.9891 here.
-- **`moderation`**: the score above is per language and asks whether the detector fires at all, not which of its 12 labels applies. Per label the weakest with support is fraud_deception at 0.8254, against a macro of 0.9707 here.
+- **`moderation`**: the score above is per language and asks whether the detector fires at all, not which of its 12 labels applies. Per label the weakest with support is fraud_deception at 0.7972, against a macro of 0.9795 here.
 - **`nsfw`**: the score above is per language and asks whether the detector fires at all, not which of its 2 labels applies. Per label the weakest with support is sexual at 0.9492, against a macro of 0.9738 here.
 - **`regulated_advice`**: the score above is per language and asks whether the detector fires at all, not which of its 3 labels applies. Per label the weakest with support is legal_advice at 0.8758, against a macro of 0.9864 here.
 - **`topic_scope`**: 26 of 26 languages have fewer than 10 examples evaluated: az, bg, cs, da, de, el, en, es, et, fi, fr, ga, hr, hu, it, lt, lv, mt, nl, pl, pt, ro, sk, sl, sv, tr. Their individual scores are indicative rather than measured.
@@ -65,34 +65,34 @@ At a 396 character reference input, 1 thread, CPUExecutionProvider. Romanian pro
 | Detector | p95 ms | Budget ms | note |
 |---|---|---|---|
 | `banned_terms` | 0.167 | 5.0 | – |
-| `bias` | 18.553 | 225.0 | – |
+| `bias` | 19.097 | 225.0 | – |
 | `code_present` | 0.008 | 5.0 | – |
-| `disclosure` | 0.028 | 5.0 | – |
-| `encoded_payload` | 0.187 | 5.0 | – |
-| `gibberish` | 27.478 | 225.0 | – |
-| `groundedness` | 12.207 | 300.0 | – |
-| `injection` | 18.327 | 225.0 | – |
-| `internal_domains` | 0.159 | 5.0 | – |
-| `invisible_text` | 0.026 | 5.0 | – |
+| `disclosure` | 0.029 | 5.0 | – |
+| `encoded_payload` | 0.194 | 5.0 | – |
+| `gibberish` | 27.287 | 225.0 | – |
+| `groundedness` | 12.851 | 300.0 | – |
+| `injection` | 40.669 | 225.0 | – |
+| `internal_domains` | 0.160 | 5.0 | – |
+| `invisible_text` | 0.024 | 5.0 | – |
 | `json_schema` | 0.001 | 5.0 | – |
-| `language_id` | 0.225 | 5.0 | – |
-| `markup_injection` | 0.164 | 5.0 | – |
-| `moderation` | 18.316 | 150.0 | – |
-| `nsfw` | 18.340 | 225.0 | – |
+| `language_id` | 0.223 | 5.0 | – |
+| `markup_injection` | 0.170 | 5.0 | – |
+| `moderation` | 41.637 | 150.0 | – |
+| `nsfw` | 42.529 | 225.0 | – |
 | `output_format` | 0.001 | 5.0 | – |
-| `output_leakage` | 23.399 | 225.0 | – |
-| `pii` | 23.837 | 225.0 | – |
-| `politeness` | 18.251 | 225.0 | – |
+| `output_leakage` | 24.939 | 225.0 | – |
+| `pii` | 24.354 | 225.0 | – |
+| `politeness` | 18.987 | 225.0 | – |
 | `postal_code` | 0.001 | 5.0 | – |
-| `regulated_advice` | 18.414 | 225.0 | – |
-| `repetition` | 0.291 | 5.0 | – |
-| `secrets` | 0.029 | 1.0 | – |
-| `sql_injection` | 0.145 | 5.0 | – |
-| `summary_support` | 0.546 | 5.0 | – |
-| `system_prompt_leakage` | 0.201 | 5.0 | the unconfigured path |
+| `regulated_advice` | 40.609 | 225.0 | – |
+| `repetition` | 0.292 | 5.0 | – |
+| `secrets` | 0.028 | 1.0 | – |
+| `sql_injection` | 0.148 | 5.0 | – |
+| `summary_support` | 0.553 | 5.0 | – |
+| `system_prompt_leakage` | 0.196 | 5.0 | the unconfigured path |
 | `token_limit` | 0.001 | 5.0 | the unconfigured path |
-| `topic_scope` | 31.303 | 300.0 | – |
-| `toxicity` | 18.374 | 225.0 | – |
+| `topic_scope` | 36.475 | 300.0 | – |
+| `toxicity` | 19.062 | 225.0 | – |
 | `url_reachability` | 0.005 | 3000.0 | the unconfigured path |
 
 ## Model variants
@@ -103,4 +103,4 @@ its own row because a policy that selects it gets none of the figures above.
 
 | Model | Status | p95 ms | Needs | Quality |
 |---|---|---|---|---|
-| `cee-pii` | measured | 94.865 | gpu | not recorded |
+| `cee-pii` | measured | 102.597 | gpu | not recorded |
