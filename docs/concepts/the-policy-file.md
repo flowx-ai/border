@@ -117,6 +117,30 @@ text is scanned, the same way it refuses a policy naming an unknown detector.
 the deployment, such as a GPU, so a caller finds out at load time rather than from a
 latency graph in production.
 
+## A detector that cannot run on the side you scan
+
+Every detector declares which directions it applies to, and the engine honours that: an
+output-side detector is not a candidate during `scan_input`. That is correct, and it is
+also easy to configure straight past. A deployment enabled `regulated_advice` at
+`on_fail: block`, scanned user questions through `scan_input`, saw no finding on ten
+plainly-worded investment-advice questions, and reasonably concluded the model did not
+cover the category. The detector had never run. `regulated_advice` looks at whether an
+answer *gives* regulated advice, and a question asking for it is on the other side.
+
+`registry.side_notes(policy, side)` returns one line per enabled detector that cannot
+run on that direction:
+
+    regulated_advice runs on output only, so it contributes nothing to an input
+    scan. It is set to block, so a caller scanning only this direction has
+    configured an enforcing check that cannot fire.
+
+It returns lines rather than raising, for `deployment_notes`' reasons and one more. Most
+callers scan both directions, so an output-side detector contributing nothing to
+`scan_input` is the normal case and not an error. Only the caller knows whether they
+ever call the other function, so only the caller can decide whether a line here is a
+note or a hole. If you scan one direction only, treat a non-empty result mentioning an
+enforcing action as fatal.
+
 ## On thresholds
 
 A threshold left at a plausible-looking default is how a detector becomes a no-op

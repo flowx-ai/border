@@ -627,3 +627,87 @@ def test_two_identical_scans_agree_on_everything_except_the_record_identity() ->
     assert {k: v for k, v in a.items() if k not in volatile} == {
         k: v for k, v in b.items() if k not in volatile
     }
+
+
+# ------------------------------------------------- a detector that runs on one side
+
+
+def _one_detector_policy(detector_id: str, on_fail: Action) -> Policy:
+    """A policy naming one catalogued detector at the given action.
+
+    Every other detector stays at its default, which is enabled, so this fixes the
+    action of one detector rather than disabling the rest.
+    """
+    return policy(**{detector_id: DetectorPolicy(enabled=True, on_fail=on_fail)})
+
+
+def _note_for(detector_id: str, notes: tuple[str, ...]) -> str | None:
+    """The one `side_notes` line about this detector, or None."""
+    matching = [line for line in notes if line.startswith(f"{detector_id} ")]
+    assert len(matching) <= 1, f"{detector_id} reported twice: {matching}"
+    return matching[0] if matching else None
+
+
+def test_side_notes_names_an_output_detector_asked_to_block_on_the_input_path() -> None:
+    """The 2026-09-14 episode `side_notes` exists for, as a test.
+
+    A deployment enabled `regulated_advice` at `block`, scanned user questions through
+    `scan_input`, saw no finding on ten investment-advice questions and reported it as a
+    model that does not cover investment advice. The detector is output-side only, so it
+    was never a candidate. Nothing in the decision, the record or the policy load said
+    so.
+
+    Two halves asserted, because either alone would be satisfied by a wrong note: the
+    detector is named, and the line says it was asked to enforce. A note that named it
+    without the action would read as trivia about a detector that also runs elsewhere.
+
+    Asserted by finding the line rather than by counting lines, because `policy()`
+    leaves every detector it does not name enabled, so an input scan under this policy
+    genuinely has fifteen output-only detectors to report and only one of them was asked
+    to block.
+    """
+    from flowx_border.registry import side_notes
+
+    enabled = _one_detector_policy("regulated_advice", "block")
+    line = _note_for("regulated_advice", side_notes(enabled, "input"))
+    assert "output only" in line
+    assert "block" in line
+    assert "enforcing check" in line
+    assert _note_for("regulated_advice", side_notes(enabled, "output")) is None
+
+
+def test_side_notes_stays_quiet_where_the_detector_can_actually_run() -> None:
+    """`pii` runs on both sides, so it is never a note on either.
+
+    The check that keeps this function from becoming noise: 25 of the 28 detectors run
+    on at least one side a given caller uses, and a notes function that lists them all
+    would be ignored, which is the outcome `deployment_notes` is written to avoid.
+    """
+    from flowx_border.registry import side_notes
+
+    both_sides = _one_detector_policy("pii", "redact")
+    assert _note_for("pii", side_notes(both_sides, "input")) is None
+    assert _note_for("pii", side_notes(both_sides, "output")) is None
+
+
+def test_side_notes_says_nothing_about_a_detector_the_policy_disables() -> None:
+    """A detector nobody enabled is not a gap, and reporting it would train a caller
+    to skim past the lines that are.
+    """
+    from flowx_border.registry import side_notes
+
+    off = policy(regulated_advice=DetectorPolicy(enabled=False, on_fail="block"))
+    assert _note_for("regulated_advice", side_notes(off, "input")) is None
+
+
+def test_a_flagging_detector_gets_a_note_without_the_enforcement_sentence() -> None:
+    """The distinction `assert_satisfiable` already draws, kept here: `flag` and `log`
+    degrade to a gap the record shows, `block` degrades to text passing as if checked.
+    Both are worth a line; only one is worth a sentence about enforcement.
+    """
+    from flowx_border.registry import side_notes
+
+    notes = side_notes(_one_detector_policy("regulated_advice", "flag"), "input")
+    line = _note_for("regulated_advice", notes)
+    assert line is not None and "output only" in line
+    assert "enforcing check" not in line

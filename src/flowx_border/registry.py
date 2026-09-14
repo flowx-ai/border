@@ -304,6 +304,55 @@ def assert_satisfiable(policy: Policy, side: str | None = None) -> None:
         spec_for(unavailable_model)
 
 
+def side_notes(policy: Policy, side: str) -> tuple[str, ...]:
+    """Enabled detectors that cannot run on this direction, and what they were asked.
+
+    `missing_for`'s docstring says a policy enabling `groundedness` is not missing
+    anything on the input path, and that is right: a detector declares its sides and the
+    engine honours them. What was absent is any way for a caller to find that out.
+
+    **The episode this exists for, 2026-09-14.** A deployment enabled `regulated_advice`
+    at `on_fail: block`, scanned user questions through `scan_input`, and got no finding
+    on ten plainly-worded investment-advice questions. They reported it as a model that
+    does not cover investment advice. The model is weak on that register and separately
+    worth fixing, but it was not what they hit: `regulated_advice` is output-side only,
+    so on `scan_input` it was never a candidate. They had configured a blocking check on
+    a path where it could not fire, believed the category was covered, and the library
+    said nothing in the decision, in the record, or at load.
+
+    That is rule 3 read at the wrong altitude. A detector must never silently do
+    nothing, and each of these did exactly what it should; it is the *policy* that
+    silently does nothing, and no detector is in a position to say so.
+
+    Lines rather than an exception, for `deployment_notes`' reasons and one more of its
+    own: most callers scan both directions, so an output-side detector contributing
+    nothing to `scan_input` is the normal case and not an error. Only a caller knows
+    whether they ever call the other function, so only a caller can decide whether a
+    line here is a note or a hole. A caller who scans one direction only should treat a
+    non-empty result for an enforcing action as fatal.
+    """
+    out = []
+    for detector_id, spec in sorted(CATALOGUE.items()):
+        if not policy.enabled_for(detector_id) or side in spec.sides:
+            continue
+        runs_on = " and ".join(sorted(spec.sides))
+        on_fail = policy.for_detector(detector_id).on_fail
+        enforcing = (
+            " It is set to "
+            f"{on_fail}, so a caller scanning only this direction has configured an "
+            "enforcing check that cannot fire."
+            if on_fail in ("block", "redact", "rewrite")
+            else ""
+        )
+        out.append(
+            # "an", not "a": both sides this library has are vowel-initial, and the
+            # alternative is an article helper for a two-element set.
+            f"{detector_id} runs on {runs_on} only, so it contributes nothing to an "
+            f"{side} scan.{enforcing}"
+        )
+    return tuple(out)
+
+
 def deployment_notes(policy: Policy) -> tuple[str, ...]:
     """What this policy needs from the machine, beyond a CPU and the base install.
 
