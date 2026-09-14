@@ -56,6 +56,13 @@ LABEL_LIMIT: Final = 64
 #: because validating the path alone and then prefixing it is how a "cannot truncate"
 #: rule turns into a truncation eleven characters later.
 LABEL_PREFIX: Final = f"off_topic{PATH_SEPARATOR}"
+
+#: The companion finding: which allowed node came closest, and how close.
+#:
+#: Deliberately shorter than `LABEL_PREFIX`, so `PATH_LIMIT` still bounds both and a
+#: path that fits an off-topic label cannot fail to fit this one. A path that validated
+#: under an earlier version must not stop validating because a diagnostic was added.
+NEAREST_PREFIX: Final = f"nearest{PATH_SEPARATOR}"
 PATH_LIMIT: Final = LABEL_LIMIT - len(LABEL_PREFIX)
 
 DEFAULT_MAX_NODES: Final = 64
@@ -259,6 +266,10 @@ class TopicScopeDetector:
 
         vector = self.embed(text, threads)
         best_path, best_disposition, best_similarity = "", "", -1.0
+        # Tracked alongside rather than derived afterwards, because the answer a reader
+        # of a refusal needs is "what was the closest thing I am allowed to ask", and
+        # the winning node cannot supply it when the winner is disallowed.
+        allowed_path, allowed_similarity = "", -1.0
         for path, disposition, node in nodes:
             similarity = float((vector * node).sum())
             if similarity > best_similarity:
@@ -267,6 +278,8 @@ class TopicScopeDetector:
                     disposition,
                     similarity,
                 )
+            if disposition == "allowed" and similarity > allowed_similarity:
+                allowed_path, allowed_similarity = path, similarity
 
         # Cosine lives in -1..1 and Score is 0..1, so this maps one onto the other. It
         # is monotonic, which is what a policy threshold needs, and it is not a
@@ -274,7 +287,7 @@ class TopicScopeDetector:
         score = max(0.0, min(1.0, (best_similarity + 1.0) / 2.0))
         if best_disposition != "disallowed" or score < cfg.threshold:
             return []
-        return [
+        out = [
             Finding(
                 detector_id=self.id,
                 tier=self.tier,
@@ -291,3 +304,36 @@ class TopicScopeDetector:
                 model_revision=self.model_revision,
             )
         ]
+        # **The second finding, and the reason it exists is a false refusal nobody could
+        # diagnose.** Reported 2026-09-14 by a data room whose allowed list had twelve
+        # entries, none of them about certifications, so "Is the platform SOC 2 and ISO
+        # 27001 certified?" was refused as nearest to their own `general assistance`
+        # entry in the disallowed list. The detector was right and the taxonomy was
+        # short, but the finding said only which disallowed node won. From a log, a
+        # refusal for a question the room should answer and a refusal for one it should
+        # not look identical.
+        #
+        # A second finding rather than a field on the first: `Finding` has no metadata
+        # and adding one changes a core type, which this repository does not do to carry
+        # a diagnostic. It is the same shape `pii` already uses for
+        # `pii_below_entity_threshold_person`, an action of `log` so it records without
+        # deciding anything.
+        #
+        # Always below the off-topic score by construction: if an allowed node had
+        # scored higher it would have won and this function would have returned nothing.
+        if allowed_path:
+            out.append(
+                Finding(
+                    detector_id=self.id,
+                    tier=self.tier,
+                    label=f"{NEAREST_PREFIX}{allowed_path}",
+                    score=round(
+                        max(0.0, min(1.0, (allowed_similarity + 1.0) / 2.0)), 6
+                    ),
+                    span=None,
+                    action="log",
+                    model_id=self.model_id,
+                    model_revision=self.model_revision,
+                )
+            )
+        return out

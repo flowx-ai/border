@@ -145,9 +145,13 @@ def test_a_disallowed_topic_is_found_and_names_its_node(
 ) -> None:
     cfg = DetectorConfig(on_fail="flag", threshold=0.5, options=TAXONOMY)
     findings = scoped.run("Should I put my savings into bitcoin?", cfg, Context())
-    assert len(findings) == 1
-    assert findings[0].label == "off_topic__banking__crypto"
-    assert findings[0].score > 0.5
+    # The off-topic finding, asserted by prefix rather than by count: a refusal now
+    # rides with a `nearest__` companion at `log` saying which allowed node came
+    # closest, and a count would fail on a diagnostic rather than on a verdict.
+    decided = [f for f in findings if f.action != "log"]
+    assert len(decided) == 1
+    assert decided[0].label == "off_topic__banking__crypto"
+    assert decided[0].score > 0.5
 
 
 def test_the_nearest_disallowed_node_wins_rather_than_the_first(
@@ -158,8 +162,9 @@ def test_the_nearest_disallowed_node_wins_rather_than_the_first(
     # on a one-node taxonomy and be wrong on every real one.
     cfg = DetectorConfig(on_fail="flag", threshold=0.5, options=TAXONOMY)
     findings = scoped.run("I have a sharp pain in my chest.", cfg, Context())
-    assert len(findings) == 1
-    assert findings[0].label == "off_topic__health__medical"
+    decided = [f for f in findings if f.action != "log"]
+    assert len(decided) == 1
+    assert decided[0].label == "off_topic__health__medical"
 
 
 def test_an_unconfigured_taxonomy_is_reported_rather_than_passed(
@@ -899,3 +904,72 @@ def test_an_unwarmed_finding_still_attests_its_weights(
     assert cold.weights_sha256 == grounded.weights_sha256
     assert all(f.model_id == grounded.model_id for f in findings)
     assert all(f.model_revision == grounded.model_revision for f in findings)
+
+
+# ------------------------------------------- the allowed path a refusal was nearest to
+
+
+def test_an_off_topic_finding_says_what_the_nearest_allowed_topic_was(
+    scoped: TopicScopeDetector,
+) -> None:
+    """A false refusal and a correct one looked identical in a log until 2026-09-14.
+
+    Reported by a data room whose allowed list had twelve entries, none about
+    certifications or delivery, so "Is the platform SOC 2 and ISO 27001 certified?" was
+    refused as nearest to their own `general assistance` entry in the disallowed list.
+    The detector was right and the taxonomy was short. The finding could not say so,
+    because it named only the disallowed node that won.
+
+    The companion finding is `log`: it records, it decides nothing, and it turns that
+    into a one-minute read.
+    """
+    from flowx_border.detectors.topic_scope import LABEL_PREFIX, NEAREST_PREFIX
+
+    cfg = DetectorConfig(
+        enabled=True, threshold=0.5, on_fail="block", always=True, options=TAXONOMY
+    )
+    findings = scoped.run(
+        "What should I take for a persistent headache?", cfg, Context()
+    )
+    labels = {f.label: f for f in findings}
+
+    off_topic = [f for f in findings if f.label.startswith(LABEL_PREFIX)]
+    nearest = [f for f in findings if f.label.startswith(NEAREST_PREFIX)]
+    assert off_topic, f"expected an off-topic finding, got {sorted(labels)}"
+    assert nearest, (
+        "an off-topic finding with no nearest-allowed companion, which is the state "
+        f"that made a false refusal undiagnosable: {sorted(labels)}"
+    )
+    assert nearest[0].action == "log", "the companion must not decide anything"
+    assert nearest[0].score <= off_topic[0].score, (
+        "the nearest allowed node scored above the disallowed one, so it should have "
+        "won and this scan should have returned nothing at all"
+    )
+
+
+def test_an_in_scope_question_carries_no_companion(
+    scoped: TopicScopeDetector,
+) -> None:
+    """The companion rides with a refusal, never on its own.
+
+    A `nearest__` finding on a question that was allowed would be noise in every record
+    the detector ever produces, for a diagnostic nobody needs when nothing was refused.
+    """
+    cfg = DetectorConfig(
+        enabled=True, threshold=0.5, on_fail="block", always=True, options=TAXONOMY
+    )
+    assert scoped.run("How do I open a savings account?", cfg, Context()) == []
+
+
+def test_the_companion_prefix_cannot_shorten_a_path_that_already_fits() -> None:
+    """`PATH_LIMIT` is derived from one prefix and now bounds two.
+
+    If the companion's prefix were the longer of the two, adding this diagnostic would
+    have made `_taxonomy` reject paths that validated in an earlier version, so a policy
+    that worked would stop loading. Asserted rather than left to the eye, because the
+    two constants sit four lines apart and the failure would surface in someone else's
+    policy file.
+    """
+    from flowx_border.detectors.topic_scope import LABEL_PREFIX, NEAREST_PREFIX
+
+    assert len(NEAREST_PREFIX) <= len(LABEL_PREFIX)
