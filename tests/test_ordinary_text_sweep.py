@@ -282,6 +282,13 @@ def sweep() -> dict[str, object]:
     fired: collections.Counter[str] = collections.Counter()
     damaged: collections.Counter[str] = collections.Counter()
     damaging: list[tuple[str, str, str, str]] = []
+    # The weights that actually ran, read off the evidence records rather than the
+    # registry, so this says what was loaded and not what was meant to be. Collected
+    # over the whole sweep because attestation is lazy and T3 loads only on escalation:
+    # one probe scan leaves `topic_scope` unattested while the sweep measures a rate
+    # for it.
+    # Non-model detectors attest None and are skipped.
+    weights: dict[str, str] = {}
     seen = 0
     for language, text in rows:
         seen += 1
@@ -289,6 +296,9 @@ def sweep() -> dict[str, object]:
         hurt: set[str] = set()
         for scan in (scan_input, scan_output):
             decision = scan(text, policy)
+            for attestation in decision.evidence.detectors:
+                if attestation.weights_sha256 is not None:
+                    weights[attestation.id] = attestation.weights_sha256
             for finding in decision.findings:
                 if is_non_finding(finding.label):
                     continue
@@ -305,7 +315,13 @@ def sweep() -> dict[str, object]:
             fired[detector] += 1
         for detector in hurt:
             damaged[detector] += 1
-    return {"rows": seen, "fired": fired, "damaged": damaged, "damaging": damaging}
+    return {
+        "rows": seen,
+        "fired": fired,
+        "damaged": damaged,
+        "damaging": damaging,
+        "weights": weights,
+    }
 
 
 @pytest.mark.xfail(
@@ -442,6 +458,18 @@ def test_the_recorded_rates_still_describe_this_configuration(
 
     A rate moving is normal; a rate moving unnoticed is what this prevents.
 
+    **The weights are the third axis and were missing until 2026-09-15.** The file
+    pinned the rows and the policy, and every rate here also depends on which artifact
+    each model-backed detector loaded. With `FLOWX_BORDER_MODEL_DIR` unset the suite
+    falls back to the published hub weights, the sweep then measures a different
+    configuration, and this test reported `moderation` at 0.1410 against a recorded
+    0.0769 and `topic_scope` at 0.3419 against 0.2863 while saying "that is a changed
+    detector or a changed policy, not a changed row set". It was neither: the adopted
+    artifacts against the published ones, and the only way to find that out was to guess
+    it. The recorded file now carries `weights`, the sha256 of each artifact that ran,
+    read off the evidence records rather than the registry, and the mismatch is named
+    before any rate is compared.
+
     **It fired for real on 2026-09-14, and what it caught is a limit of the measurement
     rather than a regression.** The recorded entry was taken on 2026-08-20 against the
     v4 moderation corpus, the v5 regeneration of 2026-08-24 replaced 208 of the 234
@@ -485,6 +513,23 @@ def test_the_recorded_rates_still_describe_this_configuration(
         f"recorded {recorded['rows_content_sha256'][:12]}, measured {digest[:12]}"
     )
 
+    weights = sweep["weights"]
+    assert isinstance(weights, dict)
+    swapped = sorted(
+        f"  {detector}: recorded {recorded['weights'][detector][:12]}, "
+        f"ran {weights.get(detector, 'nothing')[:12]}"
+        for detector in recorded["weights"]
+        if weights.get(detector) != recorded["weights"][detector]
+    )
+    assert not swapped, (
+        "the sweep ran weights the recorded rates were not measured on, so a rate "
+        "difference below would name the wrong cause:\n"
+        + "\n".join(swapped)
+        + "\n\nUsually FLOWX_BORDER_MODEL_DIR is unset and the published hub weights "
+        "were loaded instead of the adopted artifacts. If an artifact was deliberately "
+        f"swapped, re-measure and update {RECORDED.name} in the same commit."
+    )
+
     fired = sweep["fired"]
     damaged = sweep["damaged"]
     assert isinstance(fired, collections.Counter)
@@ -518,7 +563,13 @@ def test_no_detector_fires_above_its_measured_ceiling(sweep: dict[str, object]) 
     """
     over = over_ceiling(sweep, MAX_FIRE_RATE)
     assert not over, (
-        "detectors firing on ordinary text above their ceiling:\n" + "\n".join(over)
+        "detectors firing on ordinary text above their ceiling:\n"
+        + "\n".join(over)
+        + "\n\nRead the weights check in "
+        "test_the_recorded_rates_still_describe_this_configuration first. These "
+        "ceilings were measured against the adopted artifacts, and a run with "
+        "FLOWX_BORDER_MODEL_DIR unset loads the published weights instead, which for "
+        "`moderation` is a different model."
     )
 
 
