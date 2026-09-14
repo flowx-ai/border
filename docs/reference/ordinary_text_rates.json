@@ -1,5 +1,5 @@
 {
-  "any_detector_damages_a_row": 0.0812,
+  "any_detector_damages_a_row": 0.1154,
   "detectors": {
     "bias": {
       "damages": 0.0,
@@ -14,8 +14,8 @@
       "fires": 0.0043
     },
     "injection": {
-      "damages": 0.0043,
-      "fires": 0.0043
+      "damages": 0.0385,
+      "fires": 0.0385
     },
     "language_id": {
       "damages": 0.0,
@@ -23,11 +23,11 @@
     },
     "moderation": {
       "damages": 0.0,
-      "fires": 0.0043
+      "fires": 0.0983
     },
     "nsfw": {
-      "damages": 0.0171,
-      "fires": 0.0171
+      "damages": 0.0256,
+      "fires": 0.0256
     },
     "pii": {
       "damages": 0.0598,
@@ -35,19 +35,19 @@
     },
     "regulated_advice": {
       "damages": 0.0,
-      "fires": 0.0128
+      "fires": 0.0598
     },
     "topic_scope": {
       "damages": 0.0,
-      "fires": 0.2778
+      "fires": 0.3248
     },
     "toxicity": {
       "damages": 0.0,
-      "fires": 0.0256
+      "fires": 0.0171
     }
   },
   "measured_on": "2026-09-14",
-  "note": "The rows moved, not the detectors. The previous entry was measured on the v4 moderation corpus and the v5 regeneration of 2026-08-24 replaced 208 of the 234 rows. Same weights, same policy, over the v4 rows this run reads any_detector_damages_a_row 0.1624 and over the v5 rows 0.0812, so the halving is the sample. Most of what is counted as damage is pii redacting a real entity the mundane rows contain: 14 of the 19 damaged rows, against 34 such entities in the v4 rows and 14 in the v5 rows. The comparable residual is the rows blocked outright on innocuous text, 5 here and 9 on the v4 rows.",
+  "note": "Re-measured 2026-09-14 after ClassifierDetector gained a segment pass, so this entry is the detectors moving rather than the rows: rows_content_sha256 is unchanged from the previous entry. Four detectors now score each sentence as well as the whole text, which closes an evasion in which appending two inert sentences took every one of ten plainly-worded hazards below threshold. It costs precision, and the cost is here: any_detector_damages_a_row goes 0.0812 to 0.1154, 19 damaged rows to 27, and moderation fires 0.0043 to 0.0983 and injection 0.0043 to 0.0385, injection being the one that damages rather than flags. topic_scope moves 0.2778 to 0.3248 without being segmented at all, because it is T3 and escalates when a lower tier flags. toxicity moves 0.0256 to 0.0171 for the mirror reason: it is never segmented, and the rows injection now blocks are rows it no longer scores. See _SEGMENTED in detectors/classifier.py for the per-detector table and for why bias, toxicity, politeness and gibberish are left out.",
   "policy": "policies/default.yaml",
   "rows": 234,
   "rows_content_sha256": "7e0dfa86848b4955f30d0f25873b33c11965a37347bb599dc9f13e0dfbaa3dbf"

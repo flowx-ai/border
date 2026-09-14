@@ -57,6 +57,69 @@ if TYPE_CHECKING:
 #: classifier's result, so this only helps a caller who scans the same text twice.
 _CACHE_ENTRIES: Final = 2
 
+#: The most sentence segments one scan may score on top of its windows, which bounds the
+#: cost of `_segments` at a constant rather than at the sentence count of the input.
+#:
+#: 24 is chosen against the budgets rather than picked. Cost is one forward pass per
+#: segment over that segment's own tokens, so segmenting a text does not multiply its
+#: token count, it adds per-pass overhead. Measured at the 87-token 3-sentence
+#: REFERENCE_INPUT, and at a 24-sentence document, in tests/test_budgets.py.
+#:
+#: Beyond the cap, adjacent sentences are grouped rather than dropped, so the whole text
+#: is still covered and only the granularity falls. A long document therefore degrades
+#: toward the old behaviour smoothly instead of having an unscored tail.
+_MAX_SEGMENTS: Final = 24
+
+#: The detectors that score their sentences as well as their windows, and the
+#: measurement that put each one on this list or kept it off.
+#:
+#: Segmenting is not free and it is not uniformly good. It closes an evasion and it
+#: costs precision, because the same short span that carries a hazard undiluted is
+#: also a fragment the model was never calibrated on. So it is a per-detector
+#: property decided by measurement rather than a default applied to all eight.
+#:
+#: Measured 2026-09-14, one thread, shipped thresholds. "Ordinary" is the 234-row sweep
+#: in tests/test_ordinary_text_sweep.py. "Evaded" is each detector's own English corpus
+#: positives that stop firing when NEUTRAL_PADDING is appended, then prepended:
+#:
+#:   detector           ordinary FP      evaded, suffix   evaded, prefix   ceiling
+#:   moderation         0.004 -> 0.098   52/60 ->  10/60  60/60 ->  0/60   none
+#:   nsfw               0.017 -> 0.026   11/24 ->   0/24   2/24 ->  0/24   0.05
+#:   injection          0.004 -> 0.038    6/41 ->   0/41   1/41 ->  0/41   0.05
+#:   regulated_advice   0.013 -> 0.064    0/22 ->   0/22   6/22 ->  0/22   0.10
+#:   gibberish          0.004 -> 0.038    7/30 ->   7/30   6/30 ->  0/30   0.05  *
+#:   bias               0.030 -> 0.115   29/59 ->   0/59  17/59 ->  0/59   0.05
+#:   toxicity           0.026 -> 0.064    0/20 ->   0/20   0/20 ->  0/20   0.05
+#:   politeness         0.017 -> 0.068    1/21 ->   0/21   1/21 ->  0/21   0.05
+#:
+#: The first four are on: each closes an evasion and stays inside its ordinary-text
+#: ceiling. `moderation` has no ceiling recorded and is the largest gain in the set, 60
+#: of 60 prefix evasions closed, so it is on with its rate written down here rather than
+#: hidden by the absence of a ceiling.
+#:
+#: **`gibberish` is off despite being affordable on its own numbers, and the reason is
+#: a second-order effect worth stating.** It is T1 and a gibberish input short circuits
+#: the tiers above it, by design, so its firing rate is not only its own false-positive
+#: rate: every row it fires on is one `moderation`, `toxicity` and `nsfw` never see.
+#: Taking it from 0.004 to 0.038 on ordinary text suppresses higher-tier detection
+#: on nine times as many ordinary rows, to close 6 prefix evasions in a detector asking
+#: whether text is language at all. That trade is the wrong way round, and its 7 of 30
+#: suffix cases are arguably correct rather than evasions: appending fluent prose to
+#: nonsense genuinely changes whether the text is language.
+#:
+#: **`bias` is off and it is the uncomfortable one.** It has the second largest evasion,
+#: 29 and 17 of 59, and segmenting closes all of it. It is off because the same change
+#: takes ordinary text from 0.030 to 0.115, more than double its ceiling, and this
+#: project's rule is that a known failure is recorded rather than absorbed by raising a
+#: ceiling. Turning it on is a deliberate decision with a ceiling change beside it, not
+#: something a security fix should do quietly.
+#:
+#: `toxicity` is off because it has nothing to gain: 0 of 20 evaded either way before
+#: the change, so segmenting buys precision loss and no security. `politeness` closes
+#: one evasion of 21 and costs four times its ordinary rate, which is not a trade worth
+#: making.
+_SEGMENTED: Final = frozenset({"moderation", "nsfw", "injection", "regulated_advice"})
+
 #: Overlap between windows, in tokens. Smaller than pii's because a classifier scores a
 #: whole window rather than locating a span inside it, so a boundary costs less.
 DEFAULT_OVERLAP: Final = 8
@@ -198,8 +261,15 @@ class ClassifierDetector:
 
         from flowx_border.detectors.pii import _windows
 
+        spans = list(_windows(len(ids), max(1, size), overlap))
+        seen = set(spans)
+        for span in self._segments(text, encoded, len(ids), max(1, size)):
+            if span not in seen:
+                seen.add(span)
+                spans.append(span)
+
         best: dict[str, float] = {}
-        for start, end in _windows(len(ids), max(1, size), overlap):
+        for start, end in spans:
             window = np.asarray([[bos, *ids[start:end], eos]], dtype=np.int64)
             logits = np.asarray(
                 loaded.run(
@@ -219,6 +289,77 @@ class ClassifierDetector:
                 self._cache.pop(next(iter(self._cache)))
             self._cache[key] = best
         return best
+
+    def _segments(
+        self, text: str, encoded: object, total: int, size: int
+    ) -> list[tuple[int, int]]:
+        """Token ranges for the sentences of `text`, so a hazard is scored undiluted.
+
+        Why this exists, measured 2026-09-14 on the shipped `moderation`. Ten plainly
+        worded hazards score above 0.977 on their own and none of them clears the 0.84
+        threshold once two sentences about rainfall are attached: 0.9870 to 0.1356 on
+        "Does anyone know how to bypass login credentials on corporate systems?".
+        Prepending the same inert text rather than appending it evaded all ten, and 60
+        of 60 English corpus positives. Five of six classifiers move; `toxicity`, whose
+        corpus has the most even length distribution, does not.
+
+        **The maximum across windows in `scores` was the right invariant one level too
+        high.** Its docstring says a long benign document must not bury a short toxic
+        passage, and that is exactly what happens, because the burying is inside a
+        single forward pass and max pooling only ever sees the pass. Padding past the
+        94-token window boundary does not recover the score, it flattens at 0.0367,
+        because window one holds the hazard plus 93 tokens of padding and no window ever
+        holds the hazard alone. Segments are what make the invariant true: scored on its
+        own sentence, the same text reads 0.9870 again.
+
+        The model is still wrong and this does not fix it. The corpus gives its long
+        band 114 positives against 1,030 negatives, so length is a negative prior the
+        model learned correctly, and the fix for that is a regenerate. This narrows the
+        window the prior gets to act in.
+
+        Token ranges rather than strings, from the offsets of the encoding already
+        computed, so segmenting costs no second tokenizer pass over the text.
+        """
+        from flowx_border.detectors.multilingual import sentences
+        from flowx_border.detectors.pii import _windows
+
+        if self.id not in _SEGMENTED:
+            return []
+
+        bounds = sentences(text)
+        if len(bounds) < 2:
+            # One sentence is already scored whole, so there is nothing to add and no
+            # cost to pay. This is the common case for short input.
+            return []
+
+        # Group adjacent sentences when there are more than the cap, rather than
+        # scoring the first `_MAX_SEGMENTS` and stopping. Truncating would leave a
+        # document whose hazard sits in sentence 200 exactly as evadable as before,
+        # which is the defect rather than a cheaper version of it.
+        groups: list[tuple[int, int]] = []
+        per = max(1, (len(bounds) + _MAX_SEGMENTS - 1) // _MAX_SEGMENTS)
+        for index in range(0, len(bounds), per):
+            chunk = bounds[index : index + per]
+            groups.append((chunk[0][0], chunk[-1][1]))
+
+        offsets = list(encoded.offsets)  # type: ignore[attr-defined]
+        out: list[tuple[int, int]] = []
+        for begin, finish in groups:
+            first: int | None = None
+            last = 0
+            for position, (low, high) in enumerate(offsets):
+                if high <= begin or low >= finish:
+                    continue
+                if first is None:
+                    first = position
+                last = position
+            if first is None:
+                continue
+            # A segment longer than the model's window is windowed like any other text,
+            # so a single very long sentence cannot silently lose its tail.
+            for start, end in _windows(last + 1 - first, size, 0):
+                out.append((first + start, min(first + end, total)))
+        return out
 
     def _read_head(self, logits: np.ndarray) -> np.ndarray:
         """Sigmoid per label, or softmax over exclusive classes, as the config says."""

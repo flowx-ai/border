@@ -418,9 +418,18 @@ def test_the_recorded_rates_still_describe_this_configuration(
     file counts as damage is pii doing its job: 14 of the 19 damaged rows. **The damage
     rate is therefore dominated by the generator rather than by the detectors**, and the
     number to compare across corpus versions is the rows blocked outright on innocuous
-    text, 9 on the v4 rows and 5 here. Those 5 are 4 `nsfw` blocks on one committee
-    sentence in `da`, `sk`, `ga` and `mt`, and 1 `injection` block on a Maltese school
-    enrolment notice, which is a per-language pattern rather than a content one.
+    text, 9 on the v4 rows and 5 here.
+
+    **It fired again on 2026-09-14, for the opposite reason, which is why both entries
+    are kept.** That time the rows had moved and the detectors had not. This time the
+    rows are identical, `rows_content_sha256` unchanged, and four detectors gained the
+    segment pass described in `_SEGMENTED`. So the same test caught a sample artifact
+    once and a deliberate behaviour change once, and told them apart by the row hash
+    rather than by anyone remembering which had happened.
+
+    Those 5 were 4 `nsfw` blocks on one committee sentence in `da`, `sk`, `ga` and `mt`,
+    and 1 `injection` block on a Maltese school enrolment notice, which is a
+    per-language pattern rather than a content one.
 
     To regenerate: run the `sweep` fixture, divide each counter by `rows`, round to four
     places, and write the same keys back. Re-record only with the reason in the commit
@@ -495,10 +504,15 @@ def test_no_detector_fires_above_its_measured_ceiling(sweep: dict[str, object]) 
         "test measures noise in the evidence record, and the one above measures damage "
         "to the caller's text.\n\n"
         "The damage rate is also not what it looks like, and the control is in "
-        "`ordinary_text_rates.json`. 14 of the 19 damaged rows are pii redacting a "
-        "real name, email or phone number that the mundane rows contain, which is the "
-        "detector working. The comparable residual is the 5 rows blocked outright on "
-        "innocuous text, and none of them is pii.\n\n"
+        "`ordinary_text_rates.json`. This read 14 of 19 damaged rows until 2026-09-14 "
+        "and the segment pass in ClassifierDetector moved it: 27 damaged rows now, 12 "
+        "of them pii alone redacting a real name, email or phone number the mundane "
+        "rows contain, which is the detector working. pii itself did not move, its 206 "
+        "findings splitting the same way as before. **The residual that did move is "
+        "the rows blocked outright on innocuous text, 5 before and 15 now, 9 injection "
+        "and "
+        "6 nsfw.** That is the price of closing the padding evasion and it is the "
+        "number to watch, not the damage rate.\n\n"
         "Split from the enforcing test on purpose. Folding these two into one xfail "
         "over the whole table would stop a toxicity or nsfw regression failing "
         "anything, which is a known failure being used as cover for an unknown one."
