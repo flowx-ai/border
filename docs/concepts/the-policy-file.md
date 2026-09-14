@@ -96,6 +96,19 @@ detectors:
       entities: [person, email, phone]
 ```
 
+Two models do not have to tag the same things, and since 2026-09-14 these two do
+not: cee-pii tags `organisation`, a company or employer name, and piiguard has no head
+for it. So `entities`, `entity_actions` and `entity_thresholds` are checked against the
+model the policy selected, not against a union of both. Naming a type the selected model
+cannot tag raises, and names the types it can:
+
+    pii: unknown entity type(s) organisation. This model tags card, date, email,
+    iban, location, national_id, person, phone.
+
+That refusal is the point of validating per model. The alternative, accepting every name
+either model knows, would let a policy ask piiguard for company names and report success
+on every text, which reads exactly like a document that contains none.
+
 Selecting a model is a deployment decision, not just a policy one, and the two
 consequences are different. If the model is unavailable, `load_policy` refuses a
 policy that would enforce with it (`on_fail` other than `flag` or `log`) before any

@@ -97,6 +97,17 @@ GLiNER model trained on Romanian, Polish, Hungarian, Uzbek and both English vari
 Four of those (`en`, `ro`, `pl`, `hu`) are in the 26; Uzbek is not a language this
 library claims at all. No per-language evaluation table exists for cee-pii yet, so its
 model card and this file both say "not recorded" rather than a number for the other 22.
+It also tags one entity type piiguard cannot, `organisation`, a company or employer
+name, wired on 2026-09-14 from a label the model already carried and the library had
+been discarding. So the entity vocabulary is a property of the selected model rather
+than of the library: `options.entities`, `options.entity_actions` and
+`options.entity_thresholds` are validated against whichever model will actually run, and
+a policy naming `organisation` while running piiguard is refused by name rather than
+quietly finding none. Give it `flag` unless you have decided otherwise. A company name
+is not personal data, and 16 of the 234 ordinary rows in the sweep carry one, so a
+policy that redacts the type damages 7 percent of ordinary business prose with findings
+that are all correct.
+
 Selecting it also changes the deployment: it needs a GPU to run at any usable latency,
 `pii`'s own 225 ms budget is unchanged and does not apply to it, and
 `registry.deployment_notes(policy)` reports the requirement the moment a policy

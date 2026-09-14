@@ -126,6 +126,28 @@ ENTITY_TYPES: Final[tuple[str, ...]] = (
     "phone",
 )
 
+#: Every entity type any `pii` model can produce, which since 2026-09-14 is a larger set
+#: than either model tags. `ENTITY_TYPES` above is piiguard's eight; cee-pii's is
+#: `ceepii.MAPPED_ENTITY_TYPES`, and it carries `organisation`, a type piiguard has no
+#: head for.
+#:
+#: The two sets differing is the point rather than an oversight, and it is safe for one
+#: specific reason: `wanted_entities`, `entity_actions` and `entity_thresholds` all take
+#: the producible set as a parameter, so a policy naming `organisation` while running
+#: piiguard is refused by name at the first scan rather than quietly answered with
+#: nothing found. That refusal is the whole justification for adding a type only one
+#: model can produce, and removing the parameter would turn it into the silent no-op
+#: rule 3 forbids.
+#:
+#: This constant is what a border entity type *is*, as opposed to what a given artifact
+#: happens to tag, so it is the set the engine's `[PLACEHOLDER]` vocabulary and the docs
+#: describe. `detectors/ceepii.py` checks at import that the two models between them
+#: produce exactly this, so a type added to one model and to no vocabulary, or a
+#: vocabulary entry no model produces, fails at import rather than shipping.
+BORDER_ENTITY_TYPES: Final[tuple[str, ...]] = tuple(
+    sorted((*ENTITY_TYPES, "organisation"))
+)
+
 #: The actions `entity_actions` may name. Read off the `Action` literal rather than
 #: written out twice: a divergence would let a policy set an action the engine has never
 #: heard of, and the failure would be an override that is silently ignored.

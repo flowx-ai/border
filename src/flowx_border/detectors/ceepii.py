@@ -64,24 +64,56 @@ window, one call.
 The label mapping
 ------------------
 
-cee-pii tags 34 fine-grained types; `pii`'s vocabulary is the 8 border already
-has (CARD, DATE, EMAIL, IBAN, NATIONAL_ID, PERSON, PHONE, LOCATION). `_LABEL_MAP`
-is the correspondence, and fifteen of the 34 have no honest one:
+cee-pii tags 34 fine-grained types; border's vocabulary is `pii.BORDER_ENTITY_TYPES`,
+the 8 piiguard tags (CARD, DATE, EMAIL, IBAN, NATIONAL_ID, PERSON, PHONE, LOCATION) plus
+ORGANISATION, which only this model can produce. `_LABEL_MAP` is the correspondence, and
+fourteen of the 34 have no honest one:
 
 - `aba`, `uk_sort_code` are bank routing codes, not personal identifiers.
 - `uk_account_number`, `uz_account` are domestic account numbers with no IBAN
   checksum. Mapping either to `iban` would mean every span of that type fails
   `checksummed.iban_ok` and gets silently downgraded by the shape gate below,
   which is a worse lie than not offering the type at all.
-- `ein`, `company_number_uk`, `employer` identify a business, not a person.
+- `ein`, `company_number_uk` identify a business by a registration number rather
+  than by name. `organisation` is a name type, so a policy that asked for it and got a
+  tax reference back would be redacting a shape it did not configure. They stay
+  unmapped now that the type exists, which is a narrower decision than it was: the
+  objection was never "a business is not a person", it was that there was nowhere to
+  put one.
 - `plate` identifies a vehicle.
 - `postal` has no home in `pii`'s type set; `detectors/postal_code.py` is the
   library's answer to postal codes, a different detector with a different shape.
 - `policy_ref`, `contract_ref`, `account_ref` are generic reference numbers with
   no personal-identity claim attached to the string itself.
-- `health_condition` is sensitive health data, and none of the 8 types covers it.
-  Dropping it here is the honest answer; inventing a ninth type is not this
-  module's call to make.
+- `health_condition` is sensitive health data, and no border type covers it.
+  Dropping it here is the honest answer; inventing a type for it is not this module's
+  call to make, and the `employer` decision below does not change that. A company name
+  is already in `pii`'s domain with a well-defined redaction; a health condition would
+  need a type, a shape, an action and a per-language evaluation of its own.
+
+`employer` was on that list until 2026-09-14, on the grounds that it identifies a
+business rather than a person. That was true and was the wrong test: the question is
+whether border has somewhere to put it, and the answer is now yes, `organisation`, the
+ninth border entity type and the first that piiguard has no head for. Measured before
+wiring it rather than after, because this module has already been bitten once by
+assuming a prompt behaves (see `first_name` and `surname` below):
+
+- 7 of 8 hand-written business sentences in 5 languages, scores 0.9708 to 0.9992. The
+  eighth is found too and over-reaches: "Banca Transilvania din Cluj" swallows the city.
+- 0 spurious findings on 6 hand-written rows containing no organisation.
+- 16 of the 234 ordinary rows in `tests/test_ordinary_text_sweep.py`, 0.0684, and
+  reading all 16 they are real organisations: Telenor, BNP Paribas, Biblioteca Comunale
+  di Pisa, a ministry, a health insurer, a pharmacy. So that rate is coverage rather
+  than damage, which is exactly why the action matters: an organisation name is not
+  personal data, and a policy that redacts it damages 7 percent of ordinary business
+  prose correctly. `flag` is the defensible default, the same reading `date` and
+  `location` already get.
+- `person` recall is not the price. Across the same 234 rows the extra prompt changed
+  one person span, and it removed a false positive: the Maltese word "Salmuni" stopped
+  being a person. 0 real people lost. That is the opposite of what prompting
+  `first_name` and `surname` alongside `person_name` did, and the difference is that
+  those three phrasings describe one concept while this one describes a different
+  concept that happens to sit nearby.
 - `first_name`, `surname` are not a coverage gap, they are measured to actively
   hurt: prompting them alongside `person_name` splits the model's confidence
   across three overlapping phrasings for one concept. See `_LABEL_MAP`'s own
@@ -100,6 +132,7 @@ from typing import TYPE_CHECKING, Final
 
 from flowx_border.detectors.base import DetectorConfig
 from flowx_border.detectors.pii import (
+    BORDER_ENTITY_TYPES,
     ENTITY_TYPES,
     apply_shape_gate,
     entity_actions,
@@ -186,7 +219,7 @@ _LABEL_MAP: Final[tuple[tuple[str, str, str | None], ...]] = (
     ("policy_ref", "insurance policy number", None),
     ("contract_ref", "contract reference number", None),
     ("account_ref", "internal account reference number", None),
-    ("employer", "employer or company name", None),
+    ("employer", "employer or company name", "organisation"),
     ("health_condition", "health condition or medical status", None),
 )
 
@@ -203,12 +236,13 @@ _BORDER_TO_PHRASINGS: Final[dict[str, tuple[str, ...]]] = {
     for border in dict.fromkeys(b for _s, _p, b in _LABEL_MAP if b is not None)
 }
 
-#: Every border entity type cee-pii can produce. Used both to validate
-#: `options.entities` and, together with `pii.ENTITY_TYPES`, to confirm this
-#: table covers what it claims to: `tests/test_ceepii.py` asserts the two sets
-#: are equal, so a future edit to either dictionary that silently drops a type
-#: fails a test rather than shipping a detector that always finds one fewer
-#: thing than the policy asked for.
+#: Every border entity type cee-pii can produce, and since 2026-09-14 not the same
+#: set piiguard produces: this one has `organisation` and piiguard has no head for it.
+#: Passed to `wanted_entities`, `entity_actions` and `entity_thresholds` so every
+#: `options.*` name a policy writes is validated against the model that will actually
+#: run, which is what makes two models with two vocabularies safe. The alternative,
+#: validating both against one union, would accept `organisation` under piiguard and
+#: then find none, and a check that cannot fire is the silent no-op rule 3 forbids.
 MAPPED_ENTITY_TYPES: Final[tuple[str, ...]] = tuple(sorted(_BORDER_TO_PHRASINGS))
 
 _TOKENIZER_CACHE: dict[str, Tokenizer] = {}
@@ -456,13 +490,26 @@ def run(text: str, cfg: DetectorConfig, *, model_id: str = MODEL_ID) -> list[Fin
     return out
 
 
-if not set(MAPPED_ENTITY_TYPES) <= set(ENTITY_TYPES):  # pragma: no cover - a code bug
+_PRODUCED: Final[frozenset[str]] = frozenset(ENTITY_TYPES) | frozenset(
+    MAPPED_ENTITY_TYPES
+)
+
+if frozenset(BORDER_ENTITY_TYPES) != _PRODUCED:  # pragma: no cover - a code bug
     # Not an assert: stripped under -O, which is not a property to rely on for a
-    # security library. This checks the two label tables agree at import time
+    # security library. This checks the three label tables agree at import time
     # rather than trusting a comment; see tests/test_ceepii.py for the same check
     # kept independently of whether this module was ever imported with -O.
+    #
+    # Equality rather than the subset check this was until 2026-09-14, because the
+    # two models stopped producing the same set that day and a subset check no longer
+    # says anything useful in either direction. It now catches both mistakes: a type
+    # a model produces that no vocabulary names, which would reach a caller as a
+    # `[PLACEHOLDER]` nothing documents, and a vocabulary entry no model produces,
+    # which a policy could ask for and never be told is dead.
     raise RuntimeError(
-        "cee-pii's label map produces a border entity type piiguard does not know, "
-        "which would make options.entities validate against one model and mean "
-        "something different against the other"
+        "the pii entity vocabulary and the models' label maps disagree. "
+        f"piiguard and cee-pii between them produce {sorted(_PRODUCED)}, while "
+        f"pii.BORDER_ENTITY_TYPES names {sorted(BORDER_ENTITY_TYPES)}. Every type "
+        "either model can tag has to be in the vocabulary, and every entry in the "
+        "vocabulary has to be one some model can tag."
     )

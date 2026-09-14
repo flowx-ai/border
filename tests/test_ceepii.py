@@ -37,7 +37,7 @@ os.environ.setdefault("HF_HUB_OFFLINE", "1")
 
 from flowx_border.detectors.base import Context, DetectorConfig
 from flowx_border.detectors.ceepii import MAPPED_ENTITY_TYPES, MODEL_ID, run
-from flowx_border.detectors.pii import ENTITY_TYPES
+from flowx_border.detectors.pii import BORDER_ENTITY_TYPES, ENTITY_TYPES
 
 
 def config(**options: object) -> DetectorConfig:
@@ -49,11 +49,28 @@ def config(**options: object) -> DetectorConfig:
 # ------------------------------------------------------------------ the label map
 
 
-def test_every_mapped_type_is_one_pii_already_knows() -> None:
+def test_the_vocabulary_is_exactly_what_the_two_models_produce() -> None:
     """The invariant `ceepii.py`'s own module-level check enforces, asserted here
     too so a test failure names the file rather than an ImportError at collection.
+
+    Equality in both directions, which is stronger than the subset check this was
+    until 2026-09-14. A type a model produces and no vocabulary names would reach a
+    caller as a `[PLACEHOLDER]` nothing documents; a vocabulary entry no model
+    produces is a type a policy can ask for and never be told is dead.
     """
-    assert set(MAPPED_ENTITY_TYPES) <= set(ENTITY_TYPES)
+    assert set(ENTITY_TYPES) | set(MAPPED_ENTITY_TYPES) == set(BORDER_ENTITY_TYPES)
+
+
+def test_the_two_models_differ_by_organisation_and_only_by_it() -> None:
+    """Pinned as a fact rather than left implicit, because it is the first time the
+    two models have disagreed and every option-validation path below depends on it.
+
+    `organisation` was mapped on 2026-09-14 from cee-pii's `employer or company name`
+    label, which the library had been discarding. piiguard has no head for it, so the
+    asymmetry is real and permanent until piiguard is retrained with one.
+    """
+    assert set(MAPPED_ENTITY_TYPES) - set(ENTITY_TYPES) == {"organisation"}
+    assert set(ENTITY_TYPES) - set(MAPPED_ENTITY_TYPES) == set()
 
 
 def test_the_drop_list_stays_out() -> None:
@@ -74,7 +91,6 @@ def test_the_drop_list_stays_out() -> None:
         "uz_account",
         "ein",
         "company_number_uk",
-        "employer",
         "plate",
         "postal",
         "policy_ref",
@@ -84,6 +100,77 @@ def test_the_drop_list_stays_out() -> None:
         "first_name",
         "surname",
     }
+
+
+def test_piiguard_refuses_organisation_by_name_rather_than_finding_none() -> None:
+    """The reason a type only one model produces is safe to add.
+
+    A policy that names `organisation` while running piiguard is asking for a check
+    that model cannot perform. Answering "nothing found" would be indistinguishable
+    from a text with no company in it, which is the silent no-op rule 3 forbids and
+    the same failure `wanted_entities` already refuses for a misspelled type. The
+    error has to name the type and say what this model does tag, or a caller cannot
+    tell a typo from a model that lacks the head.
+    """
+    from flowx_border.detectors.pii import wanted_entities
+
+    with pytest.raises(ValueError, match="organisation") as raised:
+        wanted_entities(config(entities=["person", "organisation"]))
+    assert "card" in str(raised.value), (
+        "the error has to list what this model does tag, or a caller cannot tell "
+        "a misspelling from a missing head"
+    )
+
+
+def test_the_policy_reference_quotes_the_refusal_the_code_actually_raises() -> None:
+    """`docs/concepts/the-policy-file.md` prints that error to show what a caller sees.
+
+    A quoted message is a duplicate of a string in the code, and this repository's
+    named failure mode is duplicates going stale while every test still agrees with
+    itself. The document quotes the first two sentences, so this asserts the real
+    message starts with what the document shows, rather than asserting the two are
+    equal and forcing the document to carry a sentence about misspellings.
+    """
+    from pathlib import Path
+
+    from flowx_border.detectors.pii import wanted_entities
+
+    with pytest.raises(ValueError) as raised:
+        wanted_entities(config(entities=["organisation"]))
+    message = str(raised.value)
+
+    document = Path("docs/concepts/the-policy-file.md").read_text(encoding="utf-8")
+    quoted = (
+        "pii: unknown entity type(s) organisation. This model tags card, date, email,\n"
+        "    iban, location, national_id, person, phone."
+    )
+    assert quoted in document, "the policy reference no longer shows this refusal"
+    assert message.startswith(quoted.replace("\n    ", " ")), (
+        f"the policy reference quotes a message the code does not raise.\n"
+        f"  document: {quoted.replace(chr(10) + '    ', ' ')!r}\n"
+        f"  code    : {message!r}"
+    )
+
+
+def test_cee_pii_accepts_organisation() -> None:
+    """The other half, which is what makes the refusal above a routing decision
+    rather than the type being unusable. No model is loaded: this is option parsing.
+    """
+    from flowx_border.detectors.pii import (
+        entity_actions,
+        entity_thresholds,
+        wanted_entities,
+    )
+
+    assert wanted_entities(
+        config(entities=["organisation"]), MAPPED_ENTITY_TYPES
+    ) == frozenset({"organisation"})
+    assert entity_actions(
+        config(entity_actions={"organisation": "flag"}), MAPPED_ENTITY_TYPES
+    ) == {"organisation": "flag"}
+    assert entity_thresholds(
+        config(entity_thresholds={"organisation": 0.8}), MAPPED_ENTITY_TYPES
+    ) == {"organisation": 0.8}
 
 
 # ------------------------------------------------------------------ model selection
@@ -316,3 +403,43 @@ def test_a_luhn_invalid_card_is_kept_and_marked_unverified(local_cee_pii: None) 
     assert any(
         label.startswith("pii_checksum_failed_") or label == "card" for label in labels
     )
+
+
+@pytest.mark.slow
+def test_an_organisation_is_found_and_a_person_beside_it_survives(
+    local_cee_pii: None,
+) -> None:
+    """The ninth entity type end to end, with the cost that mattered measured beside it.
+
+    The risk in wiring a ninth prompt was not whether it works: it was whether it takes
+    recall from `person`, which is what prompting `first_name` and `surname` alongside
+    `person_name` was measured doing (see `_LABEL_MAP`'s comment). So this asserts both
+    halves in one sentence, a company and a person in it, rather than testing the new
+    type alone and leaving the regression to a number in a docstring.
+
+    Measured across the 234 ordinary rows of `test_ordinary_text_sweep.py` before
+    wiring: one person span changed and it was a false positive removed, 0 real people
+    lost.
+    """
+    text = "Anna Kowalska is employed by Orlen S.A. in Warsaw."
+    findings = run(text, config(entities=["person", "organisation"]))
+    by_label = {f.label: text[f.span[0] : f.span[1]] for f in findings if f.span}
+    assert "organisation" in by_label, f"no organisation finding in {findings}"
+    assert "Orlen" in by_label["organisation"]
+    assert by_label.get("person") == "Anna Kowalska"
+
+
+@pytest.mark.slow
+def test_organisation_is_absent_unless_the_policy_asks_for_it(
+    local_cee_pii: None,
+) -> None:
+    """`options.entities` controls the prompt, so a policy that does not name
+    `organisation` does not pay for the extra prompt column and cannot be surprised by
+    a company name in its redacted output. That matters more for this type than for the
+    other eight: a company name is not personal data, and 16 of 234 ordinary rows carry
+    one, so a caller who did not ask for it and got it redacted would see 7 percent of
+    ordinary business prose damaged by a correct finding.
+    """
+    text = "Anna Kowalska is employed by Orlen S.A. in Warsaw."
+    findings = run(text, config(entities=["person"]))
+    assert not [f for f in findings if f.label == "organisation"]
