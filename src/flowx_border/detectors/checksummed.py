@@ -56,7 +56,7 @@ from __future__ import annotations
 import re
 from typing import Final
 
-from flowx_border.detectors.entity_shapes import iban_ok, luhn_ok
+from flowx_border.detectors.entity_shapes import iban_issued, luhn_ok
 
 #: The two labels this module reports. Both are `pii.ENTITY_TYPES` entries, asserted in
 #: the tests rather than imported, because `pii` imports this module.
@@ -80,11 +80,20 @@ _SEPARATORS: Final = frozenset({" ", "-", ".", "\u00a0", "\u2007", "\u2009", "\u
 #: The head of every IBAN: two letters for the country, two check digits.
 _IBAN_HEAD: Final = re.compile(r"[A-Za-z]{2}[0-9]{2}")
 
-#: ISO 13616 puts an IBAN between 15 and 34 characters. The per-country length is not
-#: used, deliberately: a table of 78 lengths would decide where a run ends, and one
-#: wrong entry there is a country whose IBANs are silently never found. mod-97 at a
-#: group boundary decides instead, so a country this library has never heard of still
-#: works.
+#: ISO 13616 puts an IBAN between 15 and 34 characters. These bound candidate
+#: enumeration; `entity_shapes.iban_issued` then requires the country to be one that
+#: issues IBANs and the length to be the one it issues.
+#:
+#: **This said the per-country lengths were left out deliberately until 2026-09-14**, on
+#: the grounds that "a table of 78 lengths would decide where a run ends, and one wrong
+#: entry there is a country whose IBANs are silently never found". The table does not
+#: decide where a run ends: `_candidates` still enumerates every group boundary below
+#: and the table only prunes what comes back. And a wrong entry is not silent, because
+#: `test_checksummed.py` runs every IBAN in this repository through it.
+#:
+#: What that note cost, measured when a deployment hit it: 1 ordinary English sentence
+#: in 34 of the form "founded in 1834 and has never lost a customer" was reported here
+#: as a mod-97-valid IBAN at score 1.0. `iban_issued` carries the numbers.
 _IBAN_MIN: Final = 15
 _IBAN_MAX: Final = 34
 
@@ -293,7 +302,7 @@ def find(text: str) -> list[tuple[tuple[int, int], str]]:
             compact = "".join(character for character in value if _is_body(character))
             if not _IBAN_HEAD.match(compact) or not _one_case(value):
                 continue
-            if free((start, end)) and iban_ok(compact):
+            if free((start, end)) and iban_issued(compact):
                 accepted.append(((start, end), IBAN))
 
     for run in runs:

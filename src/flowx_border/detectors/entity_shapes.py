@@ -45,6 +45,8 @@ from __future__ import annotations
 
 import re
 import unicodedata
+from collections.abc import Mapping
+from types import MappingProxyType
 from typing import Final
 
 #: Reported when a span was dropped, one per rejected span, always at `log`. A drop is a
@@ -165,6 +167,151 @@ def iban_ok(value: str) -> bool:
         else:
             return False
     return total == 1
+
+
+#: The ISO 13616 registry: a country that issues IBANs, and the one length it issues.
+#: 89 entries, and every one is a fixed length by the standard, which is what makes a
+#: membership-and-length test possible at all.
+#:
+#: Verified against this repository rather than transcribed and hoped for: 52 strings in
+#: `tests/` and `src/` pass mod-97, and all 52 clear this table. `test_checksummed.py`
+#: pins that, so a wrong entry here fails a test rather than silently losing a country.
+IBAN_LENGTHS: Final[Mapping[str, int]] = MappingProxyType(
+    {
+        "AD": 24,
+        "AE": 23,
+        "AL": 28,
+        "AT": 20,
+        "AZ": 28,
+        "BA": 20,
+        "BE": 16,
+        "BG": 22,
+        "BH": 22,
+        "BI": 27,
+        "BR": 29,
+        "BY": 28,
+        "CH": 21,
+        "CR": 22,
+        "CY": 28,
+        "CZ": 24,
+        "DE": 22,
+        "DJ": 27,
+        "DK": 18,
+        "DO": 28,
+        "EE": 20,
+        "EG": 29,
+        "ES": 24,
+        "FI": 18,
+        "FK": 18,
+        "FO": 18,
+        "FR": 27,
+        "GB": 22,
+        "GE": 22,
+        "GI": 23,
+        "GL": 18,
+        "GR": 27,
+        "GT": 28,
+        "HN": 28,
+        "HR": 21,
+        "HU": 28,
+        "IE": 22,
+        "IL": 23,
+        "IQ": 23,
+        "IS": 26,
+        "IT": 27,
+        "JO": 30,
+        "KW": 30,
+        "KZ": 20,
+        "LB": 28,
+        "LC": 32,
+        "LI": 21,
+        "LT": 20,
+        "LU": 20,
+        "LV": 21,
+        "LY": 25,
+        "MC": 27,
+        "MD": 24,
+        "ME": 22,
+        "MK": 19,
+        "MN": 20,
+        "MR": 27,
+        "MT": 31,
+        "MU": 30,
+        "NI": 28,
+        "NL": 18,
+        "NO": 15,
+        "OM": 23,
+        "PK": 24,
+        "PL": 28,
+        "PS": 29,
+        "PT": 25,
+        "QA": 29,
+        "RO": 24,
+        "RS": 22,
+        "RU": 33,
+        "SA": 24,
+        "SC": 31,
+        "SD": 18,
+        "SE": 24,
+        "SI": 19,
+        "SK": 24,
+        "SM": 27,
+        "SO": 23,
+        "ST": 25,
+        "SV": 28,
+        "TL": 23,
+        "TN": 24,
+        "TR": 26,
+        "UA": 29,
+        "VA": 22,
+        "VG": 24,
+        "XK": 20,
+        "YE": 30,
+    }
+)
+
+
+def iban_issued(value: str) -> bool:
+    """mod-97, and a country that issues IBANs, at a length that country issues.
+
+    **Separate from `iban_ok`, and the direction each fails in is the whole reason.**
+    `iban_ok` answers "could this be an IBAN" and feeds the shape gate, where a False
+    drops a span the model found, which is a disclosure. This answers "is this an IBAN"
+    and feeds `checksummed.find`, which makes a deterministic claim at score 1.0 with no
+    model involved. A False there costs a missed redaction; a True on ordinary prose
+    costs a refused answer, and in a `fail_mode: closed` deployment that is the whole
+    answer.
+
+    **This existed as mod-97 alone until 2026-09-14 and the cost was measured rather
+    than argued.** `checksummed` carried a note that the per-country lengths were left
+    out deliberately, because "a table of 78 lengths would decide where a run ends, and
+    one wrong entry there is a country whose IBANs are silently never found". Two things
+    turned out to be wrong with that. The table does not decide where a run ends:
+    `_candidates` still enumerates every group boundary and this only prunes what comes
+    back. And a wrong entry is not silent, because the fixtures test it.
+
+    What the note was paying for that price: over 10,480 ordinary English sentences of
+    the form "founded in 1834 and has never lost a customer", **304 were reported as a
+    mod-97-valid IBAN, one in 34.** Every group boundary is a candidate start and a
+    candidate end, so one sentence buys many draws at mod-97's one in 97. All 304 came
+    from the head `IN`, which issues no IBANs, and the country check alone removes every
+    one of them.
+
+    The country check alone is not enough, which is why the length is here too. `at`,
+    `be`, `do`, `is`, `it`, `me`, `no` and `se` are ordinary English words and all eight
+    are IBAN countries. Over 80,000 sentences built to put a number after one of them,
+    membership alone leaves 3,410 and membership with the length leaves 159, a
+    twenty-one fold cut to 0.002.
+
+    Reported by a deployment running 13 blocking detectors at `fail_mode: closed`, where
+    `output_leakage` read "in 1834 and has never" as `leaked_iban` at 1.00 and refused
+    the answer. The 234-row ordinary-text sweep produces 0 of these, so nothing in this
+    repository could have found it: the sweep's mundane rows do not say "founded in".
+    """
+    compact = "".join(character for character in value.upper() if character.isalnum())
+    if not iban_ok(compact):
+        return False
+    return IBAN_LENGTHS.get(compact[:2]) == len(compact)
 
 
 def corrected_label(entity: str, value: str) -> str | None:
