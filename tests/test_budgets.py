@@ -140,6 +140,14 @@ MEASURED_MS = {
     # Not measured by the 2026-08-18 collector run; last measured 2026-08-11 on the
     # M3 laptop. A figure from another machine is kept as a record, not a comparison.
     "politeness": 151.0,
+    # The M5 workstation's figure for the int8 export, which is no longer the
+    # artifact: moderation ships the int8-fp16 hybrid as of 2026-09-14, 364 MB
+    # against 535. Kept at 18.5 rather than overwritten because every other
+    # classifier row is from that machine, and a laptop figure here would be a
+    # machine difference wearing a regression's clothes. What the hybrid costs was
+    # measured on one machine both ways, through this file's own `p95`: 40.5 ms int8
+    # against 52.0 hybrid, so +28 percent. Scale 18.5 by that and the workstation
+    # should read about 24 ms when it is next in front of one.
     "moderation": 18.5,
     # T3, neither measured by the 2026-08-18 run. groundedness's figure predates the
     # adopted binary model entirely; both are records of the last measurement taken.

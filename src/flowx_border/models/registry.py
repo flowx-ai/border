@@ -621,21 +621,44 @@ def local_spec_for(model_id: str) -> ModelSpec | None:
 #: model rather than a quantisation of this one. Its fp16 export changes no decisions at
 #: a p99 of 0.01288, for 21 MB more.
 #:
+#: `model.int8-fp16.onnx` is int8 for the embedding Gather and fp16 for everything
+#: else, and it exists because neither of the two above is the smallest honest export
+#: for an XLM-R classifier. The 250,002-token embedding table is 768 MB of a 1,112 MB
+#: fp32 graph, 69 percent of it, so int8 reaches 535 MB by taking that table to one byte
+#: per weight and leaving the encoder in fp32, while fp16 reaches 556 MB by halving
+#: everything and is therefore larger than the int8 it was meant to improve on. Doing
+#: both gives 364 MB. The decision risk is not additive: what moved decisions in the
+#: recipe table was MatMul in *int8*, a p99 probability drift of 0.98 and 17 flips in
+#: 300, where fp16 over the same weights changed nothing at a p99 of 0.013.
+#:
+#: Tried after int8 because int8 is still what most of the shipped detectors carry, so
+#: the common case stays one stat call.
+#:
 #: fp32 last, added for `cee-pii`. Not a preference, an absence: naive INT8 dynamic
 #: quantisation destroyed the model (every real name below 0.004) and fp16 hit a real
 #: type-mismatch bug in mDeBERTa's embeddings block via this project's own converter,
 #: not a metadata slip this time, see border_train/export/gliner_to_onnx.py. fp32 is
 #: what passed the equivalence check, so it is what the loader is asked to find.
-WEIGHT_NAMES: Final = ("model.int8.onnx", "model.fp16.onnx", "model.fp32.onnx")
+WEIGHT_NAMES: Final = (
+    "model.int8.onnx",
+    "model.int8-fp16.onnx",
+    "model.fp16.onnx",
+    "model.fp32.onnx",
+)
 
 
 def _weights_in(onnx_dir: Path) -> Path | None:
     """The one shrunk export in `onnx_dir`, or None.
 
-    Raises when both an int8 and an fp16 export are present. Picking one silently would
-    mean the evidence record attests a file nobody chose, and both names do appear
-    together in practice: a directory keeps its refused int8 while the fp16 that
-    replaced it is exported beside it. An ambiguous directory is a question for a human.
+    Raises when more than one shrunk export is present. Picking one silently would mean
+    the evidence record attests a file nobody chose, and these names do appear together
+    in practice: a directory keeps its refused int8 while the fp16 that replaced it is
+    exported beside it. An ambiguous directory is a question for a human.
+
+    The int8-fp16 hybrid makes that more likely rather than less, because unlike the
+    fp16 case it supersedes an export that was never refused: a directory can hold a
+    535 MB int8 that passed every gate and a 364 MB hybrid that also passed. Both are
+    correct and they are not the same file, so the loader still refuses to choose.
     """
     found = [onnx_dir / name for name in WEIGHT_NAMES if (onnx_dir / name).exists()]
     if len(found) > 1:
