@@ -402,8 +402,29 @@ def test_the_recorded_rates_still_describe_this_configuration(
     moved row set and a changed model are different problems with different fixes, and
     the error message should say which one happened.
 
-    Regenerate with the snippet in that file's sibling docs when a change is intended. A
-    rate moving is normal; a rate moving unnoticed is what this prevents.
+    A rate moving is normal; a rate moving unnoticed is what this prevents.
+
+    **It fired for real on 2026-09-14, and what it caught is a limit of the measurement
+    rather than a regression.** The recorded entry was taken on 2026-08-20 against the
+    v4 moderation corpus, the v5 regeneration of 2026-08-24 replaced 208 of the 234
+    rows, and nothing re-measured for three weeks. Re-running the same weights and the
+    same policy over both row sets separates the two causes cleanly:
+
+        v4 rows   any_detector_damages_a_row 0.1624   pii 0.1282   34 real entities
+        v5 rows   any_detector_damages_a_row 0.0812   pii 0.0598   14 real entities
+
+    Nothing improved. The mundane registers contain real names, emails and phone
+    numbers, and the v5 draw happens to contain fewer of them, so most of what this
+    file counts as damage is pii doing its job: 14 of the 19 damaged rows. **The damage
+    rate is therefore dominated by the generator rather than by the detectors**, and the
+    number to compare across corpus versions is the rows blocked outright on innocuous
+    text, 9 on the v4 rows and 5 here. Those 5 are 4 `nsfw` blocks on one committee
+    sentence in `da`, `sk`, `ga` and `mt`, and 1 `injection` block on a Maltese school
+    enrolment notice, which is a per-language pattern rather than a content one.
+
+    To regenerate: run the `sweep` fixture, divide each counter by `rows`, round to four
+    places, and write the same keys back. Re-record only with the reason in the commit
+    message, and grep for every place the old figure was quoted.
     """
     recorded = json.loads(RECORDED.read_text(encoding="utf-8"))
     rows = ordinary_rows()
@@ -456,33 +477,28 @@ def test_no_detector_fires_above_its_measured_ceiling(sweep: dict[str, object]) 
 
 @pytest.mark.xfail(
     reason=(
-        "Measured over the same 234 rows. pii fires on ordinary text above its 0.25 "
-        "ceiling and regulated_advice on 0.5256 against 0.10.\n\n"
-        "**That read 0.145 until 2026-08-20 and the row set had moved under it**, the "
-        "same `1bedcde` re-draw described on the test above. Re-measured on the "
-        "snapshot: `pii` fires on 0.4017 and `regulated_advice` on 0.5256, so more "
-        "than half of ordinary business prose produces an advice finding. A number "
-        "inside an xfail reason is prose and nothing recomputes it, which is why both "
-        "were stale and neither failed.\n\n"
-        "`regulated_advice` has a fix waiting rather than a diagnosis. A retrain on "
-        "the corrected corpus split, with the mundane registers the corpus gained, "
-        "reads 0.0600 at seed 42 and 0.0299 at seed 1337 on these same rows, against "
-        "0.5256 published. 7 rows and 14 rows of 234 are not distinguishable from each "
-        "other, and both are an order of magnitude below what ships.\n\n"
-        "pii's firing rate is deliberately not the same question as its damage rate, "
-        "which is 0.0769. A date is found and recorded; it is no longer cut out of the "
-        "caller's text. This test measures noise in the evidence record and the one "
-        "above measures damage to the caller's text.\n\n"
-        "The gap widened on 2026-08-19 and the reason is the mechanism working. Of "
-        "pii's findings over these rows, 86 are `date` at `flag` by policy, 60 are "
-        "`pii_below_entity_threshold_person` at `log`, and only 42 are redactions. The "
-        "`person` bar records what it drops rather than removing it silently, so "
-        "closing the damage did not close the firing, and it should not: a policy that "
-        "raises a bar has to be able to see what the bar dropped.\n\n"
-        "regulated_advice is the milder of the two and was already on the "
-        "known-false-positive list: it flags rather than redacts, so the cost is a "
-        "noisy record rather than damaged text. pii is the one that matters, and the "
-        "test above this carries the detail.\n\n"
+        "Re-measured 2026-09-14 on the v5 rows: pii fires on 0.2521 against its 0.25 "
+        "ceiling, which is 59 rows of 234 where 58 would clear it. One row.\n\n"
+        "**Every number in this reason was stale, for the second time, and the label "
+        "in one of them no longer exists.** It read `pii` at 0.4017 firing and 0.0769 "
+        "damaging, with `regulated_advice` at 0.5256 beside it, and broke pii's "
+        "findings down as 86 `date`, 60 `pii_below_entity_threshold_person` and 42 "
+        "redactions. `regulated_advice` left this dict on 2026-08-20 and the person "
+        "bar was removed on the same day LOCATION landed, so that middle count had "
+        "been describing a label the detector stopped emitting. A number inside an "
+        "xfail reason is prose, nothing recomputes prose, and this is the file that "
+        "says so.\n\n"
+        "What pii's 206 findings over these rows actually are: 114 `location` at "
+        "`flag`, 56 `date` at `flag`, and 36 redactions. So the firing rate and the "
+        "damage rate are still deliberately different questions. Two thirds of the "
+        "firing is an entity recorded rather than cut out of the caller's text, this "
+        "test measures noise in the evidence record, and the one above measures damage "
+        "to the caller's text.\n\n"
+        "The damage rate is also not what it looks like, and the control is in "
+        "`ordinary_text_rates.json`. 14 of the 19 damaged rows are pii redacting a "
+        "real name, email or phone number that the mundane rows contain, which is the "
+        "detector working. The comparable residual is the 5 rows blocked outright on "
+        "innocuous text, and none of them is pii.\n\n"
         "Split from the enforcing test on purpose. Folding these two into one xfail "
         "over the whole table would stop a toxicity or nsfw regression failing "
         "anything, which is a known failure being used as cover for an unknown one."

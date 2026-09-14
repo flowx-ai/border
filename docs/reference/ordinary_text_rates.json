@@ -1,9 +1,9 @@
 {
-  "any_detector_damages_a_row": 0.1624,
+  "any_detector_damages_a_row": 0.0812,
   "detectors": {
     "bias": {
       "damages": 0.0,
-      "fires": 0.0171
+      "fires": 0.0299
     },
     "disclosure": {
       "damages": 0.0,
@@ -14,36 +14,41 @@
       "fires": 0.0043
     },
     "injection": {
-      "damages": 0.0171,
-      "fires": 0.0171
+      "damages": 0.0043,
+      "fires": 0.0043
     },
     "language_id": {
       "damages": 0.0,
-      "fires": 0.9957
+      "fires": 1.0
+    },
+    "moderation": {
+      "damages": 0.0,
+      "fires": 0.0043
     },
     "nsfw": {
-      "damages": 0.0214,
-      "fires": 0.0214
+      "damages": 0.0171,
+      "fires": 0.0171
     },
     "pii": {
-      "damages": 0.1282,
-      "fires": 0.4744
+      "damages": 0.0598,
+      "fires": 0.2521
     },
     "regulated_advice": {
       "damages": 0.0,
-      "fires": 0.0598
+      "fires": 0.0128
     },
     "topic_scope": {
       "damages": 0.0,
-      "fires": 0.4658
+      "fires": 0.2778
     },
     "toxicity": {
       "damages": 0.0,
-      "fires": 0.0043
+      "fires": 0.0256
     }
   },
-  "measured_on": "2026-08-20",
+  "measured_on": "2026-09-14",
+  "note": "The rows moved, not the detectors. The previous entry was measured on the v4 moderation corpus and the v5 regeneration of 2026-08-24 replaced 208 of the 234 rows. Same weights, same policy, over the v4 rows this run reads any_detector_damages_a_row 0.1624 and over the v5 rows 0.0812, so the halving is the sample. Most of what is counted as damage is pii redacting a real entity the mundane rows contain: 14 of the 19 damaged rows, against 34 such entities in the v4 rows and 14 in the v5 rows. The comparable residual is the rows blocked outright on innocuous text, 5 here and 9 on the v4 rows.",
   "policy": "policies/default.yaml",
   "rows": 234,
-  "rows_content_sha256": "da8a38fa450c42d0ff4818c6438f3de0339f216111cae44675df627c5b9cbc32"
+  "rows_content_sha256": "7e0dfa86848b4955f30d0f25873b33c11965a37347bb599dc9f13e0dfbaa3dbf"
 }
