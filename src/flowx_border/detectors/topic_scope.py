@@ -15,6 +15,22 @@ same model serves a bank and a health service, and a compliance officer who does
 write Python can change what is in scope. Node text is embedded at first use and cached
 against the taxonomy's own content, so editing a description invalidates it.
 
+**Describe a node by what it is, never by what it is not.** A bi-encoder has no
+representation for negation: it embeds meanings, and "other than" is not a meaning it
+can apply to one. A disallowed node reading "companies other than this one" embeds
+roughly as "confidential details of companies", which is near every question anyone asks
+in a data room, so the node matches the traffic it was written to let through. Measured
+by a deployment on 2026-09-14 against their own taxonomy: three of four disallowed nodes
+were phrased by exclusion, and rewriting them positively took refusals on ordinary
+questions from 132 to 96 with no change here and no change to the model.
+
+This fails in the direction that looks safe, which is why it is worth a paragraph. An
+over-broad disallowed node refuses real work rather than admitting bad work, so it reads
+as a strict boundary rather than as a broken one, and the only symptom is a refusal rate
+nobody has a baseline for. Write "competitor financials" rather than "companies other
+than this one", and "personal or household topics" rather than "any task unrelated to
+the company".
+
 **Unconfigured is a finding, not a pass.** A policy that enables this detector without a
 taxonomy gets `topic_scope_unconfigured` with action `log`. Returning nothing would be
 indistinguishable from an on-topic input, which is the failure this library refuses.
