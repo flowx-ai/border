@@ -20,7 +20,7 @@ means the score is unverified rather than good or bad.
 | `disclosure` | T0 | built | – | – | – | – | – | – |
 | `encoded_payload` | T1 | built | – | – | – | – | – | – |
 | `gibberish` | T1 | built | f1 | 0.992 | 1.000 | 0.946 | 779 | positive examples |
-| `groundedness` | T3 | built | exact_match_accuracy | 0.898 | 0.902 | 0.831 | 3214 | examples evaluated |
+| `groundedness` | T3 | built | exact_match_accuracy | 0.796 | 0.800 | 0.672 | 1558 | examples evaluated |
 | `infra_leakage` | T1 | built | – | – | – | – | – | – |
 | `injection` | T2 | built | f1 | 0.989 | 1.000 | 0.882 | 1080 | positive examples |
 | `internal_domains` | T1 | built | – | – | – | – | – | – |
@@ -51,7 +51,8 @@ means the score is unverified rather than good or bad.
 
 - **`bias`**: the score above is per language and asks whether the detector fires at all, not which of its 5 labels applies. Per label the weakest with support is gender at 0.9533, against a macro of 0.9826 here.
 - **`gibberish`**: the score above is per language and asks whether the detector fires at all, not which of its 3 labels applies. Per label the weakest with support is repetition at 0.9709, against a macro of 0.9915 here.
-- **`groundedness`**: the score above is per language and asks whether the detector fires at all, not which of its 2 labels applies. Per label the weakest with support is not_grounded at 0.8903, against a macro of 0.8979 here.
+- **`groundedness`**: the score above is per language and asks whether the detector fires at all, not which of its 2 labels applies. Per label the weakest with support is not_grounded at 0.7612, against a macro of 0.7965 here.
+- **`groundedness`**: scored on the 1558 of 3214 test rows the model never trained on. A re-split had moved 1656 of its training rows into the test split, and they are excluded with their pair partners. 1120 of those are from registers added to the corpus after the model trained, so the figure mostly measures cases it never learned.
 - **`groundedness`**: no calibrated threshold recorded, so this detector runs at the policy default. Several detectors in this family reported nothing at 0.5 while separating positives from negatives well below it.
 - **`injection`**: the score above is per language and asks whether the detector fires at all, not which of its 3 labels applies. Per label the weakest with support is jailbreak at 0.9603, against a macro of 0.9891 here.
 - **`moderation`**: the score above is per language and asks whether the detector fires at all, not which of its 12 labels applies. Per label the weakest with support is fraud_deception at 0.7972, against a macro of 0.9795 here.

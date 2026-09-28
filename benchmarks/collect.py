@@ -373,6 +373,27 @@ def caveats_for(
                 f"scores zero in {', '.join(rest)}, which is unexplained and a bug "
                 "to chase."
             )
+    # Which rows were scored, when the evaluation had to exclude the model's own
+    # training rows. Added 2026-09-28: groundedness was published at 0.8015 on a test
+    # split holding 1656 of its training rows, and a corrected number quoted without
+    # this sentence reads as a regression rather than a correction. See
+    # open_issues.md item 11.
+    provenance = (evaluation or {}).get("provenance") or {}
+    if provenance.get("excluded"):
+        untrained = provenance.get("rows_in_untrained_registers")
+        notes.append(
+            f"scored on the {provenance['rows_scored']} of "
+            f"{provenance['rows_checked']} test rows the model never trained on. A "
+            f"re-split had moved {provenance['excluded']} of its training rows into "
+            "the test split, and they are excluded with their pair partners."
+            + (
+                f" {untrained} of those are from registers added to the corpus after "
+                "the model trained, so the figure mostly measures cases it never "
+                "learned."
+                if untrained
+                else ""
+            )
+        )
     if quality.get("threshold") is None:
         notes.append(
             "no calibrated threshold recorded, so this detector runs at the policy "

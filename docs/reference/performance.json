@@ -395,136 +395,137 @@
     "groundedness": {
       "budget_ms": 300.0,
       "caveats": [
-        "the score above is per language and asks whether the detector fires at all, not which of its 2 labels applies. Per label the weakest with support is not_grounded at 0.8903, against a macro of 0.8979 here.",
+        "the score above is per language and asks whether the detector fires at all, not which of its 2 labels applies. Per label the weakest with support is not_grounded at 0.7612, against a macro of 0.7965 here.",
+        "scored on the 1558 of 3214 test rows the model never trained on. A re-split had moved 1656 of its training rows into the test split, and they are excluded with their pair partners. 1120 of those are from registers added to the corpus after the model trained, so the figure mostly measures cases it never learned.",
         "no calibrated threshold recorded, so this detector runs at the policy default. Several detectors in this family reported nothing at 0.5 while separating positives from negatives well below it."
       ],
       "in_core": true,
       "metrics": {
-        "best": 0.9583,
+        "best": 0.9,
         "headline": {
           "means": "both halves of a minimal pair correct",
           "name": "pair_accuracy",
-          "value": 0.8015
+          "value": 0.6021
         },
         "languages_evaluated": 26,
         "languages_without_a_count": [],
-        "macro": 0.8979,
-        "median": 0.9024,
+        "macro": 0.7965,
+        "median": 0.8,
         "metric": "exact_match_accuracy",
         "n_means": "examples evaluated",
         "per_language": {
           "az": {
-            "n": 126,
-            "score": 0.8889
+            "n": 58,
+            "score": 0.7931
           },
           "bg": {
-            "n": 122,
-            "score": 0.9098
+            "n": 54,
+            "score": 0.7963
           },
           "cs": {
-            "n": 122,
-            "score": 0.8852
+            "n": 64,
+            "score": 0.7812
           },
           "da": {
-            "n": 126,
-            "score": 0.9206
+            "n": 66,
+            "score": 0.8485
           },
           "de": {
-            "n": 122,
-            "score": 0.9344
+            "n": 60,
+            "score": 0.8667
           },
           "el": {
-            "n": 126,
-            "score": 0.9048
+            "n": 60,
+            "score": 0.8
           },
           "en": {
-            "n": 124,
-            "score": 0.9194
+            "n": 62,
+            "score": 0.8387
           },
           "es": {
-            "n": 120,
-            "score": 0.925
+            "n": 50,
+            "score": 0.84
           },
           "et": {
-            "n": 126,
-            "score": 0.8889
+            "n": 64,
+            "score": 0.7969
           },
           "fi": {
-            "n": 120,
-            "score": 0.9083
+            "n": 58,
+            "score": 0.8103
           },
           "fr": {
-            "n": 126,
-            "score": 0.8651
+            "n": 64,
+            "score": 0.7344
           },
           "ga": {
-            "n": 122,
-            "score": 0.9098
+            "n": 58,
+            "score": 0.8103
           },
           "hr": {
-            "n": 124,
-            "score": 0.8306
+            "n": 64,
+            "score": 0.6719
           },
           "hu": {
-            "n": 130,
-            "score": 0.8769
+            "n": 68,
+            "score": 0.7647
           },
           "it": {
-            "n": 130,
-            "score": 0.8692
+            "n": 66,
+            "score": 0.7576
           },
           "lt": {
-            "n": 120,
-            "score": 0.8833
+            "n": 58,
+            "score": 0.7586
           },
           "lv": {
-            "n": 120,
-            "score": 0.925
+            "n": 46,
+            "score": 0.8261
           },
           "mt": {
-            "n": 120,
+            "n": 62,
             "notes": [
               "absent from the base model's pretraining corpus, which is worth knowing but has not been shown to bound the score: nsfw went from 0.000 to 1.000 here on more examples"
             ],
-            "score": 0.875
+            "score": 0.7581
           },
           "nl": {
-            "n": 126,
-            "score": 0.9127
+            "n": 56,
+            "score": 0.8036
           },
           "pl": {
-            "n": 124,
-            "score": 0.8548
+            "n": 64,
+            "score": 0.7344
           },
           "pt": {
-            "n": 120,
-            "score": 0.9583
+            "n": 50,
+            "score": 0.9
           },
           "ro": {
-            "n": 126,
-            "score": 0.881
+            "n": 60,
+            "score": 0.7667
           },
           "sk": {
-            "n": 122,
-            "score": 0.9016
+            "n": 64,
+            "score": 0.8125
           },
           "sl": {
-            "n": 124,
-            "score": 0.9032
+            "n": 60,
+            "score": 0.8167
           },
           "sv": {
-            "n": 124,
-            "score": 0.9113
+            "n": 62,
+            "score": 0.8226
           },
           "tr": {
-            "n": 122,
-            "score": 0.9016
+            "n": 60,
+            "score": 0.8
           }
         },
         "threshold": null,
         "threshold_chosen_by": null,
-        "total_examples": 3214,
-        "worst": 0.8306
+        "total_examples": 1558,
+        "worst": 0.6719
       },
       "requires": {},
       "sides": [
