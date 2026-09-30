@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-"""`topic_scope`'s typed engine, against the real `flowxai/topic-scope-v2` weights.
+"""`topic_scope`'s typed engine, against the real `flowxai/topic-scope-v3` weights.
 
 The engine is a port: the model was trained and evaluated in the training repository,
 and what this library can get wrong is the path from text to the head's inputs
@@ -9,9 +9,12 @@ central test runs the library's own engine over 78 test rows, three per language
 disagreement there is a porting bug; a wrong answer the run also gave is the model, and
 is counted separately.
 
-The fixtures come from `scripts/topic_scope_v2_library.py` in the training repository,
-from the run's saved logits. They are unseen-type rows: taxonomies from deployment types
-the model never trained on.
+The fixtures come from `scripts/topic_scope_v2_library.py --name topic-scope-v3` in the
+training repository, from the XLM-R large run's saved logits. One file, replaced rather
+than added beside v2's, because each row carries the answer the loaded model's own run
+gave and the test compares against it: fixtures from another model would test the wrong
+weights. They are unseen-type rows: taxonomies from deployment types the model never
+trained on.
 """
 
 from __future__ import annotations
@@ -55,7 +58,7 @@ def scoped() -> TopicScopeDetector:
     try:
         detector.warm()
     except ModelUnavailableError as error:
-        pytest.skip(f"topic-scope-v2 weights not available: {error}")
+        pytest.skip(f"topic-scope-v3 weights not available: {error}")
     return detector
 
 
@@ -131,7 +134,7 @@ def test_a_disallowed_node_fires_with_a_probability(scoped: TopicScopeDetector) 
     assert decided[0].label.startswith("off_topic__")
     assert decided[0].action == "block"
     assert 0.5 <= decided[0].score <= 1.0
-    assert decided[0].model_id == "flowxai/topic-scope-v2"
+    assert decided[0].model_id == "flowxai/topic-scope-v3"
 
 
 def test_a_message_about_no_node_says_none_of_these(scoped: TopicScopeDetector) -> None:
@@ -200,8 +203,8 @@ def test_it_attests_without_being_warmed() -> None:
     """`warm` is an optimisation, never a precondition, attestation included."""
     from flowx_border.models.registry import ModelUnavailableError, available
 
-    if not available("topic_scope_v2"):
-        pytest.skip("topic-scope-v2 weights not available")
+    if not available("topic_scope_v3"):
+        pytest.skip("topic-scope-v3 weights not available")
     cold = TopicScopeDetector()
     row = ROWS[0]
     try:
@@ -211,9 +214,9 @@ def test_it_attests_without_being_warmed() -> None:
             Context(),
         )
     except ModelUnavailableError as error:
-        pytest.skip(f"topic-scope-v2 weights not cached: {error}")
+        pytest.skip(f"topic-scope-v3 weights not cached: {error}")
     assert findings
-    assert {f.model_id for f in findings} == {"flowxai/topic-scope-v2"}
+    assert {f.model_id for f in findings} == {"flowxai/topic-scope-v3"}
     assert all(f.model_revision and len(f.model_revision) == 40 for f in findings)
 
 

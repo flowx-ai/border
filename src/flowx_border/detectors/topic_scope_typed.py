@@ -2,7 +2,7 @@
 """The typed-decision engine behind `topic_scope`, the default since 2026-09-30.
 
 `topic_scope.py` owns the detector: the policy options, the taxonomy validation and the
-findings. This module owns the model, `flowxai/topic-scope-v2`, and answers one question
+findings. This module owns the model, `flowxai/topic-scope-v3`, and answers one question
 for it: given a message and a taxonomy, which node is the message about, or none of
 them, and how sure is the model.
 
@@ -55,8 +55,8 @@ if TYPE_CHECKING:
     import numpy as np
     from numpy.typing import NDArray
 
-ENCODER_ID: Final = "topic_scope_v2"
-HEAD_ID: Final = "topic_scope_v2_head"
+ENCODER_ID: Final = "topic_scope_v3"
+HEAD_ID: Final = "topic_scope_v3_head"
 
 #: Nodes the head is offered at most, before the none option. Training offered 4 to 37.
 #: The head's cost grows with the square of the total node text: at one thread, torch,

@@ -194,7 +194,7 @@ def _build() -> tuple[dict[str, Detector], frozenset[str]]:
         built["groundedness"] = GroundednessDetector()
     # Built when either engine's weights can be had. The default, `typed`, is checked
     # first; a policy that opts into the bi-encoder needs that engine's weights instead.
-    if available("topic_scope_v2") or available("topic_scope"):
+    if available("topic_scope_v3") or available("topic_scope"):
         built["topic_scope"] = TopicScopeDetector()
 
     return built, frozenset(implemented)

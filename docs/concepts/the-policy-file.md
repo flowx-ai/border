@@ -149,9 +149,9 @@ it was written for the bi-encoder: a bi-encoder compares meanings and has no
 representation for negation.
 
 **The default engine since 2026-09-30 reads exclusions better and still not well.** The
-typed engine (`flowxai/topic-scope-v2`) reads the message and every node together. On
+typed engine (`flowxai/topic-scope-v3`) reads the message and every node together. On
 synthetic taxonomies from deployment types it never trained on, messages that match a
-node's words but fall under what the node excludes are answered right 0.667 of the time,
+node's words but fall under what the node excludes are answered right 0.731 of the time,
 against the bi-encoder's 0.327 on the same rows, and that is still its weakest kind of
 message. So the rule stands for both engines; the model card on the hub has the
 per-register table.

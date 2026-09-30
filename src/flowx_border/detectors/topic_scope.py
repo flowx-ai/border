@@ -2,7 +2,7 @@
 """T3. Is the input inside the subject matter this deployment is for?
 
 **Two engines, chosen by `options.engine`.** `typed`, the default since 2026-09-30, is a
-typed-decision head (`flowxai/topic-scope-v2`, see `topic_scope_typed.py`): it reads the
+typed-decision head (`flowxai/topic-scope-v3`, see `topic_scope_typed.py`): it reads the
 message and every node together, can answer "none of these", and its score is a
 calibrated probability. `bi-encoder` is the model described below, kept loadable,
 unchanged, until the typed engine has a deployment's worth of evidence. On taxonomies

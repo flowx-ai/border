@@ -549,6 +549,18 @@ MODELS: Final[dict[str, ModelSpec]] = {
 #: message. Listed rather than omitted so that "not built yet" and "typo" are different
 #: errors.
 UNPUBLISHED: Final[dict[str, str]] = {
+    # Staged 2026-09-30, not uploaded. The engine asks for these, so until the repo
+    # exists topic_scope's typed engine loads only under the local override. Publishing
+    # moves both into MODELS with the upload's commit sha, and the sha256 the export
+    # recorded: model.int8.onnx 483552da...c7139, head.onnx 69a14a21...b140e.
+    "topic_scope_v3": (
+        "flowxai/topic-scope-v3 is XLM-RoBERTa large under the same typed-decision "
+        "head as topic_scope_v2, exported and verified but not uploaded: one training "
+        "seed so far, and it ships only if a second seed confirms the gain."
+    ),
+    "topic_scope_v3_head": (
+        "The decision head of flowxai/topic-scope-v3, not uploaded; see topic_scope_v3."
+    ),
     "semantic-mapper": (
         "flowxai/semantic-mapper is a 4B Qwen3 LoRA published as GGUF. It "
         "generates JSON against a frozen prompt, which is a local LLM call "

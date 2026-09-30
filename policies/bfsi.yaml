@@ -194,9 +194,9 @@ detectors:
     on_fail: block
     # 0.7, a probability under the typed engine, against default.yaml's 0.5. This policy
     # blocks, so a false fire is a refused request, and it buys precision with recall: on
-    # validation rows the named node is right 0.9099 of the time at 0.7 against 0.8581 at
-    # 0.5, and 0.6959 of rows about a node are named against 0.7935. See default.yaml for
-    # the table and training reports/topic_scope_v2_thresholds.json for its source.
+    # validation rows the named node is right 0.9354 of the time at 0.7 against 0.9020 at
+    # 0.5, and 0.8248 of rows about a node are named against 0.8892. See default.yaml for
+    # the table and training reports/topic_scope_v3_thresholds.json for its source.
     #
     # The bi-encoder's history follows, for a policy that selects `engine: bi-encoder`.
     #

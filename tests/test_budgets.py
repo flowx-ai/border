@@ -167,9 +167,12 @@ MEASURED_MS = {
     # the adopted binary model entirely; it is a record of the last measurement taken.
     "groundedness": 61.0,
     # The typed engine at 40 nodes, the most its head is offered, measured 2026-09-30 on
-    # the M5 workstation through this file's `p95`: 57.2 ms at 20 nodes, 80.1 at 30,
-    # 104.1 at 40. It replaced the bi-encoder's 214.0 as the default engine.
-    "topic_scope": 104.1,
+    # the M5 workstation through this file's `p95`. topic-scope-v3, XLM-R large: 119.0
+    # ms at 20 nodes, 156.7 at 30, 198.6 at 40. Not comparable with v2's 104.1 at 40 as
+    # it stands: the nodes come from the fixture file, which is v3's own and carries
+    # longer descriptions. On v2's fixture nodes, beside v2 in one session, large read
+    # 180.8 against 102.3. v2 replaced the bi-encoder's 214.0.
+    "topic_scope": 198.6,
 }
 
 #: Multiplier for a runner known to be slower than the reference machine. A documented
@@ -694,7 +697,7 @@ def test_topic_scope_is_within_budget_at_the_largest_taxonomy_it_offers() -> Non
     try:
         detector.warm()
     except ModelUnavailableError as error:
-        pytest.skip(f"topic-scope-v2 weights not available: {error}")
+        pytest.skip(f"topic-scope-v3 weights not available: {error}")
 
     fixtures = Path(__file__).parent / "fixtures" / "topic_scope"
     rows = json.loads((fixtures / "typed_26_languages.json").read_text("utf-8"))["rows"]

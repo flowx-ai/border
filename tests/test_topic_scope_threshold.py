@@ -61,7 +61,7 @@ MEASURED_SCORE_FLOOR = 0.6674
 
 
 #: The bars the typed engine's threshold table was read at, on validation rows, in
-#: training reports/topic_scope_v2_thresholds.json. A shipped threshold outside them is
+#: training reports/topic_scope_v3_thresholds.json. A shipped threshold outside them is
 #: a number nobody measured.
 TYPED_MEASURED_BARS = (0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.85, 0.9)
 
