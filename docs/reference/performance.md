@@ -43,7 +43,7 @@ means the score is unverified rather than good or bad.
 | `summary_support` | T1 | built | – | – | – | – | – | – |
 | `system_prompt_leakage` | T1 | built | – | – | – | – | – | – |
 | `token_limit` | T1 | built | – | – | – | – | – | – |
-| `topic_scope` | T3 | built | top1_accuracy | 0.865 | 0.857 | 0.375 | 175 | examples evaluated |
+| `topic_scope` | T3 | built | top1_accuracy | 0.803 | 0.814 | 0.624 | 11497 | examples evaluated |
 | `toxicity` | T2 | built | f1 | 0.992 | 1.000 | 0.950 | 518 | positive examples |
 | `url_reachability` | T3 | built | – | – | – | – | – | – |
 
@@ -58,8 +58,6 @@ means the score is unverified rather than good or bad.
 - **`moderation`**: the score above is per language and asks whether the detector fires at all, not which of its 12 labels applies. Per label the weakest with support is fraud_deception at 0.7972, against a macro of 0.9795 here.
 - **`nsfw`**: the score above is per language and asks whether the detector fires at all, not which of its 2 labels applies. Per label the weakest with support is sexual at 0.9492, against a macro of 0.9738 here.
 - **`regulated_advice`**: the score above is per language and asks whether the detector fires at all, not which of its 3 labels applies. Per label the weakest with support is legal_advice at 0.8758, against a macro of 0.9864 here.
-- **`topic_scope`**: 26 of 26 languages have fewer than 10 examples evaluated: az, bg, cs, da, de, el, en, es, et, fi, fr, ga, hr, hu, it, lt, lv, mt, nl, pl, pt, ro, sk, sl, sv, tr. Their individual scores are indicative rather than measured.
-- **`topic_scope`**: no calibrated threshold recorded, so this detector runs at the policy default. Several detectors in this family reported nothing at 0.5 while separating positives from negatives well below it.
 - **`toxicity`**: the score above is per language and asks whether the detector fires at all, not which of its 4 labels applies. Per label the weakest with support is harassment at 0.9723, against a macro of 0.9915 here.
 
 ## Latency

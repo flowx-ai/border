@@ -97,11 +97,20 @@ LANGUAGE_NAMES = {
 }
 
 
+#: A detector whose weights live under a different model id than the detector's name.
+#: topic_scope runs `topic_scope_v2` since 2026-09-30, and without this the collector
+#: kept publishing the bi-encoder it replaced, because that folder still matched the
+#: detector's name. The superseded folder is a fallback, not a candidate: it is read
+#: only when the shipped model's folder is absent.
+SHIPPED_MODEL: dict[str, str] = {"topic_scope": "topic_scope_v2"}
+
+
 def _artifact_dir(root: Path, detector: str) -> Path | None:
     """The artifact folder for a detector, in either naming convention."""
-    for name in (f"{detector}-full", detector, detector.replace("_", "") + "-full"):
-        if (root / name).is_dir():
-            return root / name
+    for model in dict.fromkeys((SHIPPED_MODEL.get(detector, detector), detector)):
+        for name in (f"{model}-full", model, model.replace("_", "") + "-full"):
+            if (root / name).is_dir():
+                return root / name
     return None
 
 
