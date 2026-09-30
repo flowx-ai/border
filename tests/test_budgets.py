@@ -149,10 +149,13 @@ MEASURED_MS = {
     # against 52.0 hybrid, so +28 percent. Scale 18.5 by that and the workstation
     # should read about 24 ms when it is next in front of one.
     "moderation": 18.5,
-    # T3, neither measured by the 2026-08-18 run. groundedness's figure predates the
-    # adopted binary model entirely; both are records of the last measurement taken.
+    # T3. groundedness was not measured by the 2026-08-18 run and its figure predates
+    # the adopted binary model entirely; it is a record of the last measurement taken.
     "groundedness": 61.0,
-    "topic_scope": 214.0,
+    # The typed engine at 40 nodes, the most its head is offered, measured 2026-09-30 on
+    # the M5 workstation through this file's `p95`: 57.2 ms at 20 nodes, 80.1 at 30,
+    # 104.1 at 40. It replaced the bi-encoder's 214.0 as the default engine.
+    "topic_scope": 104.1,
 }
 
 #: Multiplier for a runner known to be slower than the reference machine. A documented
@@ -632,6 +635,55 @@ def test_the_budget_matches_what_was_measured(pii: PiiDetector) -> None:
             f"{detector_id}: budget {budget} ms is far above the measured "
             f"{recorded} ms, which makes it decoration rather than a budget."
         )
+
+
+def test_topic_scope_is_within_budget_at_the_largest_taxonomy_it_offers() -> None:
+    """The typed engine at MAX_OPTIONS nodes, which is the most the head is ever given.
+
+    The worst case rather than a typical one on purpose: the head's cost grows with the
+    square of the total node text, so a 20-node measurement would pass while a 40-node
+    policy missed the budget. The nodes are real descriptions from the fixture rows, not
+    stubs, because a stub's length is what the cost depends on.
+
+    The taxonomy is encoded once before the measurement, as it is in a deployment: node
+    states are cached per taxonomy content, and a scan pays for the message and head.
+    """
+    import json
+    from pathlib import Path
+
+    from flowx_border.detectors.topic_scope import TopicScopeDetector
+    from flowx_border.detectors.topic_scope_typed import MAX_OPTIONS
+    from flowx_border.models.registry import ModelUnavailableError
+
+    detector = TopicScopeDetector()
+    try:
+        detector.warm()
+    except ModelUnavailableError as error:
+        pytest.skip(f"topic-scope-v2 weights not available: {error}")
+
+    fixtures = Path(__file__).parent / "fixtures" / "topic_scope"
+    rows = json.loads((fixtures / "typed_26_languages.json").read_text("utf-8"))["rows"]
+    nodes: dict[str, str] = {}
+    for row in rows:
+        for node in row["nodes"]:
+            nodes.setdefault(node["key"], node["text"])
+    chosen = list(nodes.items())[:MAX_OPTIONS]
+    assert len(chosen) == MAX_OPTIONS
+    taxonomy = {
+        "allowed": [{"path": k, "description": v} for k, v in chosen[1:]],
+        "disallowed": [{"path": chosen[0][0], "description": chosen[0][1]}],
+    }
+    cfg = DetectorConfig(on_fail="flag", threshold=0.5, options={"taxonomy": taxonomy})
+    detector.run(REFERENCE_INPUT, cfg, CTX)
+
+    budget = CATALOGUE["topic_scope"].budget_ms * SCALE
+    measured = p95(lambda: detector.run(REFERENCE_INPUT, cfg, CTX), 20)
+    assert measured <= budget, (
+        f"topic_scope {measured:.1f} ms exceeds {budget:.1f} ms at "
+        f"{len(REFERENCE_INPUT)} characters and {MAX_OPTIONS} nodes. Reference was "
+        f"{MEASURED_MS['topic_scope']} ms. If the machine is slower rather than the "
+        "code, set FLOWX_BUDGET_SCALE."
+    )
 
 
 # ---------------------------------------------------------------------- warm-up cost
