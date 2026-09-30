@@ -136,14 +136,15 @@ detectors:
     options:
       domains: []           # corp.internal, wiki.example.corp, and so on
   # UTS #39 lookalikes: `аcme` with a Cyrillic а, `acrne`, a hostname with one borrowed
-  # letter. On, at `log`: the mixed-script half needs no list and measured 0 of 234 on
+  # letter. On, at `flag`: the mixed-script half needs no list and measured 0 of 234 on
   # the ordinary-text sweep and 43 of 37052 mundane corpus rows, every one of them a
-  # word really written in two scripts. `log` rather than `flag` because real users
-  # slip keyboard layouts mid-word and that rate is unmeasured; raise it once you have
-  # seen your own traffic. List the terms banned_terms and internal_domains carry to
-  # catch lookalikes of them too, with a YAML anchor if you want one list for all three.
+  # word really written in two scripts. `flag` rather than `redact` or `block` because
+  # real users slip keyboard layouts mid-word and that rate is unmeasured; a flag costs
+  # a reviewer a look, not the user their message. Lower it to `log` if your own traffic
+  # says so. List the terms banned_terms and internal_domains carry to catch lookalikes
+  # of them too, with a YAML anchor if you want one list for all three.
   confusables:
-    on_fail: log
+    on_fail: flag
     options:
       terms: []             # names and hostnames a lookalike of which is an attack
       mixed_script: true
