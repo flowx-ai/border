@@ -25,6 +25,7 @@ from flowx_border.detectors.base import Context, DetectorConfig
 from flowx_border.detectors.groundedness import GroundednessDetector
 from flowx_border.detectors.topic_scope import (
     LABEL_PREFIX,
+    NEAREST_PREFIX,
     PATH_LIMIT,
     TopicScopeDetector,
     TopicScopeError,
@@ -196,6 +197,19 @@ def test_an_edited_description_is_not_served_from_the_cache(
     text = "Should I buy bitcoin?"
     first = scoped.run(text, DetectorConfig(threshold=0.5, options=narrow), Context())
     second = scoped.run(text, DetectorConfig(threshold=0.5, options=edited), Context())
+    # Under the typed engine the edit changes the answer outright: bitcoin is about
+    # cryptocurrency and about none of a cardiology node, so the second answer is none.
+    assert [f.label for f in first] == ["off_topic__topic__one"]
+    assert "off_topic__topic__one" not in [f.label for f in second]
+
+    # And the bi-encoder, whose nearest node always wins, by score.
+    bi = {"engine": "bi-encoder"}
+    first = scoped.run(
+        text, DetectorConfig(threshold=0.5, options={**narrow, **bi}), Context()
+    )
+    second = scoped.run(
+        text, DetectorConfig(threshold=0.5, options={**edited, **bi}), Context()
+    )
     assert first and first[0].score > (second[0].score if second else 0.0)
 
 
@@ -958,7 +972,13 @@ def test_an_in_scope_question_carries_no_companion(
     cfg = DetectorConfig(
         enabled=True, threshold=0.5, on_fail="block", always=True, options=TAXONOMY
     )
-    assert scoped.run("How do I open a savings account?", cfg, Context()) == []
+    findings = scoped.run("How do I open a savings account?", cfg, Context())
+    # No companion and nothing decided. The typed engine may add a
+    # `topic_scope_none_of_these` record at `log`, which is a statement about the
+    # taxonomy rather than a companion to a refusal: this one's allowed node describes
+    # balances, statements and transfers, and opening an account is none of those.
+    assert not [f for f in findings if f.label.startswith(NEAREST_PREFIX)]
+    assert [f for f in findings if f.action != "log"] == []
 
 
 def test_the_companion_prefix_cannot_shorten_a_path_that_already_fits() -> None:

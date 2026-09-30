@@ -1,14 +1,36 @@
 # SPDX-License-Identifier: Apache-2.0
 """T3. Is the input inside the subject matter this deployment is for?
 
-**A bi-encoder, and that is a deliberate substitution.** The published `semantic-mapper`
-is a 4B Qwen3 LoRA that generates JSON against a frozen prompt, distributed as GGUF.
-Wiring it here would put a generative model inside a detector, which default 4 rules out
-at any size, and 4B cannot meet a 300 ms CPU budget when the 278M encoders cost 51 ms.
-So this scores cosine similarity between the input and each taxonomy node instead.
-Approved by the owner on 2026-08-11, recorded here because it changes what the detector
-can answer: a bi-encoder compares meanings, it does not reason about them.
-`semantic-mapper` could say why a text belongs to a node; this says how near it is.
+**Two engines, chosen by `options.engine`.** `typed`, the default since 2026-09-30, is a
+typed-decision head (`flowxai/topic-scope-v2`, see `topic_scope_typed.py`): it reads the
+message and every node together, can answer "none of these", and its score is a
+calibrated probability. `bi-encoder` is the model described below, kept loadable,
+unchanged, until the typed engine has a deployment's worth of evidence. On taxonomies
+from deployment types neither trained on, typed picks the right node or none for 0.804
+of messages and the bi-encoder for 0.479.
+
+The findings are the same shape under both: `off_topic__<path>` when the winning node is
+disallowed and its score clears the threshold, `nearest__<path>` beside it at `log`, and
+`topic_scope_unconfigured` without a taxonomy. The typed engine adds two, both at `log`
+unless the policy says otherwise: `topic_scope_none_of_these` when the message is about
+no node at all (`options.on_none` sets its action, for an allow-list deployment where
+that is the off-topic case), and `topic_scope_shortlisted` when the taxonomy was larger
+than the head is offered and only the nearest nodes were considered.
+
+**What a threshold means differs by engine.** Under `typed` it is a probability: 0.5,
+chosen on validation rows, fires on the right node 0.858 of the time. Under `bi-encoder`
+it is a rescaled cosine and 0.85 is the bar the paragraphs below arrive at. A policy
+that switches engine has to switch threshold with it.
+
+**The bi-encoder, and that it was a deliberate substitution.** The published
+`semantic-mapper` is a 4B Qwen3 LoRA that generates JSON against a frozen prompt,
+distributed as GGUF. Wiring it here would put a generative model inside a detector,
+which default 4 rules out at any size, and 4B cannot meet a 300 ms CPU budget when the
+278M encoders cost 51 ms. So this scores cosine similarity between the input and each
+taxonomy node instead. Approved by the owner on 2026-08-11, recorded here because it
+changes what the detector can answer: a bi-encoder compares meanings, it does not reason
+about them. `semantic-mapper` could say why a text belongs to a node; this says how near
+it is.
 
 **The taxonomy is policy, not weights.** Nodes come from the policy document, so the
 same model serves a bank and a health service, and a compliance officer who does not
@@ -52,7 +74,8 @@ from typing import TYPE_CHECKING, Any, Final
 
 from flowx_border.detectors.base import Context, DetectorConfig
 from flowx_border.detectors.catalogue import CATALOGUE
-from flowx_border.types import Finding
+from flowx_border.detectors.topic_scope_typed import ENCODER_ID, TypedEngine
+from flowx_border.types import Action, Finding
 
 if TYPE_CHECKING:
     import numpy as np
@@ -82,6 +105,13 @@ NEAREST_PREFIX: Final = f"nearest{PATH_SEPARATOR}"
 PATH_LIMIT: Final = LABEL_LIMIT - len(LABEL_PREFIX)
 
 DEFAULT_MAX_NODES: Final = 64
+
+ENGINES: Final = ("typed", "bi-encoder")
+DEFAULT_ENGINE: Final = "typed"
+
+#: The typed engine's extra labels. Both fit the label pattern with room to spare.
+NONE_LABEL: Final = "topic_scope_none_of_these"
+SHORTLIST_LABEL: Final = "topic_scope_shortlisted"
 
 
 def fold_path(path: str) -> str:
@@ -123,6 +153,7 @@ class TopicScopeDetector:
         # Keyed by the taxonomy's content hash, so an edited description is a cache
         # miss.
         self._nodes: dict[str, list[tuple[str, str, Any]]] = {}
+        self._typed = TypedEngine()
 
         self.model_id: str | None = None
         self.model_revision: str | None = None
@@ -132,18 +163,21 @@ class TopicScopeDetector:
 
     def warm(self) -> None:
         from flowx_border.models.onnx import DEFAULT_THREADS
-        from flowx_border.models.onnx import warm as warm_session
         from flowx_border.models.registry import attestation_for
 
+        # The default engine only. A policy that opts into the bi-encoder loads it on
+        # first use, from the cache `resolve` fills: warming both would hold 533 MB of
+        # weights for an engine nobody asked for.
         threads = DEFAULT_THREADS if self._threads is None else self._threads
-        warm_session(MODEL_ID, threads=threads)
+        self._typed.warm(threads)
         self.model_id, self.model_revision, self.weights_sha256 = attestation_for(
-            MODEL_ID
+            ENCODER_ID
         )
 
     def forget(self) -> None:
         with self._lock:
             self._nodes.clear()
+        self._typed.forget()
 
     # ------------------------------------------------------------------ embedding
 
@@ -199,26 +233,21 @@ class TopicScopeDetector:
 
     # ------------------------------------------------------------------ the taxonomy
 
-    def _taxonomy(
-        self, options: dict[str, Any], threads: int
-    ) -> list[tuple[str, str, Any]]:
-        """(path, disposition, vector) per node, embedded once per taxonomy content.
+    def _validated(
+        self, options: dict[str, Any]
+    ) -> tuple[str, list[tuple[str, str, str, str]]]:
+        """The taxonomy's content hash, and (folded path, disposition, path,
+        description).
 
-        Disposition is `allowed` or `disallowed`. Both are embedded, and the nearest
-        node decides, because a taxonomy of only forbidden topics cannot distinguish
-        "about something else entirely" from "about the forbidden thing".
+        Shared by both engines, so a path that fails here fails the same way whichever
+        one a policy picked. Raised at the first scan that sees the taxonomy, which is
+        as early as a detector can see its options.
         """
         taxonomy = options.get("taxonomy") or {}
         digest = hashlib.sha256(
             json.dumps(taxonomy, sort_keys=True, ensure_ascii=False).encode("utf-8")
         ).hexdigest()
-
-        with self._lock:
-            hit = self._nodes.get(digest)
-        if hit is not None:
-            return hit
-
-        nodes: list[tuple[str, str, Any]] = []
+        nodes: list[tuple[str, str, str, str]] = []
         for disposition in ("allowed", "disallowed"):
             for entry in taxonomy.get(disposition, ()):
                 path = str(entry.get("path", "")).strip()
@@ -241,11 +270,32 @@ class TopicScopeDetector:
                         f"{PATH_LIMIT}. Shorten the path: a truncated path in an audit "
                         "record is a wrong path, not a shorter one."
                     )
-                # The description carries the meaning. Falling back to the path is worse
-                # than nothing would be loud, so it is allowed but the path is
-                # prose-like by convention.
-                text = str(entry.get("description") or path.replace("/", " "))
-                nodes.append((folded, disposition, self.embed(text, threads)))
+                description = str(entry.get("description") or "").strip()
+                nodes.append((folded, disposition, path, description))
+        return digest, nodes
+
+    def _taxonomy(
+        self, options: dict[str, Any], threads: int
+    ) -> list[tuple[str, str, Any]]:
+        """(path, disposition, vector) per node, embedded once per taxonomy content.
+
+        The bi-encoder's. Disposition is `allowed` or `disallowed`. Both are embedded,
+        and the nearest node decides, because a taxonomy of only forbidden topics cannot
+        distinguish "about something else entirely" from "about the forbidden thing".
+        """
+        digest, validated = self._validated(options)
+        with self._lock:
+            hit = self._nodes.get(digest)
+        if hit is not None:
+            return hit
+
+        nodes: list[tuple[str, str, Any]] = []
+        for folded, disposition, path, description in validated:
+            # The description carries the meaning. Falling back to the path is worse
+            # than nothing would be loud, so it is allowed but the path is
+            # prose-like by convention.
+            text = description or path.replace("/", " ")
+            nodes.append((folded, disposition, self.embed(text, threads)))
 
         with self._lock:
             self._nodes[digest] = nodes
@@ -259,22 +309,123 @@ class TopicScopeDetector:
 
         options = cfg.options
         threads = int(options.get("threads", self._threads or DEFAULT_THREADS))
+        engine = str(options.get("engine", DEFAULT_ENGINE))
+        if engine not in ENGINES:
+            raise TopicScopeError(
+                f"topic_scope engine {engine!r} is not one of {', '.join(ENGINES)}"
+            )
+        if engine == "typed":
+            return self._run_typed(text, cfg, threads)
+        return self._run_bi_encoder(text, cfg, threads)
+
+    def _attest(self, model_id: str) -> None:
+        """Point the attestation at the engine this scan uses.
+
+        Set on every scan rather than once at `warm`, for two reasons. `warm` is an
+        optimisation, never a precondition, and an unattested finding reads as a rule's.
+        And the engine is a policy option, so one detector can serve both: a finding the
+        bi-encoder produced must not carry the typed model's revision, or the reverse.
+        """
+        from flowx_border.models.registry import attestation_for
+
+        if self.model_id != attestation_for(model_id)[0]:
+            self.model_id, self.model_revision, self.weights_sha256 = attestation_for(
+                model_id
+            )
+
+    def _unconfigured(self) -> list[Finding]:
+        return [
+            Finding(
+                detector_id=self.id,
+                tier=self.tier,
+                label="topic_scope_unconfigured",
+                score=1.0,
+                span=None,
+                action="log",
+                model_id=self.model_id,
+                model_revision=self.model_revision,
+            )
+        ]
+
+    def _finding(self, label: str, score: float, action: Action) -> Finding:
+        return Finding(
+            detector_id=self.id,
+            tier=self.tier,
+            label=label,
+            score=round(max(0.0, min(1.0, score)), 6),
+            # The whole input, never a span: both engines score one meaning for the text
+            # as a whole, so pointing at a range would claim a precision they lack.
+            span=None,
+            action=action,
+            model_id=self.model_id,
+            model_revision=self.model_revision,
+        )
+
+    def _run_typed(self, text: str, cfg: DetectorConfig, threads: int) -> list[Finding]:
+        """The typed engine. See `topic_scope_typed.py` for the model."""
+
+        options = cfg.options
+        on_none = str(options.get("on_none", "log"))
+        if on_none not in ("block", "redact", "rewrite", "flag", "log"):
+            raise TopicScopeError(f"topic_scope on_none {on_none!r} is not an action")
+        digest, validated = self._validated(options)
+        self._attest(ENCODER_ID)
+        if not validated:
+            return self._unconfigured()
+        if not text.strip():
+            return []
+
+        offered = self._typed.nodes(
+            digest,
+            [(path, description) for _, _, path, description in validated],
+            threads,
+        )
+        decision = self._typed.decide(text, offered, threads)
+        # The decision is over the kept nodes in taxonomy order, then none. Map each
+        # kept key back to its validated node through the same order.
+        by_key = {
+            path: (folded, disposition) for folded, disposition, path, _ in validated
+        }
+        probabilities = decision.probabilities
+        winner = max(range(len(probabilities)), key=probabilities.__getitem__)
+        out: list[Finding] = []
+        if decision.shortlisted:
+            out.append(self._finding(SHORTLIST_LABEL, 1.0, "log"))
+
+        if winner == len(probabilities) - 1:
+            if probabilities[winner] >= cfg.threshold:
+                out.append(self._finding(NONE_LABEL, probabilities[winner], on_none))  # type: ignore[arg-type]
+            return out
+
+        folded, disposition = by_key[decision.keys[winner]]
+        if disposition != "disallowed" or probabilities[winner] < cfg.threshold:
+            return out
+        out.append(
+            self._finding(f"{LABEL_PREFIX}{folded}", probabilities[winner], cfg.on_fail)
+        )
+        # The allowed node the model rated highest, for the reason the bi-encoder path
+        # gives below: a refusal needs to say what the nearest permitted topic was.
+        allowed = [
+            (probabilities[i], by_key[key][0])
+            for i, key in enumerate(decision.keys[:-1])
+            if by_key[key][1] == "allowed"
+        ]
+        if allowed:
+            score, path = max(allowed)
+            out.append(self._finding(f"{NEAREST_PREFIX}{path}", score, "log"))
+        return out
+
+    def _run_bi_encoder(
+        self, text: str, cfg: DetectorConfig, threads: int
+    ) -> list[Finding]:
+        """The bi-encoder engine, unchanged from before the typed one became default."""
+        self._attest(MODEL_ID)
+        options = cfg.options
         max_nodes = int(options.get("max_nodes", DEFAULT_MAX_NODES))
 
         nodes = self._taxonomy(options, threads)
         if not nodes:
-            return [
-                Finding(
-                    detector_id=self.id,
-                    tier=self.tier,
-                    label="topic_scope_unconfigured",
-                    score=1.0,
-                    span=None,
-                    action="log",
-                    model_id=self.model_id,
-                    model_revision=self.model_revision,
-                )
-            ]
+            return self._unconfigured()
         if len(nodes) > max_nodes:
             nodes = nodes[:max_nodes]
         if not text.strip():

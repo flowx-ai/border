@@ -214,7 +214,7 @@ CATALOGUE: Final[MappingProxyType[str, Spec]] = MappingProxyType(
         "url_reachability": Spec(
             "T3", frozenset({OUTPUT}), 3000.0, frozenset({"network"})
         ),
-        "topic_scope": Spec("T3", frozenset({INPUT}), 300.0, shipped_threshold=0.85),
+        "topic_scope": Spec("T3", frozenset({INPUT}), 300.0, shipped_threshold=0.5),
         "groundedness": Spec("T3", frozenset({OUTPUT}), 300.0),
     }
 )

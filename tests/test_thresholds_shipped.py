@@ -10,11 +10,11 @@ against what the detectors actually ship at:
     gibberish 0.37   injection 0.43   nsfw 0.76   bias 0.77
     moderation 0.80  toxicity 0.81    topic_scope 0.85   politeness 0.89
 
-Eight of the ten model-backed detectors, none of them at 0.5. `policies/` is not
-packaged
-either, `pyproject.toml` ships `src/flowx_border` only, so a caller who installs the
-library and writes their own policy has no copy of those numbers and no way to inherit
-them.
+Eight of the ten model-backed detectors, none of them at 0.5. (That list is as reported.
+`topic_scope` ships at 0.5 since 2026-09-30, when its typed engine became the default
+and its score became a calibrated probability.) `policies/` is not packaged either,
+`pyproject.toml` ships `src/flowx_border` only, so a caller who installs the library and
+writes their own policy has no copy of those numbers and no way to inherit them.
 
 Reported from outside on 2026-09-15 by a deployment whose policy stated a threshold on
 three detectors and omitted it on twenty-seven. They ran `moderation` at 0.5 against
