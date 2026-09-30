@@ -11,12 +11,12 @@ from here. Regenerate with:
 
 | figure | value |
 |---|---|
-| detectors in the catalogue | 31 |
-| implemented in the library | 31 |
-| that run on a fresh install, with no model download | 31 |
+| detectors in the catalogue | 33 |
+| implemented in the library | 33 |
+| that run on a fresh install, with no model download | 33 |
 | implemented but waiting on weights that are not published | 0 |
 | catalogued but not yet implemented | 0 |
-| that need nothing beyond a CPU and the base install | 28 |
+| that need nothing beyond a CPU and the base install | 30 |
 | that need something more, and declare it | 3 |
 | supported languages | 26 |
 
