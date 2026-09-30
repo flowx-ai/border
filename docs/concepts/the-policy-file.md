@@ -144,8 +144,17 @@ enforcing action as fatal.
 ## Describing a taxonomy: say what a node is, never what it is not
 
 `topic_scope` takes its taxonomy from the policy rather than from weights, so the wording
-of a node is a configuration decision with a measurable effect. One rule governs it: a
-bi-encoder compares meanings and has no representation for negation.
+of a node is a configuration decision with a measurable effect. One rule governs it, and
+it was written for the bi-encoder: a bi-encoder compares meanings and has no
+representation for negation.
+
+**The default engine since 2026-09-30 reads exclusions better and still not well.** The
+typed engine (`flowxai/topic-scope-v2`) reads the message and every node together. On
+synthetic taxonomies from deployment types it never trained on, messages that match a
+node's words but fall under what the node excludes are answered right 0.667 of the time,
+against the bi-encoder's 0.327 on the same rows, and that is still its weakest kind of
+message. So the rule stands for both engines; the model card on the hub has the
+per-register table.
 
 A disallowed node reading `companies other than this one` does not embed as an exclusion.
 It embeds roughly as "confidential details of companies", which is near every question
@@ -199,7 +208,7 @@ catalogue, and `load_policy` fills it in before anything else sees the document.
 a policy that says nothing about a threshold has not deferred the decision, it has
 made one.
 
-For eight of the ten model-backed detectors that is nowhere near the shipped value:
+For seven of the ten model-backed detectors that is nowhere near the shipped value:
 
 | detector | `policies/default.yaml` | what an omission gives you |
 |---|---|---|
@@ -209,7 +218,6 @@ For eight of the ten model-backed detectors that is nowhere near the shipped val
 | `bias` | 0.77 | 0.5, more sensitive |
 | `moderation` | 0.80 | 0.5, more sensitive |
 | `toxicity` | 0.81 | 0.5, more sensitive |
-| `topic_scope` | 0.85 | 0.5, more sensitive |
 | `politeness` | 0.89 | 0.5, more sensitive |
 
 The reason this is easy to miss twice over: the package ships `src/flowx_border`

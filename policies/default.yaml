@@ -381,9 +381,27 @@ detectors:
       max_urls: 5
   topic_scope:
     on_fail: flag
+    # 0.5, a probability, since the typed engine became the default on 2026-09-30. Read off
+    # training reports/topic_scope_v2_thresholds.json, validation rows, where the model
+    # names a node at or above the bar:
+    #
+    #   bar    right node    node rows named right
+    #   0.30       0.8295                   0.8259
+    #   0.50       0.8581                   0.7935
+    #   0.70       0.9099                   0.6959
+    #   0.85       0.9423                   0.5526
+    #
+    # "Right node" is stricter than what fires: naming the wrong one of two disallowed
+    # nodes still fires correctly. 0.5 because below it precision falls faster than recall
+    # rises, and above it every step costs about five points of recall for three of
+    # precision. The old 0.85 kept here would have halved what the detector finds.
+    #
+    # Everything below is the bi-encoder's, which a policy can still choose with
+    # `engine: bi-encoder`, and that engine needs its own 0.85 back.
+    #
     # 0.85, raised from 0.45 on 2026-08-19, and 0.45 was not a low bar but an inert one.
     #
-    # This detector's score is a rescaled cosine, `(cos + 1) / 2`, so 0.45 corresponds to a
+    # This detector's score was a rescaled cosine, `(cos + 1) / 2`, so 0.45 corresponds to a
     # raw cosine of -0.10. Measured over the 408 rows of the training corpus's test split
     # against a 15-node taxonomy, the lowest score any text achieves is 0.6674, so **408 of
     # 408 rows cleared the old threshold**. It could not reject anything, and firing was
@@ -407,7 +425,7 @@ detectors:
     # **Re-sweep this on your own taxonomy.** It is measured on 15 nodes; more nodes mean
     # more chances of a spurious near-match, so the bar moves with the taxonomy. The old
     # 0.45 is what a number looks like when nobody has swept it.
-    threshold: 0.85
+    threshold: 0.5
   groundedness:
     enabled: false          # published and available, deliberately off. See below.
     on_fail: flag

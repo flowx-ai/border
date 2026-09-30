@@ -169,6 +169,14 @@ detectors:
 
   topic_scope:
     on_fail: block
+    # 0.7, a probability under the typed engine, against default.yaml's 0.5. This policy
+    # blocks, so a false fire is a refused request, and it buys precision with recall: on
+    # validation rows the named node is right 0.9099 of the time at 0.7 against 0.8581 at
+    # 0.5, and 0.6959 of rows about a node are named against 0.7935. See default.yaml for
+    # the table and training reports/topic_scope_v2_thresholds.json for its source.
+    #
+    # The bi-encoder's history follows, for a policy that selects `engine: bi-encoder`.
+    #
     # 0.85, raised from 0.45 on 2026-08-19. See policies/default.yaml for the measurement.
     #
     # This policy prefers caution everywhere else and takes the same bar here, because
@@ -177,7 +185,7 @@ detectors:
     # taxonomy node, and with `on_fail: block` that is a refused response for an input the
     # detector had no opinion about. Caution and noise are different things, and only the
     # first is worth buying.
-    threshold: 0.85
+    threshold: 0.7
   groundedness:
     enabled: false          # the intent below is kept, and it is not ready to enforce
     always: true            # every outbound claim, every time, once it can be trusted

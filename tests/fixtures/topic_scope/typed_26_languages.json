@@ -1,0 +1,4410 @@
+{
+ "what": "topic-scope-v2 fixtures: unseen_type test rows, three per language",
+ "source": "training typeddecisionsa3-late-full, test_logits.jsonl, seed 26",
+ "rows": [
+  {
+   "language": "az",
+   "register": "in_node",
+   "text": "Nərimanov rayonunda artıq bir həftədir şəbəkə demək olar ki, yox dərəcəsindədir, xahiş edirəm yoxlayın.",
+   "nodes": [
+    {
+     "key": "sonrasc/mionsonrai",
+     "text": "Ceisteanna faoi mhionsonraí sonraisc, cosúil le táillí aonaracha nó dátaí billeála."
+    },
+    {
+     "key": "sonrasc/diospoid",
+     "text": "Iarrataí chun díospóid a ardú faoi mhuirear mícheart nó dúbailte ar an sonrasc."
+    },
+    {
+     "key": "sonrasc/iocaiocht_dheanach",
+     "text": "Ceisteanna faoi phionóis íocaíochta déanach nó faoi shocrú aisíocaíochta thar thréimhse ama."
+    },
+    {
+     "key": "plean/costas",
+     "text": "Ceisteanna faoi chostas míosúil an phlean reatha, gach rud seachas iarraidh ar athrú plean."
+    },
+    {
+     "key": "plean/foirceannadh",
+     "text": "Iarrataí chun conradh nó plean a fhoirceannadh roimh dháta an athnuachan."
+    },
+    {
+     "key": "soghluaiste/fanacht",
+     "text": "Ceisteanna faoi tháillí agus pacáistí fánaíochta le linn taistil thar lear."
+    },
+    {
+     "key": "soghluaiste/teacs_sceideal",
+     "text": "Ceisteanna faoi sheirbhísí téacs, teachtaireachtaí gearrtha, nó táillí SMS idirnáisiúnta."
+    },
+    {
+     "key": "soghluaiste/comhartha",
+     "text": "Tuairisc a dhéanamh ar dhrochchomhartha nó ar chumhdach lag i gceantar áirithe."
+    },
+    {
+     "key": "leathanbhanda/suiteail",
+     "text": "Iarrataí chun coinne a shocrú le teicneoir chun leathanbhanda a shuiteáil sa bhaile."
+    },
+    {
+     "key": "leathanbhanda/luas",
+     "text": "Gearáin faoi luas mall an leathanbhanda, gach rud seachas teip iomlán seirbhíse."
+    },
+    {
+     "key": "cuntas/pasfhocal",
+     "text": "Cabhair le pasfhocal nó PIN an chuntais ar líne a athshocrú."
+    },
+    {
+     "key": "gaireas/deisiu",
+     "text": "Ceisteanna faoi dheisiú gairis faoi bharántas nó a bhfuil locht monaraithe air."
+    },
+    {
+     "key": "gaireas/athsholathar",
+     "text": "Iarrataí chun gaireas nua a cheannach mar athsholáthar taobh amuigh den bharántas."
+    }
+   ],
+   "gold": "soghluaiste/comhartha",
+   "run_answer": "none",
+   "run_probability": 0.4727
+  },
+  {
+   "language": "az",
+   "register": "in_node_hole",
+   "text": "Sabahkı uçuşun qapı nömrəsi dəyişdi, bu barədə SMS bildirişi avtomatik gedirmi?",
+   "nodes": [
+    {
+     "key": "bookings/reservations",
+     "text": "New flight bookings, itinerary changes, and cabin class upgrade requests for individual passengers."
+    },
+    {
+     "key": "bookings/group_bookings",
+     "text": "Group, corporate and block booking enquiries, including negotiated fares and seating allocation for parties."
+    },
+    {
+     "key": "bookings/cancellations",
+     "text": "Any request to cancel an existing booking, except calculating or issuing the resulting refund amount."
+    },
+    {
+     "key": "checkin/process",
+     "text": "Online, kiosk and counter check-in steps, deadlines and required travel documentation."
+    },
+    {
+     "key": "checkin/boarding",
+     "text": "Boarding pass issuance, gate call procedures and boarding group or zone assignment."
+    },
+    {
+     "key": "loyalty/redemption",
+     "text": "Award ticket booking, mileage redemption rules, and upgrade certificate usage."
+    },
+    {
+     "key": "disruption/compensation",
+     "text": "Compensation claims for delay, cancellation or denied boarding under applicable regulations."
+    },
+    {
+     "key": "special_assistance/mobility",
+     "text": "Wheelchair and mobility equipment arrangements for passengers with reduced mobility."
+    },
+    {
+     "key": "special_assistance/medical",
+     "text": "Medical clearance, oxygen supply and in-flight medication or equipment requests."
+    },
+    {
+     "key": "special_assistance/minors_pets",
+     "text": "Unaccompanied minor travel procedures and in-cabin or cargo pet travel arrangements."
+    },
+    {
+     "key": "payments/refunds",
+     "text": "Refund eligibility, processing status and fare difference calculations for cancelled or changed tickets."
+    },
+    {
+     "key": "payments/fare_rules",
+     "text": "Fare class conditions, change fees and fare basis code explanations."
+    },
+    {
+     "key": "staff_internal/hr_policies",
+     "text": "Staff HR policy questions, except specific payroll amounts and individual compensation figures."
+    }
+   ],
+   "gold": "none",
+   "run_answer": "none",
+   "run_probability": 0.6191
+  },
+  {
+   "language": "az",
+   "register": "out_of_taxonomy",
+   "text": "Bu gün milli komandanın matçının nəticəsini bilirsən?",
+   "nodes": [
+    {
+     "key": "billing/refunds",
+     "text": "Refund or credit requests for billing errors or overcharges, except credits arising from confirmed network outages."
+    },
+    {
+     "key": "mobile/roaming_usage",
+     "text": "Questions about roaming charges, international usage allowances and roaming add-on packs."
+    },
+    {
+     "key": "broadband/plan_changes",
+     "text": "Changing a broadband package, speed tier, bundle or contract length for an existing line."
+    },
+    {
+     "key": "broadband/connection_issues",
+     "text": "Troubleshooting broadband connectivity or speed problems, except issues already flagged as a known area-wide outage."
+    },
+    {
+     "key": "device/repairs_warranty",
+     "text": "Device repair requests, warranty claims and insurance claims for faulty or damaged handsets."
+    },
+    {
+     "key": "network/outage_status",
+     "text": "Checking known service outages, coverage in an area, and estimated restoration times."
+    }
+   ],
+   "gold": "none",
+   "run_answer": "none",
+   "run_probability": 0.9983
+  },
+  {
+   "language": "bg",
+   "register": "in_node",
+   "text": "Като служител искам да резервирам билет по програмата за пътуване на персонала за следващия месец.",
+   "nodes": [
+    {
+     "key": "bookings/group_bookings",
+     "text": "Group, corporate and block booking enquiries, including negotiated fares and seating allocation for parties."
+    },
+    {
+     "key": "checkin/process",
+     "text": "Online, kiosk and counter check-in steps, deadlines and required travel documentation."
+    },
+    {
+     "key": "checkin/seat_selection",
+     "text": "Seat map queries, seat change requests, and extra-legroom or preferred seating fees."
+    },
+    {
+     "key": "special_assistance/medical",
+     "text": "Medical clearance, oxygen supply and in-flight medication or equipment requests."
+    },
+    {
+     "key": "staff_internal/employee_travel",
+     "text": "Staff travel benefit bookings, standby travel and employee discount fare questions."
+    }
+   ],
+   "gold": "staff_internal/employee_travel",
+   "run_answer": "staff_internal/employee_travel",
+   "run_probability": 0.9529
+  },
+  {
+   "language": "bg",
+   "register": "in_node_hole",
+   "text": "Смятам, че съм таксуван двойно за същата услуга този месец и желая проверка на случая.",
+   "nodes": [
+    {
+     "key": "lasku/erapaiva_siirto",
+     "text": "Yksittäisen laskun eräpäivän siirtopyynnöt ja maksuajan pidennykset."
+    },
+    {
+     "key": "lasku/muut_maksut",
+     "text": "Kaikki muut laskulla näkyvät maksut ja veloitukset paitsi ulkomaan roaming-maksut."
+    },
+    {
+     "key": "liittyma/kayttoraja",
+     "text": "Datan käyttörajan tarkistus ja rajan korottaminen kesken laskutuskauden."
+    },
+    {
+     "key": "liittyma/irtisanominen",
+     "text": "Liittymän irtisanomispyynnöt ja irtisanomisajan sekä sen ehtojen tiedustelu."
+    },
+    {
+     "key": "laajakaista/nopeus",
+     "text": "Laajakaistan nopeustestin tulosten tulkinta ja hitaudesta tehdyt valitukset."
+    },
+    {
+     "key": "laajakaista/vika",
+     "text": "Yhteyskatkoksen tai vian ilmoittaminen sekä vikailmoituksen etenemisen tiedustelu."
+    },
+    {
+     "key": "laajakaista/muutto",
+     "text": "Laajakaistaliittymän siirtäminen uuteen osoitteeseen asiakkaan muuton yhteydessä."
+    },
+    {
+     "key": "sim_puhelin/sim_vaihto",
+     "text": "SIM-kortin uusiminen esimerkiksi vaurioitumisen, katoamisen tai koon vaihdon takia."
+    },
+    {
+     "key": "sim_puhelin/lukituksen_poisto",
+     "text": "Puhelimen operaattorilukituksen poistopyynnöt sopimuskauden päättymisen jälkeen."
+    },
+    {
+     "key": "sim_puhelin/kadonnut",
+     "text": "Kadonneen tai varastetun puhelimen sulkeminen ja SIM-kortin jäädyttäminen välittömästi."
+    },
+    {
+     "key": "turvallisuus/vaarinkaytto",
+     "text": "Epäilty identiteettivarkaus tai asiakkaan tilin luvaton käyttö toisen henkilön toimesta."
+    },
+    {
+     "key": "kansainvalinen/roaming_hinnat",
+     "text": "Roaming-hintojen ja ulkomaanmatkoja varten tarjottavien pakettien tiedustelu."
+    },
+    {
+     "key": "kansainvalinen/roaming_aktivointi",
+     "text": "Roaming-palvelun aktivointi tai laajennuspyynnöt matkan aikana ulkomailla."
+    }
+   ],
+   "gold": "none",
+   "run_answer": "none",
+   "run_probability": 0.6647
+  },
+  {
+   "language": "bg",
+   "register": "out_of_taxonomy",
+   "text": "Можеш ли да ми препоръчаш добър рецепта за баница с праз?",
+   "nodes": [
+    {
+     "key": "lasku/maksutapa",
+     "text": "Maksutavan vaihto tai päivitys, esimerkiksi suoraveloituksen tai korttimaksun asettaminen."
+    },
+    {
+     "key": "lasku/muut_maksut",
+     "text": "Kaikki muut laskulla näkyvät maksut ja veloitukset paitsi ulkomaan roaming-maksut."
+    },
+    {
+     "key": "liittyma/lisaosat",
+     "text": "Lisäpuheajan tai lisädatan ostaminen kesken kauden, paitsi ulkomailla käytettävät roaming-lisäpaketit."
+    },
+    {
+     "key": "laajakaista/muutto",
+     "text": "Laajakaistaliittymän siirtäminen uuteen osoitteeseen asiakkaan muuton yhteydessä."
+    },
+    {
+     "key": "sim_puhelin/sim_vaihto",
+     "text": "SIM-kortin uusiminen esimerkiksi vaurioitumisen, katoamisen tai koon vaihdon takia."
+    },
+    {
+     "key": "turvallisuus/vaarinkaytto",
+     "text": "Epäilty identiteettivarkaus tai asiakkaan tilin luvaton käyttö toisen henkilön toimesta."
+    },
+    {
+     "key": "kansainvalinen/roaming_aktivointi",
+     "text": "Roaming-palvelun aktivointi tai laajennuspyynnöt matkan aikana ulkomailla."
+    }
+   ],
+   "gold": "none",
+   "run_answer": "none",
+   "run_probability": 0.9995
+  },
+  {
+   "language": "cs",
+   "register": "in_node",
+   "text": "Mohl by mi prosím zavolat pan doktor Novák ohledně mé kauzy, potřebuji s ním probrat další kroky.",
+   "nodes": [
+    {
+     "key": "intake/new_matter_submission",
+     "text": "Prospective clients describing a new legal matter and asking the firm to evaluate whether it can take the case."
+    },
+    {
+     "key": "intake/eligibility_screening",
+     "text": "Questions about whether the firm accepts a particular case type, jurisdiction, or client profile before formal submission."
+    },
+    {
+     "key": "intake/document_upload",
+     "text": "Help with submitting, uploading, or formatting documents and evidence required for the intake process."
+    },
+    {
+     "key": "intake/appointment_scheduling",
+     "text": "Requests to book, reschedule, or cancel initial consultations or meetings with an attorney."
+    },
+    {
+     "key": "practice_areas/corporate_commercial",
+     "text": "Enquiries about the firm's corporate, M&A, commercial contract, and business advisory practice."
+    },
+    {
+     "key": "practice_areas/litigation_disputes",
+     "text": "Questions about litigation, arbitration, and dispute resolution services the firm offers."
+    },
+    {
+     "key": "practice_areas/immigration",
+     "text": "Questions about visas, residency permits, citizenship, and other immigration law services offered."
+    },
+    {
+     "key": "practice_areas/employment_law",
+     "text": "Enquiries about workplace disputes, employment contracts, and labor law representation."
+    },
+    {
+     "key": "practice_areas/criminal_defense",
+     "text": "Any question about criminal defense representation except white-collar or corporate crime matters."
+    },
+    {
+     "key": "practice_areas/intellectual_property",
+     "text": "Enquiries about patents, trademarks, copyrights, and IP litigation services."
+    },
+    {
+     "key": "practice_areas/tax_law",
+     "text": "Any tax-related question except international tax structuring, which is handled by a specialist desk."
+    },
+    {
+     "key": "billing/invoice_inquiries",
+     "text": "Questions about a specific invoice, payment status, or disputed billing line items."
+    },
+    {
+     "key": "billing/payment_methods",
+     "text": "Questions about accepted payment methods, online payment portal use, or currency for multinational clients."
+    },
+    {
+     "key": "billing/fee_estimate",
+     "text": "Any request for a cost estimate except a formal quote requiring signed engagement letter review."
+    },
+    {
+     "key": "existing_clients/case_status",
+     "text": "Requests from existing clients for updates on the progress of an ongoing matter."
+    },
+    {
+     "key": "existing_clients/document_requests",
+     "text": "Requests from existing clients for copies of contracts, filings, or case-related documents."
+    },
+    {
+     "key": "existing_clients/attorney_contact",
+     "text": "Requests to reach an assigned attorney, change the point of contact, or reassign a matter."
+    },
+    {
+     "key": "firm_info/attorney_bios",
+     "text": "Questions about individual lawyers' credentials, experience, and areas of specialization."
+    },
+    {
+     "key": "firm_info/languages_services",
+     "text": "Enquiries about which languages the firm's staff and attorneys can support clients in."
+    },
+    {
+     "key": "referrals/external_referral",
+     "text": "Helping direct enquiries that fall outside the firm's scope toward other suitable law firms."
+    },
+    {
+     "key": "legal_education/general_legal_info",
+     "text": "General, non-binding explanations of legal concepts, such as what a will or NDA is."
+    },
+    {
+     "key": "complaints/service_complaint",
+     "text": "Complaints about firm service quality, responsiveness, or communication issues."
+    },
+    {
+     "key": "complaints/attorney_complaint",
+     "text": "Complaints raising ethics concerns or conduct issues about a specific attorney."
+    },
+    {
+     "key": "careers/job_application",
+     "text": "Questions about open positions, internships, or how to submit a job application to the firm."
+    },
+    {
+     "key": "media/press_inquiry",
+     "text": "Requests from journalists or media outlets for firm statements, comments, or interviews."
+    },
+    {
+     "key": "emergency/urgent_legal_matter",
+     "text": "Time-sensitive requests requiring immediate attention, such as arrests, injunctions, or imminent filing deadlines."
+    }
+   ],
+   "gold": "existing_clients/attorney_contact",
+   "run_answer": "existing_clients/attorney_contact",
+   "run_probability": 0.8391
+  },
+  {
+   "language": "cs",
+   "register": "in_node_hole",
+   "text": "Zajímalo by mě, jaké máte tarify pro nové klienty, chtěl bych přejít od jiného operátora.",
+   "nodes": [
+    {
+     "key": "account/profile_management",
+     "text": "Updating personal details such as name, address, email address, or account password."
+    },
+    {
+     "key": "mobile_service/coverage_and_signal",
+     "text": "Questions about network coverage, signal strength, or dead zones for mobile service."
+    },
+    {
+     "key": "broadband_service/setup_and_installation",
+     "text": "Scheduling or troubleshooting new broadband installation, router setup, and initial activation."
+    },
+    {
+     "key": "technical_support/device_troubleshooting",
+     "text": "Basic troubleshooting for phones, routers, or other devices not working as expected."
+    },
+    {
+     "key": "plans/cancellation",
+     "text": "Requests to cancel or pause a mobile or broadband plan, including final billing questions."
+    }
+   ],
+   "gold": "none",
+   "run_answer": "none",
+   "run_probability": 0.9266
+  },
+  {
+   "language": "cs",
+   "register": "out_of_taxonomy",
+   "text": "Fandíš dneska Sparťanům? Hraj se semifinále a nevím, jak to dopadne.",
+   "nodes": [
+    {
+     "key": "intake/new_client_inquiries",
+     "text": "Handles initial contact from prospective clients describing their legal issue and requesting representation."
+    },
+    {
+     "key": "scheduling/consultation_booking",
+     "text": "Covers scheduling first-time consultations between prospective or existing clients and an available attorney."
+    },
+    {
+     "key": "scheduling/appointment_changes",
+     "text": "Covers rescheduling, confirming, or cancelling previously booked attorney meetings and calls."
+    },
+    {
+     "key": "case_status/document_requests",
+     "text": "Covers client requests for copies of filings, correspondence, or documents already in their case file."
+    },
+    {
+     "key": "firm_info/practice_areas",
+     "text": "Covers questions about which legal practice areas and services the firm offers."
+    },
+    {
+     "key": "firm_info/office_logistics",
+     "text": "Covers office hours, location, parking, and general contact information for the firm."
+    },
+    {
+     "key": "referrals/outside_referrals",
+     "text": "Covers referring prospective clients to other firms when their matter falls outside this firm's practice areas."
+    },
+    {
+     "key": "documents/document_submission",
+     "text": "Covers instructions for how clients should submit signed documents, evidence, or records to the firm."
+    },
+    {
+     "key": "staff_internal/hr_requests",
+     "text": "Covers employee questions about leave, benefits, and other HR matters unrelated to client work."
+    },
+    {
+     "key": "staff_internal/internal_policy",
+     "text": "Covers staff questions about internal firm procedures, compliance rules, and office policies."
+    }
+   ],
+   "gold": "none",
+   "run_answer": "none",
+   "run_probability": 0.9994
+  },
+  {
+   "language": "da",
+   "register": "in_node",
+   "text": "Jeg flytter til udlandet og vil gerne vide hvordan jeg lukker mit mobilabonnement.",
+   "nodes": [
+    {
+     "key": "lasku/maksutapa",
+     "text": "Maksutavan vaihto tai päivitys, esimerkiksi suoraveloituksen tai korttimaksun asettaminen."
+    },
+    {
+     "key": "liittyma/paketin_vaihto",
+     "text": "Liittymän data- tai puhepaketin vaihtaminen toiseen hinnoittelumalliin."
+    },
+    {
+     "key": "liittyma/irtisanominen",
+     "text": "Liittymän irtisanomispyynnöt ja irtisanomisajan sekä sen ehtojen tiedustelu."
+    },
+    {
+     "key": "liittyma/lisaosat",
+     "text": "Lisäpuheajan tai lisädatan ostaminen kesken kauden, paitsi ulkomailla käytettävät roaming-lisäpaketit."
+    },
+    {
+     "key": "laajakaista/nopeus",
+     "text": "Laajakaistan nopeustestin tulosten tulkinta ja hitaudesta tehdyt valitukset."
+    },
+    {
+     "key": "laajakaista/vika",
+     "text": "Yhteyskatkoksen tai vian ilmoittaminen sekä vikailmoituksen etenemisen tiedustelu."
+    },
+    {
+     "key": "laajakaista/muutto",
+     "text": "Laajakaistaliittymän siirtäminen uuteen osoitteeseen asiakkaan muuton yhteydessä."
+    },
+    {
+     "key": "sim_puhelin/kadonnut",
+     "text": "Kadonneen tai varastetun puhelimen sulkeminen ja SIM-kortin jäädyttäminen välittömästi."
+    },
+    {
+     "key": "turvallisuus/vaarinkaytto",
+     "text": "Epäilty identiteettivarkaus tai asiakkaan tilin luvaton käyttö toisen henkilön toimesta."
+    }
+   ],
+   "gold": "liittyma/irtisanominen",
+   "run_answer": "liittyma/irtisanominen",
+   "run_probability": 0.9331
+  },
+  {
+   "language": "da",
+   "register": "in_node_hole",
+   "text": "Jeg skal på barsel om et par måneder - hvem skal jeg kontakte for at få det sat i gang?",
+   "nodes": [
+    {
+     "key": "intake/new_client_inquiries",
+     "text": "Handles initial contact from prospective clients describing their legal issue and requesting representation."
+    },
+    {
+     "key": "scheduling/consultation_booking",
+     "text": "Covers scheduling first-time consultations between prospective or existing clients and an available attorney."
+    },
+    {
+     "key": "case_status/document_requests",
+     "text": "Covers client requests for copies of filings, correspondence, or documents already in their case file."
+    },
+    {
+     "key": "billing/payment_processing",
+     "text": "Covers processing payments, setting up payment plans, and issuing receipts for client accounts."
+    },
+    {
+     "key": "firm_info/practice_areas",
+     "text": "Covers questions about which legal practice areas and services the firm offers."
+    },
+    {
+     "key": "firm_info/office_logistics",
+     "text": "Covers office hours, location, parking, and general contact information for the firm."
+    },
+    {
+     "key": "referrals/outside_referrals",
+     "text": "Covers referring prospective clients to other firms when their matter falls outside this firm's practice areas."
+    },
+    {
+     "key": "documents/document_submission",
+     "text": "Covers instructions for how clients should submit signed documents, evidence, or records to the firm."
+    }
+   ],
+   "gold": "none",
+   "run_answer": "none",
+   "run_probability": 0.9436
+  },
+  {
+   "language": "da",
+   "register": "out_of_taxonomy",
+   "text": "Ved du hvilken bank der giver de højeste renter på en opsparingskonto lige nu?",
+   "nodes": [
+    {
+     "key": "intake/new_matter_submission",
+     "text": "Prospective clients describing a new legal matter and asking the firm to evaluate whether it can take the case."
+    },
+    {
+     "key": "intake/eligibility_screening",
+     "text": "Questions about whether the firm accepts a particular case type, jurisdiction, or client profile before formal submission."
+    },
+    {
+     "key": "intake/appointment_scheduling",
+     "text": "Requests to book, reschedule, or cancel initial consultations or meetings with an attorney."
+    },
+    {
+     "key": "practice_areas/corporate_commercial",
+     "text": "Enquiries about the firm's corporate, M&A, commercial contract, and business advisory practice."
+    },
+    {
+     "key": "practice_areas/litigation_disputes",
+     "text": "Questions about litigation, arbitration, and dispute resolution services the firm offers."
+    },
+    {
+     "key": "practice_areas/tax_law",
+     "text": "Any tax-related question except international tax structuring, which is handled by a specialist desk."
+    },
+    {
+     "key": "billing/invoice_inquiries",
+     "text": "Questions about a specific invoice, payment status, or disputed billing line items."
+    },
+    {
+     "key": "billing/payment_methods",
+     "text": "Questions about accepted payment methods, online payment portal use, or currency for multinational clients."
+    },
+    {
+     "key": "billing/fee_estimate",
+     "text": "Any request for a cost estimate except a formal quote requiring signed engagement letter review."
+    },
+    {
+     "key": "existing_clients/case_status",
+     "text": "Requests from existing clients for updates on the progress of an ongoing matter."
+    },
+    {
+     "key": "existing_clients/document_requests",
+     "text": "Requests from existing clients for copies of contracts, filings, or case-related documents."
+    },
+    {
+     "key": "existing_clients/attorney_contact",
+     "text": "Requests to reach an assigned attorney, change the point of contact, or reassign a matter."
+    },
+    {
+     "key": "firm_info/office_locations",
+     "text": "Questions about the firm's office addresses, hours, and coverage across multinational locations."
+    },
+    {
+     "key": "firm_info/general_history",
+     "text": "Any question about firm history or background except details of pending litigation involving the firm itself."
+    },
+    {
+     "key": "legal_education/general_legal_info",
+     "text": "General, non-binding explanations of legal concepts, such as what a will or NDA is."
+    },
+    {
+     "key": "conflicts/conflict_check_request",
+     "text": "Requests to check whether representing a prospective client would create a conflict of interest."
+    },
+    {
+     "key": "emergency/urgent_legal_matter",
+     "text": "Time-sensitive requests requiring immediate attention, such as arrests, injunctions, or imminent filing deadlines."
+    }
+   ],
+   "gold": "none",
+   "run_answer": "billing/payment_methods",
+   "run_probability": 0.6743
+  },
+  {
+   "language": "de",
+   "register": "in_node",
+   "text": "Ich bin schon wieder mit meinem Datenvolumen durch, kann ich für die restlichen Tage noch ein Zusatzpaket dazubuchen?",
+   "nodes": [
+    {
+     "key": "lasku/erapaiva_siirto",
+     "text": "Yksittäisen laskun eräpäivän siirtopyynnöt ja maksuajan pidennykset."
+    },
+    {
+     "key": "liittyma/irtisanominen",
+     "text": "Liittymän irtisanomispyynnöt ja irtisanomisajan sekä sen ehtojen tiedustelu."
+    },
+    {
+     "key": "liittyma/lisaosat",
+     "text": "Lisäpuheajan tai lisädatan ostaminen kesken kauden, paitsi ulkomailla käytettävät roaming-lisäpaketit."
+    },
+    {
+     "key": "laajakaista/nopeus",
+     "text": "Laajakaistan nopeustestin tulosten tulkinta ja hitaudesta tehdyt valitukset."
+    },
+    {
+     "key": "laajakaista/vika",
+     "text": "Yhteyskatkoksen tai vian ilmoittaminen sekä vikailmoituksen etenemisen tiedustelu."
+    },
+    {
+     "key": "sim_puhelin/lukituksen_poisto",
+     "text": "Puhelimen operaattorilukituksen poistopyynnöt sopimuskauden päättymisen jälkeen."
+    },
+    {
+     "key": "turvallisuus/tunnukset",
+     "text": "Kirjautumistunnusten ja PIN-koodien palautuspyynnöt, paitsi epäillyt väärinkäyttötapaukset."
+    },
+    {
+     "key": "kansainvalinen/roaming_hinnat",
+     "text": "Roaming-hintojen ja ulkomaanmatkoja varten tarjottavien pakettien tiedustelu."
+    }
+   ],
+   "gold": "liittyma/lisaosat",
+   "run_answer": "liittyma/lisaosat",
+   "run_probability": 0.9014
+  },
+  {
+   "language": "de",
+   "register": "in_node_hole",
+   "text": "Wie kann ich als Kunde aus der Schweiz meine Rechnung in Franken begleichen?",
+   "nodes": [
+    {
+     "key": "intake/new_matter_submission",
+     "text": "Prospective clients describing a new legal matter and asking the firm to evaluate whether it can take the case."
+    },
+    {
+     "key": "intake/document_upload",
+     "text": "Help with submitting, uploading, or formatting documents and evidence required for the intake process."
+    },
+    {
+     "key": "intake/appointment_scheduling",
+     "text": "Requests to book, reschedule, or cancel initial consultations or meetings with an attorney."
+    },
+    {
+     "key": "practice_areas/corporate_commercial",
+     "text": "Enquiries about the firm's corporate, M&A, commercial contract, and business advisory practice."
+    },
+    {
+     "key": "practice_areas/litigation_disputes",
+     "text": "Questions about litigation, arbitration, and dispute resolution services the firm offers."
+    },
+    {
+     "key": "practice_areas/family_law",
+     "text": "Enquiries on divorce, custody, prenuptial agreements, and other family law matters handled by the firm."
+    },
+    {
+     "key": "practice_areas/immigration",
+     "text": "Questions about visas, residency permits, citizenship, and other immigration law services offered."
+    },
+    {
+     "key": "practice_areas/employment_law",
+     "text": "Enquiries about workplace disputes, employment contracts, and labor law representation."
+    },
+    {
+     "key": "practice_areas/criminal_defense",
+     "text": "Any question about criminal defense representation except white-collar or corporate crime matters."
+    },
+    {
+     "key": "practice_areas/intellectual_property",
+     "text": "Enquiries about patents, trademarks, copyrights, and IP litigation services."
+    },
+    {
+     "key": "practice_areas/tax_law",
+     "text": "Any tax-related question except international tax structuring, which is handled by a specialist desk."
+    },
+    {
+     "key": "existing_clients/case_status",
+     "text": "Requests from existing clients for updates on the progress of an ongoing matter."
+    },
+    {
+     "key": "existing_clients/document_requests",
+     "text": "Requests from existing clients for copies of contracts, filings, or case-related documents."
+    },
+    {
+     "key": "firm_info/office_locations",
+     "text": "Questions about the firm's office addresses, hours, and coverage across multinational locations."
+    },
+    {
+     "key": "firm_info/attorney_bios",
+     "text": "Questions about individual lawyers' credentials, experience, and areas of specialization."
+    },
+    {
+     "key": "firm_info/general_history",
+     "text": "Any question about firm history or background except details of pending litigation involving the firm itself."
+    },
+    {
+     "key": "legal_education/general_legal_info",
+     "text": "General, non-binding explanations of legal concepts, such as what a will or NDA is."
+    },
+    {
+     "key": "conflicts/conflict_check_request",
+     "text": "Requests to check whether representing a prospective client would create a conflict of interest."
+    },
+    {
+     "key": "complaints/service_complaint",
+     "text": "Complaints about firm service quality, responsiveness, or communication issues."
+    },
+    {
+     "key": "careers/job_application",
+     "text": "Questions about open positions, internships, or how to submit a job application to the firm."
+    },
+    {
+     "key": "media/press_inquiry",
+     "text": "Requests from journalists or media outlets for firm statements, comments, or interviews."
+    },
+    {
+     "key": "emergency/urgent_legal_matter",
+     "text": "Time-sensitive requests requiring immediate attention, such as arrests, injunctions, or imminent filing deadlines."
+    }
+   ],
+   "gold": "none",
+   "run_answer": "none",
+   "run_probability": 0.9342
+  },
+  {
+   "language": "de",
+   "register": "out_of_taxonomy",
+   "text": "Was hältst du eigentlich vom neuesten Tatort, den sie letzten Sonntag gezeigt haben?",
+   "nodes": [
+    {
+     "key": "sonrasc/iocaiocht_dheanach",
+     "text": "Ceisteanna faoi phionóis íocaíochta déanach nó faoi shocrú aisíocaíochta thar thréimhse ama."
+    },
+    {
+     "key": "plean/athru",
+     "text": "Iarrataí chun an plean nó an pacáiste seirbhíse reatha a athrú, a uasghrádú nó a íosghrádú."
+    },
+    {
+     "key": "plean/costas",
+     "text": "Ceisteanna faoi chostas míosúil an phlean reatha, gach rud seachas iarraidh ar athrú plean."
+    },
+    {
+     "key": "soghluaiste/teacs_sceideal",
+     "text": "Ceisteanna faoi sheirbhísí téacs, teachtaireachtaí gearrtha, nó táillí SMS idirnáisiúnta."
+    },
+    {
+     "key": "soghluaiste/comhartha",
+     "text": "Tuairisc a dhéanamh ar dhrochchomhartha nó ar chumhdach lag i gceantar áirithe."
+    },
+    {
+     "key": "cuntas/pasfhocal",
+     "text": "Cabhair le pasfhocal nó PIN an chuntais ar líne a athshocrú."
+    }
+   ],
+   "gold": "none",
+   "run_answer": "none",
+   "run_probability": 0.9892
+  },
+  {
+   "language": "el",
+   "register": "in_node",
+   "text": "Πότε λήγει η προθεσμία κατάθεσης του υπομνήματος στην υπόθεση Γεωργίου;",
+   "nodes": [
+    {
+     "key": "intake/verificacao_conflitos",
+     "text": "Cobre pedidos internos de verificação de conflitos de interesse antes de aceitar patrocinar um novo processo."
+    },
+    {
+     "key": "agendamento/marcacao_reuniao",
+     "text": "Cobre pedidos de marcação de reuniões entre advogados e clientes ou potenciais clientes."
+    },
+    {
+     "key": "agendamento/reagendamento_cancelamento",
+     "text": "Cobre pedidos de alteração de data, hora ou cancelamento de reuniões já marcadas com clientes."
+    },
+    {
+     "key": "honorarios/orcamento_inicial",
+     "text": "Cobre pedidos internos de preparação de orçamentos e propostas de honorários para novos processos."
+    },
+    {
+     "key": "honorarios/planos_pagamento",
+     "text": "Cobre pedidos sobre planos de pagamento em prestações já pré-aprovados pela direção financeira."
+    },
+    {
+     "key": "dados/pedido_acesso_rgpd",
+     "text": "Cobre pedidos de acesso, rectificação ou eliminação de dados pessoais ao abrigo do RGPD."
+    },
+    {
+     "key": "prazos/prazos_processuais",
+     "text": "Cobre consultas sobre prazos legais e datas-limite associados a processos judiciais em curso."
+    }
+   ],
+   "gold": "prazos/prazos_processuais",
+   "run_answer": "prazos/prazos_processuais",
+   "run_probability": 0.9511
+  },
+  {
+   "language": "el",
+   "register": "in_node_hole",
+   "text": "Ποιοι ήταν οι ιδρυτές του γραφείου σας και σε ποια εποχή δημιουργήθηκε;",
+   "nodes": [
+    {
+     "key": "intake/new_matter_submission",
+     "text": "Prospective clients describing a new legal matter and asking the firm to evaluate whether it can take the case."
+    },
+    {
+     "key": "intake/eligibility_screening",
+     "text": "Questions about whether the firm accepts a particular case type, jurisdiction, or client profile before formal submission."
+    },
+    {
+     "key": "intake/document_upload",
+     "text": "Help with submitting, uploading, or formatting documents and evidence required for the intake process."
+    },
+    {
+     "key": "intake/appointment_scheduling",
+     "text": "Requests to book, reschedule, or cancel initial consultations or meetings with an attorney."
+    },
+    {
+     "key": "practice_areas/corporate_commercial",
+     "text": "Enquiries about the firm's corporate, M&A, commercial contract, and business advisory practice."
+    },
+    {
+     "key": "practice_areas/litigation_disputes",
+     "text": "Questions about litigation, arbitration, and dispute resolution services the firm offers."
+    },
+    {
+     "key": "practice_areas/family_law",
+     "text": "Enquiries on divorce, custody, prenuptial agreements, and other family law matters handled by the firm."
+    },
+    {
+     "key": "practice_areas/immigration",
+     "text": "Questions about visas, residency permits, citizenship, and other immigration law services offered."
+    },
+    {
+     "key": "practice_areas/employment_law",
+     "text": "Enquiries about workplace disputes, employment contracts, and labor law representation."
+    },
+    {
+     "key": "practice_areas/criminal_defense",
+     "text": "Any question about criminal defense representation except white-collar or corporate crime matters."
+    },
+    {
+     "key": "practice_areas/real_estate",
+     "text": "Questions about property transactions, leases, zoning, and real estate disputes handled by the firm."
+    },
+    {
+     "key": "practice_areas/intellectual_property",
+     "text": "Enquiries about patents, trademarks, copyrights, and IP litigation services."
+    },
+    {
+     "key": "practice_areas/tax_law",
+     "text": "Any tax-related question except international tax structuring, which is handled by a specialist desk."
+    },
+    {
+     "key": "billing/fee_structure",
+     "text": "Explaining how the firm charges for services, including hourly, flat-fee, and contingency arrangements."
+    },
+    {
+     "key": "billing/invoice_inquiries",
+     "text": "Questions about a specific invoice, payment status, or disputed billing line items."
+    },
+    {
+     "key": "billing/payment_methods",
+     "text": "Questions about accepted payment methods, online payment portal use, or currency for multinational clients."
+    },
+    {
+     "key": "billing/fee_estimate",
+     "text": "Any request for a cost estimate except a formal quote requiring signed engagement letter review."
+    },
+    {
+     "key": "existing_clients/case_status",
+     "text": "Requests from existing clients for updates on the progress of an ongoing matter."
+    },
+    {
+     "key": "existing_clients/document_requests",
+     "text": "Requests from existing clients for copies of contracts, filings, or case-related documents."
+    },
+    {
+     "key": "existing_clients/attorney_contact",
+     "text": "Requests to reach an assigned attorney, change the point of contact, or reassign a matter."
+    },
+    {
+     "key": "firm_info/office_locations",
+     "text": "Questions about the firm's office addresses, hours, and coverage across multinational locations."
+    },
+    {
+     "key": "firm_info/attorney_bios",
+     "text": "Questions about individual lawyers' credentials, experience, and areas of specialization."
+    },
+    {
+     "key": "firm_info/languages_services",
+     "text": "Enquiries about which languages the firm's staff and attorneys can support clients in."
+    },
+    {
+     "key": "referrals/external_referral",
+     "text": "Helping direct enquiries that fall outside the firm's scope toward other suitable law firms."
+    },
+    {
+     "key": "legal_education/general_legal_info",
+     "text": "General, non-binding explanations of legal concepts, such as what a will or NDA is."
+    },
+    {
+     "key": "conflicts/conflict_check_request",
+     "text": "Requests to check whether representing a prospective client would create a conflict of interest."
+    },
+    {
+     "key": "complaints/service_complaint",
+     "text": "Complaints about firm service quality, responsiveness, or communication issues."
+    },
+    {
+     "key": "complaints/attorney_complaint",
+     "text": "Complaints raising ethics concerns or conduct issues about a specific attorney."
+    },
+    {
+     "key": "careers/job_application",
+     "text": "Questions about open positions, internships, or how to submit a job application to the firm."
+    },
+    {
+     "key": "media/press_inquiry",
+     "text": "Requests from journalists or media outlets for firm statements, comments, or interviews."
+    },
+    {
+     "key": "emergency/urgent_legal_matter",
+     "text": "Time-sensitive requests requiring immediate attention, such as arrests, injunctions, or imminent filing deadlines."
+    }
+   ],
+   "gold": "none",
+   "run_answer": "none",
+   "run_probability": 0.9255
+  },
+  {
+   "language": "el",
+   "register": "out_of_taxonomy",
+   "text": "Πολύ ζέστη έκανε σήμερα στην Αθήνα, λες να βρέξει το σαββατοκύριακο;",
+   "nodes": [
+    {
+     "key": "intake/registo_novo_cliente",
+     "text": "Cobre a recolha de dados de identificação e áreas jurídicas de interesse para abertura de ficha de novo cliente."
+    },
+    {
+     "key": "intake/verificacao_conflitos",
+     "text": "Cobre pedidos internos de verificação de conflitos de interesse antes de aceitar patrocinar um novo processo."
+    },
+    {
+     "key": "intake/recusa_proposta",
+     "text": "Cobre qualquer pedido sobre comunicação de recusa de propostas de patrocínio, excepto quando motivada por conflito de interesses."
+    },
+    {
+     "key": "agendamento/marcacao_reuniao",
+     "text": "Cobre pedidos de marcação de reuniões entre advogados e clientes ou potenciais clientes."
+    },
+    {
+     "key": "agendamento/reagendamento_cancelamento",
+     "text": "Cobre pedidos de alteração de data, hora ou cancelamento de reuniões já marcadas com clientes."
+    },
+    {
+     "key": "honorarios/orcamento_inicial",
+     "text": "Cobre pedidos internos de preparação de orçamentos e propostas de honorários para novos processos."
+    },
+    {
+     "key": "honorarios/faturacao_processos",
+     "text": "Cobre dúvidas sobre emissão, correção ou consulta de faturas associadas a processos em curso."
+    },
+    {
+     "key": "documentos/pedido_copias",
+     "text": "Cobre pedidos de cópias de documentos de processo para clientes ou para colegas internos."
+    },
+    {
+     "key": "documentos/modelos_contratuais",
+     "text": "Cobre pedidos de acesso a modelos-padrão de contratos e minutas utilizados pelo escritório."
+    },
+    {
+     "key": "dados/pedido_acesso_rgpd",
+     "text": "Cobre pedidos de acesso, rectificação ou eliminação de dados pessoais ao abrigo do RGPD."
+    },
+    {
+     "key": "dados/retencao_arquivo",
+     "text": "Cobre qualquer dúvida sobre prazos de retenção e arquivo de processos encerrados, excepto pedidos de eliminação antecipada de dados."
+    },
+    {
+     "key": "prazos/prazos_processuais",
+     "text": "Cobre consultas sobre prazos legais e datas-limite associados a processos judiciais em curso."
+    }
+   ],
+   "gold": "none",
+   "run_answer": "none",
+   "run_probability": 0.9994
+  },
+  {
+   "language": "en",
+   "register": "in_node",
+   "text": "Are there any special deals right now for new customers signing up?",
+   "nodes": [
+    {
+     "key": "facturacion/consulta_factura",
+     "text": "Consultas sobre el detalle de la factura actual o de facturas de meses anteriores."
+    },
+    {
+     "key": "facturacion/reclamo_cargo",
+     "text": "Reclamos por un cargo o cobro que el cliente no reconoce en su factura."
+    },
+    {
+     "key": "facturacion/metodo_pago",
+     "text": "Cambio de la tarjeta, cuenta bancaria o método usado para pagar la factura mensual."
+    },
+    {
+     "key": "facturacion/plan_pago_atrasado",
+     "text": "Cualquier consulta sobre facturas vencidas y planes de pago, excepto cuentas ya derivadas a cobranza judicial."
+    },
+    {
+     "key": "plan_tarifas/cambio_plan",
+     "text": "Solicitudes para cambiar el plan tarifario móvil o de internet hogar actual del cliente."
+    },
+    {
+     "key": "plan_tarifas/consulta_beneficios",
+     "text": "Consultas sobre los beneficios, minutos y datos incluidos en el plan contratado actualmente."
+    },
+    {
+     "key": "plan_tarifas/promociones_vigentes",
+     "text": "Información sobre promociones, descuentos y ofertas vigentes para clientes nuevos o actuales."
+    },
+    {
+     "key": "plan_tarifas/portabilidad",
+     "text": "Gestión de la portabilidad numérica de una línea desde otro operador hacia esta empresa."
+    },
+    {
+     "key": "linea_movil/activacion_sim",
+     "text": "Activación de una tarjeta SIM nueva o de reemplazo por daño o cambio de equipo."
+    },
+    {
+     "key": "linea_movil/bloqueo_robo",
+     "text": "Bloqueo de la línea móvil por robo, hurto o pérdida del equipo."
+    },
+    {
+     "key": "linea_movil/suspension_temporal",
+     "text": "Suspensión temporal del servicio móvil por viaje, vacaciones o falta de uso."
+    },
+    {
+     "key": "linea_movil/consulta_consumo",
+     "text": "Consultas sobre el consumo de datos, minutos y mensajes del ciclo de facturación vigente."
+    },
+    {
+     "key": "internet_hogar/instalacion_nueva",
+     "text": "Coordinación de la instalación de un servicio nuevo de internet residencial."
+    },
+    {
+     "key": "internet_hogar/velocidad_lenta",
+     "text": "Reportes de lentitud o baja velocidad en el servicio de internet hogar."
+    },
+    {
+     "key": "internet_hogar/corte_servicio",
+     "text": "Reportes de corte total o intermitente del servicio de internet hogar."
+    },
+    {
+     "key": "soporte_tecnico/configuracion_router",
+     "text": "Ayuda para configurar el router o módem entregado por la empresa."
+    },
+    {
+     "key": "soporte_tecnico/problema_apn",
+     "text": "Ayuda para configurar el APN de datos móviles en el equipo del cliente."
+    },
+    {
+     "key": "soporte_tecnico/fallas_equipo",
+     "text": "Cualquier consulta sobre fallas del equipo, excepto los reclamos cubiertos por la garantía del fabricante."
+    },
+    {
+     "key": "dispositivos/garantia",
+     "text": "Gestión de reclamos de garantía de equipos móviles comprados a través de la empresa."
+    },
+    {
+     "key": "dispositivos/compra_equipo",
+     "text": "Consultas sobre precios, cuotas y financiamiento para la compra de equipos móviles."
+    },
+    {
+     "key": "roaming/activacion_roaming",
+     "text": "Activación del servicio de roaming internacional antes de un viaje al extranjero."
+    },
+    {
+     "key": "roaming/paquetes_promocionales",
+     "text": "Información sobre paquetes promocionales de datos y minutos para uso en el extranjero."
+    },
+    {
+     "key": "roaming/tarifas_roaming",
+     "text": "Cualquier consulta sobre tarifas de roaming internacional, excepto los paquetes promocionales de datos."
+    },
+    {
+     "key": "cuenta_usuario/recuperar_clave",
+     "text": "Ayuda para recuperar o restablecer la contraseña de la app o portal web del cliente."
+    },
+    {
+     "key": "cuenta_usuario/actualizar_datos",
+     "text": "Actualización de datos personales como dirección, correo electrónico o teléfono de contacto."
+    },
+    {
+     "key": "seguridad/reporte_fraude",
+     "text": "Reportes de intentos de fraude, suplantación de identidad o llamadas sospechosas a nombre de la empresa."
+    },
+    {
+     "key": "seguridad/proteccion_datos",
+     "text": "Consultas sobre el tratamiento de datos personales y solicitudes de eliminación según la ley vigente."
+    },
+    {
+     "key": "cancelacion/baja_servicio",
+     "text": "Tramitación de la baja definitiva de un servicio móvil o de internet hogar."
+    },
+    {
+     "key": "cancelacion/retencion_oferta",
+     "text": "Cualquier solicitud de baja de servicio, excepto cuando el cliente acepta una oferta de retención."
+    }
+   ],
+   "gold": "plan_tarifas/promociones_vigentes",
+   "run_answer": "plan_tarifas/promociones_vigentes",
+   "run_probability": 0.9796
+  },
+  {
+   "language": "en",
+   "register": "in_node_hole",
+   "text": "What payment methods do you accept when booking a flight - can I use PayPal?",
+   "nodes": [
+    {
+     "key": "kratiseis/nea_kratisi",
+     "text": "Ερωτήματα για δημιουργία νέας κράτησης πτήσης, επιλογή προορισμού και έλεγχο διαθεσιμότητας θέσεων."
+    },
+    {
+     "key": "kratiseis/allagi_imerominias",
+     "text": "Αιτήματα αλλαγής ημερομηνίας ή ώρας πτήσης σε ήδη υπάρχουσα κράτηση."
+    },
+    {
+     "key": "check_in/online",
+     "text": "Οδηγίες και προβλήματα με το ηλεκτρονικό check-in μέσω ιστοσελίδας ή εφαρμογής."
+    },
+    {
+     "key": "check_in/aerodromio",
+     "text": "Ερωτήματα για τη διαδικασία check-in στα γκισέ του αεροδρομίου και ώρες προσέλευσης."
+    },
+    {
+     "key": "aposkeves/epiplea",
+     "text": "Αιτήματα για κόστος και κράτηση επιπλέον ή υπέρβαρων αποσκευών πριν την πτήση."
+    }
+   ],
+   "gold": "none",
+   "run_answer": "none",
+   "run_probability": 0.9872
+  },
+  {
+   "language": "en",
+   "register": "out_of_taxonomy",
+   "text": "Can you recommend a decent plumber, my kitchen tap won't stop dripping.",
+   "nodes": [
+    {
+     "key": "intake/registo_novo_cliente",
+     "text": "Cobre a recolha de dados de identificação e áreas jurídicas de interesse para abertura de ficha de novo cliente."
+    },
+    {
+     "key": "intake/verificacao_conflitos",
+     "text": "Cobre pedidos internos de verificação de conflitos de interesse antes de aceitar patrocinar um novo processo."
+    },
+    {
+     "key": "intake/recusa_proposta",
+     "text": "Cobre qualquer pedido sobre comunicação de recusa de propostas de patrocínio, excepto quando motivada por conflito de interesses."
+    },
+    {
+     "key": "agendamento/marcacao_reuniao",
+     "text": "Cobre pedidos de marcação de reuniões entre advogados e clientes ou potenciais clientes."
+    },
+    {
+     "key": "agendamento/reagendamento_cancelamento",
+     "text": "Cobre pedidos de alteração de data, hora ou cancelamento de reuniões já marcadas com clientes."
+    },
+    {
+     "key": "honorarios/orcamento_inicial",
+     "text": "Cobre pedidos internos de preparação de orçamentos e propostas de honorários para novos processos."
+    },
+    {
+     "key": "honorarios/faturacao_processos",
+     "text": "Cobre dúvidas sobre emissão, correção ou consulta de faturas associadas a processos em curso."
+    },
+    {
+     "key": "honorarios/planos_pagamento",
+     "text": "Cobre pedidos sobre planos de pagamento em prestações já pré-aprovados pela direção financeira."
+    },
+    {
+     "key": "documentos/pedido_copias",
+     "text": "Cobre pedidos de cópias de documentos de processo para clientes ou para colegas internos."
+    },
+    {
+     "key": "documentos/modelos_contratuais",
+     "text": "Cobre pedidos de acesso a modelos-padrão de contratos e minutas utilizados pelo escritório."
+    },
+    {
+     "key": "dados/pedido_acesso_rgpd",
+     "text": "Cobre pedidos de acesso, rectificação ou eliminação de dados pessoais ao abrigo do RGPD."
+    },
+    {
+     "key": "dados/retencao_arquivo",
+     "text": "Cobre qualquer dúvida sobre prazos de retenção e arquivo de processos encerrados, excepto pedidos de eliminação antecipada de dados."
+    },
+    {
+     "key": "prazos/prazos_processuais",
+     "text": "Cobre consultas sobre prazos legais e datas-limite associados a processos judiciais em curso."
+    }
+   ],
+   "gold": "none",
+   "run_answer": "none",
+   "run_probability": 0.9987
+  },
+  {
+   "language": "es",
+   "register": "in_node",
+   "text": "Se me cayó el celular de trabajo y la pantalla quedó completamente rota, necesito que lo reparen.",
+   "nodes": [
+    {
+     "key": "billing/invoice_queries",
+     "text": "Any question about reading invoices, itemized charges, or usage summaries, except disputing a charge as incorrect."
+    },
+    {
+     "key": "billing/payment_methods",
+     "text": "Updating payment methods, setting up direct debit, or resolving failed or declined payment attempts."
+    },
+    {
+     "key": "billing/disputes",
+     "text": "Disputing incorrect charges, requesting refunds or credits, or escalating billing errors on an account."
+    },
+    {
+     "key": "account/sim_management",
+     "text": "Requests to activate, replace, transfer, or block SIM cards and change assigned phone numbers."
+    },
+    {
+     "key": "account/plan_changes",
+     "text": "Upgrading, downgrading, or switching between mobile and broadband tariff plans on an account."
+    },
+    {
+     "key": "account/new_lines",
+     "text": "Adding new mobile lines or broadband connections to an existing business account."
+    },
+    {
+     "key": "connectivity/mobile_troubleshooting",
+     "text": "Diagnosing dropped calls, poor signal strength, or mobile data connectivity failures on staff devices."
+    },
+    {
+     "key": "connectivity/broadband_troubleshooting",
+     "text": "Diagnosing router problems, slow speeds, or intermittent connection drops on office broadband service."
+    },
+    {
+     "key": "connectivity/outage_status",
+     "text": "Checking reported network outages, planned maintenance windows, or expected service restoration timelines."
+    },
+    {
+     "key": "devices/hardware_support",
+     "text": "Basic setup, configuration, or usage guidance for company phones, routers, and modems."
+    },
+    {
+     "key": "devices/replacement_repair",
+     "text": "Arranging repairs, replacements, or warranty claims for faulty or damaged company-issued devices."
+    },
+    {
+     "key": "plans/addons_bundles",
+     "text": "Adding data top-ups, roaming packs, or other bundled extras to an existing plan."
+    },
+    {
+     "key": "plans/plan_comparison",
+     "text": "Comparing available mobile and broadband plans, features, and pricing before switching or upgrading."
+    },
+    {
+     "key": "security/account_security",
+     "text": "Resetting passwords or PINs, remotely blocking lost devices, or securing compromised staff accounts."
+    }
+   ],
+   "gold": "devices/replacement_repair",
+   "run_answer": "devices/replacement_repair",
+   "run_probability": 0.7053
+  },
+  {
+   "language": "es",
+   "register": "in_node_hole",
+   "text": "El celular de la oficina casi no tiene señal desde esta mañana, ¿pueden revisar qué pasa?",
+   "nodes": [
+    {
+     "key": "billing/invoice_queries",
+     "text": "Any question about reading invoices, itemized charges, or usage summaries, except disputing a charge as incorrect."
+    },
+    {
+     "key": "account/plan_changes",
+     "text": "Upgrading, downgrading, or switching between mobile and broadband tariff plans on an account."
+    },
+    {
+     "key": "account/new_lines",
+     "text": "Adding new mobile lines or broadband connections to an existing business account."
+    },
+    {
+     "key": "devices/hardware_support",
+     "text": "Basic setup, configuration, or usage guidance for company phones, routers, and modems."
+    },
+    {
+     "key": "plans/addons_bundles",
+     "text": "Adding data top-ups, roaming packs, or other bundled extras to an existing plan."
+    },
+    {
+     "key": "security/account_security",
+     "text": "Resetting passwords or PINs, remotely blocking lost devices, or securing compromised staff accounts."
+    }
+   ],
+   "gold": "none",
+   "run_answer": "none",
+   "run_probability": 0.4725
+  },
+  {
+   "language": "es",
+   "register": "out_of_taxonomy",
+   "text": "¿Qué opinas sobre el partido de fútbol de ayer? Estuvo increíble.",
+   "nodes": [
+    {
+     "key": "billing/invoice_queries",
+     "text": "Any question about reading invoices, itemized charges, or usage summaries, except disputing a charge as incorrect."
+    },
+    {
+     "key": "billing/payment_methods",
+     "text": "Updating payment methods, setting up direct debit, or resolving failed or declined payment attempts."
+    },
+    {
+     "key": "billing/disputes",
+     "text": "Disputing incorrect charges, requesting refunds or credits, or escalating billing errors on an account."
+    },
+    {
+     "key": "account/sim_management",
+     "text": "Requests to activate, replace, transfer, or block SIM cards and change assigned phone numbers."
+    },
+    {
+     "key": "account/plan_changes",
+     "text": "Upgrading, downgrading, or switching between mobile and broadband tariff plans on an account."
+    },
+    {
+     "key": "account/new_lines",
+     "text": "Adding new mobile lines or broadband connections to an existing business account."
+    },
+    {
+     "key": "connectivity/mobile_troubleshooting",
+     "text": "Diagnosing dropped calls, poor signal strength, or mobile data connectivity failures on staff devices."
+    },
+    {
+     "key": "connectivity/broadband_troubleshooting",
+     "text": "Diagnosing router problems, slow speeds, or intermittent connection drops on office broadband service."
+    },
+    {
+     "key": "connectivity/outage_status",
+     "text": "Checking reported network outages, planned maintenance windows, or expected service restoration timelines."
+    },
+    {
+     "key": "devices/hardware_support",
+     "text": "Basic setup, configuration, or usage guidance for company phones, routers, and modems."
+    },
+    {
+     "key": "devices/replacement_repair",
+     "text": "Arranging repairs, replacements, or warranty claims for faulty or damaged company-issued devices."
+    },
+    {
+     "key": "plans/addons_bundles",
+     "text": "Adding data top-ups, roaming packs, or other bundled extras to an existing plan."
+    },
+    {
+     "key": "plans/plan_comparison",
+     "text": "Comparing available mobile and broadband plans, features, and pricing before switching or upgrading."
+    },
+    {
+     "key": "security/account_security",
+     "text": "Resetting passwords or PINs, remotely blocking lost devices, or securing compromised staff accounts."
+    }
+   ],
+   "gold": "none",
+   "run_answer": "none",
+   "run_probability": 0.9998
+  },
+  {
+   "language": "et",
+   "register": "in_node",
+   "text": "Palun lisage meie kontole kaks uut broadband ühendust uue kontori jaoks.",
+   "nodes": [
+    {
+     "key": "billing/invoice_queries",
+     "text": "Any question about reading invoices, itemized charges, or usage summaries, except disputing a charge as incorrect."
+    },
+    {
+     "key": "account/new_lines",
+     "text": "Adding new mobile lines or broadband connections to an existing business account."
+    },
+    {
+     "key": "devices/hardware_support",
+     "text": "Basic setup, configuration, or usage guidance for company phones, routers, and modems."
+    },
+    {
+     "key": "devices/replacement_repair",
+     "text": "Arranging repairs, replacements, or warranty claims for faulty or damaged company-issued devices."
+    },
+    {
+     "key": "plans/plan_comparison",
+     "text": "Comparing available mobile and broadband plans, features, and pricing before switching or upgrading."
+    },
+    {
+     "key": "security/account_security",
+     "text": "Resetting passwords or PINs, remotely blocking lost devices, or securing compromised staff accounts."
+    }
+   ],
+   "gold": "account/new_lines",
+   "run_answer": "account/new_lines",
+   "run_probability": 0.9717
+  },
+  {
+   "language": "et",
+   "register": "in_node_hole",
+   "text": "Kirjutasin broneeringus oma perekonnanime valesti, kas saate seda parandada?",
+   "nodes": [
+    {
+     "key": "kratiseis/nea_kratisi",
+     "text": "Ερωτήματα για δημιουργία νέας κράτησης πτήσης, επιλογή προορισμού και έλεγχο διαθεσιμότητας θέσεων."
+    },
+    {
+     "key": "kratiseis/upgrade_thesis",
+     "text": "Ερωτήματα για αναβάθμιση θέσης σε business ή premium economy έναντι επιπλέον κόστους."
+    },
+    {
+     "key": "check_in/online",
+     "text": "Οδηγίες και προβλήματα με το ηλεκτρονικό check-in μέσω ιστοσελίδας ή εφαρμογής."
+    },
+    {
+     "key": "check_in/aerodromio",
+     "text": "Ερωτήματα για τη διαδικασία check-in στα γκισέ του αεροδρομίου και ώρες προσέλευσης."
+    },
+    {
+     "key": "aposkeves/oria_barous",
+     "text": "Ερωτήματα για επιτρεπόμενο βάρος και διαστάσεις αποσκευών καμπίνας και ελεγχόμενων αποσκευών."
+    },
+    {
+     "key": "aposkeves/epiplea",
+     "text": "Αιτήματα για κόστος και κράτηση επιπλέον ή υπέρβαρων αποσκευών πριν την πτήση."
+    },
+    {
+     "key": "aposkeves/xameni",
+     "text": "Δηλώσεις απώλειας αποσκευών μετά την άφιξη και παρακολούθηση της αναζήτησης."
+    },
+    {
+     "key": "aposkeves/zimia",
+     "text": "Αναφορές ζημιάς σε αποσκευή κατά τη μεταφορά και αίτημα αποζημίωσης."
+    },
+    {
+     "key": "pliromes/tropoi_pliromis",
+     "text": "Ερωτήματα για αποδεκτούς τρόπους πληρωμής, όπως κάρτα, PayPal ή τραπεζική κατάθεση."
+    },
+    {
+     "key": "pliromes/epistrofi_chrimaton",
+     "text": "Οποιοδήποτε αίτημα επιστροφής χρημάτων, εκτός από ακυρώσεις πτήσης που έγιναν από την εταιρεία."
+    },
+    {
+     "key": "pliromes/xreose_diplou",
+     "text": "Καταγγελίες για διπλή χρέωση ή λανθασμένο ποσό στην κάρτα του επιβάτη."
+    },
+    {
+     "key": "eidikes_anagkes/kinitika_provlimata",
+     "text": "Αιτήματα βοήθειας για επιβάτες με κινητικά προβλήματα ή αναπηρία κατά την επιβίβαση."
+    },
+    {
+     "key": "eidikes_anagkes/anilikoi_monoi",
+     "text": "Ερωτήματα για τη διαδικασία ταξιδιού ανήλικων επιβατών χωρίς συνοδεία ενήλικα."
+    }
+   ],
+   "gold": "none",
+   "run_answer": "none",
+   "run_probability": 0.9887
+  },
+  {
+   "language": "et",
+   "register": "out_of_taxonomy",
+   "text": "Mis ilm homme Tallinnas tuleb?",
+   "nodes": [
+    {
+     "key": "intake/registo_novo_cliente",
+     "text": "Cobre a recolha de dados de identificação e áreas jurídicas de interesse para abertura de ficha de novo cliente."
+    },
+    {
+     "key": "intake/verificacao_conflitos",
+     "text": "Cobre pedidos internos de verificação de conflitos de interesse antes de aceitar patrocinar um novo processo."
+    },
+    {
+     "key": "honorarios/orcamento_inicial",
+     "text": "Cobre pedidos internos de preparação de orçamentos e propostas de honorários para novos processos."
+    },
+    {
+     "key": "dados/pedido_acesso_rgpd",
+     "text": "Cobre pedidos de acesso, rectificação ou eliminação de dados pessoais ao abrigo do RGPD."
+    }
+   ],
+   "gold": "none",
+   "run_answer": "none",
+   "run_probability": 0.9992
+  },
+  {
+   "language": "fi",
+   "register": "in_node",
+   "text": "Tarvitsen korjatun laskun edelliseen laskuun, koska siinä oli väärä tuntimäärä merkittynä.",
+   "nodes": [
+    {
+     "key": "intake/recusa_proposta",
+     "text": "Cobre qualquer pedido sobre comunicação de recusa de propostas de patrocínio, excepto quando motivada por conflito de interesses."
+    },
+    {
+     "key": "agendamento/marcacao_reuniao",
+     "text": "Cobre pedidos de marcação de reuniões entre advogados e clientes ou potenciais clientes."
+    },
+    {
+     "key": "honorarios/orcamento_inicial",
+     "text": "Cobre pedidos internos de preparação de orçamentos e propostas de honorários para novos processos."
+    },
+    {
+     "key": "honorarios/faturacao_processos",
+     "text": "Cobre dúvidas sobre emissão, correção ou consulta de faturas associadas a processos em curso."
+    },
+    {
+     "key": "honorarios/planos_pagamento",
+     "text": "Cobre pedidos sobre planos de pagamento em prestações já pré-aprovados pela direção financeira."
+    },
+    {
+     "key": "documentos/modelos_contratuais",
+     "text": "Cobre pedidos de acesso a modelos-padrão de contratos e minutas utilizados pelo escritório."
+    },
+    {
+     "key": "prazos/prazos_processuais",
+     "text": "Cobre consultas sobre prazos legais e datas-limite associados a processos judiciais em curso."
+    }
+   ],
+   "gold": "honorarios/faturacao_processos",
+   "run_answer": "honorarios/faturacao_processos",
+   "run_probability": 0.8141
+  },
+  {
+   "language": "fi",
+   "register": "in_node_hole",
+   "text": "Haluaisin tietää, mitä henkilötietoja meillä on minusta rekisteröitynä ja pyytää niistä otteen.",
+   "nodes": [
+    {
+     "key": "intake/recusa_proposta",
+     "text": "Cobre qualquer pedido sobre comunicação de recusa de propostas de patrocínio, excepto quando motivada por conflito de interesses."
+    },
+    {
+     "key": "agendamento/marcacao_reuniao",
+     "text": "Cobre pedidos de marcação de reuniões entre advogados e clientes ou potenciais clientes."
+    },
+    {
+     "key": "agendamento/reagendamento_cancelamento",
+     "text": "Cobre pedidos de alteração de data, hora ou cancelamento de reuniões já marcadas com clientes."
+    },
+    {
+     "key": "honorarios/planos_pagamento",
+     "text": "Cobre pedidos sobre planos de pagamento em prestações já pré-aprovados pela direção financeira."
+    },
+    {
+     "key": "documentos/pedido_copias",
+     "text": "Cobre pedidos de cópias de documentos de processo para clientes ou para colegas internos."
+    },
+    {
+     "key": "documentos/modelos_contratuais",
+     "text": "Cobre pedidos de acesso a modelos-padrão de contratos e minutas utilizados pelo escritório."
+    },
+    {
+     "key": "prazos/prazos_processuais",
+     "text": "Cobre consultas sobre prazos legais e datas-limite associados a processos judiciais em curso."
+    }
+   ],
+   "gold": "none",
+   "run_answer": "none",
+   "run_probability": 0.9551
+  },
+  {
+   "language": "fi",
+   "register": "out_of_taxonomy",
+   "text": "Moi, tiedätkö sattumalta onko tänään sadetta luvassa Helsingissä?",
+   "nodes": [
+    {
+     "key": "afspraken/nieuwe_afspraak",
+     "text": "Inplannen van een nieuwe afspraak met de behandelend advocaat voor een bestaande cliënt."
+    },
+    {
+     "key": "afspraken/telefonisch_overleg",
+     "text": "Inplannen van telefonisch of video-overleg als alternatief voor een fysieke afspraak."
+    },
+    {
+     "key": "afspraken/spoedverzoek",
+     "text": "Verzoek om een spoedafspraak vanwege een urgente juridische kwestie in een lopend dossier."
+    },
+    {
+     "key": "dossier/nieuwe_zaak",
+     "text": "Openen van een nieuw dossier voor een cliënt die al bij het kantoor bekend is."
+    },
+    {
+     "key": "dossier/overdracht",
+     "text": "Vragen over het overdragen van een dossier naar een andere advocaat binnen het kantoor."
+    },
+    {
+     "key": "dossier/termijnen",
+     "text": "Vragen over proceduretermijnen of deadlines die spelen binnen een lopend dossier."
+    },
+    {
+     "key": "facturatie/factuur_opvragen",
+     "text": "Opvragen van een kopie van een reeds verzonden factuur."
+    },
+    {
+     "key": "facturatie/btw_specificatie",
+     "text": "Vragen over btw-specificatie of andere detailregels op een verzonden factuur."
+    },
+    {
+     "key": "facturatie/tarieven_lopende_zaak",
+     "text": "Vragen naar het uurtarief dat van toepassing is binnen een reeds lopende zaak."
+    },
+    {
+     "key": "documenten/kopie_opvragen",
+     "text": "Opvragen van een kopie van stukken uit het eigen dossier."
+    },
+    {
+     "key": "documenten/ondertekenen",
+     "text": "Vragen over het digitaal of fysiek ondertekenen van juridische stukken."
+    },
+    {
+     "key": "documenten/aanleveren",
+     "text": "Aanleveren van nieuwe stukken of bewijsmateriaal ten behoeve van een lopend dossier."
+    },
+    {
+     "key": "communicatie/advocaat_bereiken",
+     "text": "Vragen hoe en op welke tijden de behandelend advocaat rechtstreeks te bereiken is."
+    },
+    {
+     "key": "communicatie/algemene_vraag_kantoor",
+     "text": "Vragen over openingstijden, locatie of parkeermogelijkheden bij het kantoor."
+    },
+    {
+     "key": "juridisch/proces_uitleg",
+     "text": "Algemene uitleg over het verloop van een juridische procedure, exclusief inhoudelijk advies over de eigen zaak."
+    }
+   ],
+   "gold": "none",
+   "run_answer": "none",
+   "run_probability": 0.9981
+  },
+  {
+   "language": "fr",
+   "register": "in_node",
+   "text": "Quelles sont les dimensions maximales autorisées pour un bagage à main en cabine ?",
+   "nodes": [
+    {
+     "key": "booking/ny_booking",
+     "text": "Oprettelse af nye flybookinger for eksisterende kunder, herunder valg af afgangstid, rute og billetklasse."
+    },
+    {
+     "key": "booking/aendring",
+     "text": "Ændring af dato, rute eller passageroplysninger på en allerede bekræftet booking."
+    },
+    {
+     "key": "booking/afbestilling",
+     "text": "Afbestilling af en eksisterende billet samt oplysning om hvilke betingelser der gælder ved annullering."
+    },
+    {
+     "key": "booking/gruppebooking",
+     "text": "Alle spørgsmål om booking undtaget gruppebookinger med 10 eller flere passagerer, der håndteres af et separat team."
+    },
+    {
+     "key": "bagage/haandbagage_regler",
+     "text": "Regler for størrelse, vægt og antal stykker håndbagage tilladt i kabinen."
+    },
+    {
+     "key": "bagage/indchecket_graenser",
+     "text": "Grænser for vægt og antal stykker indchecket bagage samt gebyrer for ekstra bagage."
+    },
+    {
+     "key": "bagage/tabt_bagage",
+     "text": "Anmeldelse og opfølgning på bagage der ikke er ankommet efter landing."
+    },
+    {
+     "key": "bagage/forsinket_bagage",
+     "text": "Status og forventet levering af bagage der er forsinket men allerede fundet."
+    },
+    {
+     "key": "bagage/skadet_bagage",
+     "text": "Alle spørgsmål om beskadiget bagage undtaget forsikringskrav, som skal rejses hos kundens egen rejseforsikring."
+    },
+    {
+     "key": "checkin/online_checkin",
+     "text": "Vejledning i at gennemføre online check-in via app eller hjemmeside."
+    },
+    {
+     "key": "checkin/boarding_pass",
+     "text": "Udskrivning eller genudsendelse af boardingkort til en booket flyvning."
+    },
+    {
+     "key": "checkin/saedevalg",
+     "text": "Valg eller ændring af sædeplacering forud for afgang."
+    },
+    {
+     "key": "flystatus/forsinkelse_info",
+     "text": "Oplysning om aktuelle forsinkelser på en bestemt flyvning."
+    },
+    {
+     "key": "flystatus/aflysning_info",
+     "text": "Oplysning om aflyste flyvninger og årsag, hvor denne er kendt."
+    },
+    {
+     "key": "flystatus/gate_info",
+     "text": "Oplysning om gate- og terminaloplysninger for en kommende afgang."
+    },
+    {
+     "key": "refusion/billetrefusion",
+     "text": "Anmodning om refusion af en billet der ikke er blevet brugt."
+    },
+    {
+     "key": "refusion/kompensation_forsinkelse",
+     "text": "Beregning og udbetaling af kompensation ved længerevarende forsinkelser i henhold til EU261."
+    },
+    {
+     "key": "refusion/refusion_aflyst",
+     "text": "Refusion af billetpris ved aflysning af flyvning fra selskabets side."
+    },
+    {
+     "key": "refusion/skatter_afgifter",
+     "text": "Alle spørgsmål om refusion undtaget tilbagebetaling af skatter og lufthavnsafgifter, som kræver separat ansøgning."
+    },
+    {
+     "key": "loyalitet/pointsaldo",
+     "text": "Forespørgsler om aktuel saldo af bonuspoint på en medlemskonto."
+    },
+    {
+     "key": "loyalitet/medlemsniveau",
+     "text": "Oplysning om medlemsniveau og hvilke fordele der er knyttet til det."
+    },
+    {
+     "key": "loyalitet/pointoverfoersel",
+     "text": "Alle spørgsmål om overførsel af bonuspoint undtaget overførsel til en konto uden verificeret medlemskab."
+    },
+    {
+     "key": "specialassistance/koerestol",
+     "text": "Bestilling af kørestolsassistance i lufthavn og ved ombordstigning."
+    },
+    {
+     "key": "specialassistance/alene_rejsende_boern",
+     "text": "Registrering og opfølgning på service for børn der rejser alene."
+    },
+    {
+     "key": "specialassistance/allergi_kost",
+     "text": "Oplysning om muligheder for specialkost og allergivenlige måltider ombord."
+    },
+    {
+     "key": "betaling/faktura_kvittering",
+     "text": "Anmodning om faktura eller kvittering for en gennemført betaling."
+    },
+    {
+     "key": "betaling/dobbelt_opkraevning",
+     "text": "Undersøgelse af sager hvor kunden er blevet opkrævet mere end én gang for samme køb."
+    }
+   ],
+   "gold": "bagage/haandbagage_regler",
+   "run_answer": "bagage/haandbagage_regler",
+   "run_probability": 0.8675
+  },
+  {
+   "language": "fr",
+   "register": "in_node_hole",
+   "text": "Bonjour, pourriez-vous décaler mon vol du 12 mars au 19 mars s'il vous plaît ? Référence AB4521.",
+   "nodes": [
+    {
+     "key": "booking/new_reservation",
+     "text": "Помощ при създаване на нова резервация за полет, включително избор на дестинация и дата."
+    },
+    {
+     "key": "booking/cancel",
+     "text": "Заявки за анулиране на съществуваща резервация и стартиране на процедурата по отказ."
+    },
+    {
+     "key": "booking/seat_selection",
+     "text": "Избор или промяна на конкретно място в самолета преди полета."
+    },
+    {
+     "key": "checkin/online",
+     "text": "Въпроси за онлайн чекиране през сайта или мобилното приложение на превозвача."
+    },
+    {
+     "key": "checkin/airport",
+     "text": "Въпроси за чекиране на гишетата на летището, включително крайни срокове и такси."
+    },
+    {
+     "key": "checkin/document_requirements",
+     "text": "Какви документи се изискват при чекиране за полет, без визови изисквания за конкретна дестинация."
+    },
+    {
+     "key": "baggage/allowance",
+     "text": "Информация за разрешения багаж по тегло, размери и брой парчета за полета."
+    },
+    {
+     "key": "baggage/lost",
+     "text": "Подаване на сигнал за изгубен или закъснял багаж след пристигане на полет."
+    },
+    {
+     "key": "baggage/damaged",
+     "text": "Оплаквания и процедура за компенсация при повреден багаж, установен при пристигане."
+    },
+    {
+     "key": "baggage/special_items",
+     "text": "Условия за превоз на специални предмети - спортно оборудване, музикални инструменти, велосипеди."
+    },
+    {
+     "key": "flight_status/delay_info",
+     "text": "Информация за закъснение на конкретен полет, без въпроси за полагаща се компенсация."
+    },
+    {
+     "key": "flight_status/cancellation_compensation",
+     "text": "Компенсации и права на пътниците при анулиран или значително закъснял полет."
+    },
+    {
+     "key": "flight_status/gate_info",
+     "text": "Информация за изход, терминал и час на качване на борда за конкретен полет."
+    },
+    {
+     "key": "refunds/ticket_refund",
+     "text": "Връщане на суми за неизползвани или частично неизползвани билети."
+    },
+    {
+     "key": "refunds/fee_dispute",
+     "text": "Оспорване на начислени такси за промяна, анулиране или доплащане на билет."
+    },
+    {
+     "key": "loyalty/points_balance",
+     "text": "Проверка на текущ баланс точки или мили в програмата за лоялни клиенти."
+    },
+    {
+     "key": "loyalty/tier_status",
+     "text": "Въпроси за статус и предимства на нивото на пътника в програмата за лоялност."
+    },
+    {
+     "key": "special_assistance/wheelchair",
+     "text": "Заявки за инвалидна количка и помощ при придвижване на летището."
+    },
+    {
+     "key": "special_assistance/unaccompanied_minor",
+     "text": "Процедури и изисквания за пътуване на непридружени деца на борда."
+    },
+    {
+     "key": "special_assistance/medical_equipment",
+     "text": "Пренасяне на медицинско оборудване, кислородни концентратори или инсулинови помпи на борда."
+    },
+    {
+     "key": "payments/failed_transaction",
+     "text": "Проблеми с неуспешно, дублирано или отказано плащане при покупка на билет."
+    }
+   ],
+   "gold": "none",
+   "run_answer": "none",
+   "run_probability": 0.605
+  },
+  {
+   "language": "fr",
+   "register": "out_of_taxonomy",
+   "text": "Quel temps fera-t-il demain à Lyon, tu sais ?",
+   "nodes": [
+    {
+     "key": "billing/charges_explained",
+     "text": "Questions about understanding specific charges, fees, or line items on a bill."
+    },
+    {
+     "key": "billing/disputes",
+     "text": "Requests to dispute or challenge a specific charge believed to be incorrect or fraudulent."
+    },
+    {
+     "key": "billing/invoices",
+     "text": "Any question about reading, downloading, or reissuing invoices and statements except charges under formal dispute."
+    },
+    {
+     "key": "account/profile_management",
+     "text": "Requests to update personal details, contact information, or account preferences."
+    },
+    {
+     "key": "account/plan_changes",
+     "text": "Requests to upgrade, downgrade, or switch between mobile or broadband plans."
+    },
+    {
+     "key": "account/contract_terms",
+     "text": "Questions about contract length, renewal dates, or early termination conditions."
+    },
+    {
+     "key": "account/cancellation",
+     "text": "Requests to cancel a mobile line, broadband service, or entire account."
+    },
+    {
+     "key": "mobile_service/activation",
+     "text": "Help activating a new SIM card, eSIM, or mobile line for the first time."
+    },
+    {
+     "key": "mobile_service/sim_issues",
+     "text": "Troubleshooting SIM cards that are damaged, unrecognized, or not connecting to the network."
+    },
+    {
+     "key": "mobile_service/coverage",
+     "text": "Questions about mobile network coverage or signal strength in a specific location."
+    },
+    {
+     "key": "broadband_service/outage_reports",
+     "text": "Reporting or checking the status of known broadband or network outages in an area."
+    },
+    {
+     "key": "broadband_service/speed_issues",
+     "text": "Any question about slow or inconsistent broadband speed except when caused by a reported outage."
+    },
+    {
+     "key": "devices/purchase_upgrade",
+     "text": "Questions about buying new phones, tablets, or upgrading an existing device."
+    },
+    {
+     "key": "devices/troubleshooting",
+     "text": "Help diagnosing device malfunctions, settings problems, or software update issues."
+    },
+    {
+     "key": "devices/insurance_claims",
+     "text": "Filing or checking the status of device insurance claims for loss, theft, or damage."
+    },
+    {
+     "key": "roaming/international_usage",
+     "text": "Questions about using mobile or data service while traveling outside the home country."
+    },
+    {
+     "key": "roaming/charges",
+     "text": "Any question about roaming charges or rates except those formally disputed as incorrect."
+    },
+    {
+     "key": "security/account_security",
+     "text": "Help securing an account with passwords, PINs, or two-factor authentication settings."
+    },
+    {
+     "key": "retail/appointment_booking",
+     "text": "Booking, changing, or canceling an in-store customer service appointment."
+    },
+    {
+     "key": "business/enterprise_accounts",
+     "text": "Questions from business customers about enterprise plans, multi-line accounts, or corporate billing."
+    },
+    {
+     "key": "complaints/service_complaints",
+     "text": "Formal complaints about service quality, staff conduct, or overall customer experience."
+    },
+    {
+     "key": "offers/promotions_discounts",
+     "text": "Questions about current promotions, discounts, bundles, or loyalty program rewards."
+    }
+   ],
+   "gold": "none",
+   "run_answer": "none",
+   "run_probability": 0.9986
+  },
+  {
+   "language": "ga",
+   "register": "in_node",
+   "text": "Táim chun tíriú thar lear ar fad, mar sin ba mhaith liom mo chonradh leathanbhanda a chealú.",
+   "nodes": [
+    {
+     "key": "billing/charges_explained",
+     "text": "Questions about understanding specific charges, fees, or line items on a bill."
+    },
+    {
+     "key": "billing/payment_methods",
+     "text": "Questions about how to pay a bill, update payment details, or set up direct debit."
+    },
+    {
+     "key": "billing/disputes",
+     "text": "Requests to dispute or challenge a specific charge believed to be incorrect or fraudulent."
+    },
+    {
+     "key": "account/profile_management",
+     "text": "Requests to update personal details, contact information, or account preferences."
+    },
+    {
+     "key": "account/plan_changes",
+     "text": "Requests to upgrade, downgrade, or switch between mobile or broadband plans."
+    },
+    {
+     "key": "account/contract_terms",
+     "text": "Questions about contract length, renewal dates, or early termination conditions."
+    },
+    {
+     "key": "account/cancellation",
+     "text": "Requests to cancel a mobile line, broadband service, or entire account."
+    },
+    {
+     "key": "mobile_service/activation",
+     "text": "Help activating a new SIM card, eSIM, or mobile line for the first time."
+    },
+    {
+     "key": "mobile_service/sim_issues",
+     "text": "Troubleshooting SIM cards that are damaged, unrecognized, or not connecting to the network."
+    },
+    {
+     "key": "mobile_service/coverage",
+     "text": "Questions about mobile network coverage or signal strength in a specific location."
+    },
+    {
+     "key": "broadband_service/outage_reports",
+     "text": "Reporting or checking the status of known broadband or network outages in an area."
+    },
+    {
+     "key": "broadband_service/speed_issues",
+     "text": "Any question about slow or inconsistent broadband speed except when caused by a reported outage."
+    },
+    {
+     "key": "devices/purchase_upgrade",
+     "text": "Questions about buying new phones, tablets, or upgrading an existing device."
+    },
+    {
+     "key": "devices/insurance_claims",
+     "text": "Filing or checking the status of device insurance claims for loss, theft, or damage."
+    },
+    {
+     "key": "roaming/international_usage",
+     "text": "Questions about using mobile or data service while traveling outside the home country."
+    },
+    {
+     "key": "roaming/charges",
+     "text": "Any question about roaming charges or rates except those formally disputed as incorrect."
+    },
+    {
+     "key": "security/account_security",
+     "text": "Help securing an account with passwords, PINs, or two-factor authentication settings."
+    },
+    {
+     "key": "security/fraud_reports",
+     "text": "Reporting suspected fraud, scams, phishing, or unauthorized access to an account."
+    },
+    {
+     "key": "retail/store_locations",
+     "text": "Finding nearby store locations, opening hours, or directions."
+    },
+    {
+     "key": "complaints/service_complaints",
+     "text": "Formal complaints about service quality, staff conduct, or overall customer experience."
+    },
+    {
+     "key": "offers/promotions_discounts",
+     "text": "Questions about current promotions, discounts, bundles, or loyalty program rewards."
+    }
+   ],
+   "gold": "account/cancellation",
+   "run_answer": "account/cancellation",
+   "run_probability": 0.8232
+  },
+  {
+   "language": "ga",
+   "register": "in_node_hole",
+   "text": "An féidir liom ríomhphost díreach a fháil don aturnae seachas an oifig i gcoitinne?",
+   "nodes": [
+    {
+     "key": "dossier/status_opvragen",
+     "text": "Vragen naar de actuele voortgang van een lopend dossier, exclusief inhoudelijke beoordeling van de zaak zelf."
+    },
+    {
+     "key": "facturatie/factuur_opvragen",
+     "text": "Opvragen van een kopie van een reeds verzonden factuur."
+    },
+    {
+     "key": "documenten/kopie_opvragen",
+     "text": "Opvragen van een kopie van stukken uit het eigen dossier."
+    },
+    {
+     "key": "documenten/ondertekenen",
+     "text": "Vragen over het digitaal of fysiek ondertekenen van juridische stukken."
+    },
+    {
+     "key": "documenten/aanleveren",
+     "text": "Aanleveren van nieuwe stukken of bewijsmateriaal ten behoeve van een lopend dossier."
+    },
+    {
+     "key": "communicatie/contactgegevens_wijzigen",
+     "text": "Doorgeven van een gewijzigd adres, telefoonnummer of e-mailadres."
+    },
+    {
+     "key": "communicatie/klachten/indienen",
+     "text": "Indienen van een formele klacht over de dienstverlening via de interne klachtenregeling."
+    }
+   ],
+   "gold": "none",
+   "run_answer": "communicatie/contactgegevens_wijzigen",
+   "run_probability": 0.5333
+  },
+  {
+   "language": "ga",
+   "register": "out_of_taxonomy",
+   "text": "An féidir leat áirithint a dhéanamh dom do dhinnéar Nollag na foirne i mbliana?",
+   "nodes": [
+    {
+     "key": "billing/invoice_queries",
+     "text": "Any question about reading invoices, itemized charges, or usage summaries, except disputing a charge as incorrect."
+    },
+    {
+     "key": "billing/payment_methods",
+     "text": "Updating payment methods, setting up direct debit, or resolving failed or declined payment attempts."
+    },
+    {
+     "key": "billing/disputes",
+     "text": "Disputing incorrect charges, requesting refunds or credits, or escalating billing errors on an account."
+    },
+    {
+     "key": "account/sim_management",
+     "text": "Requests to activate, replace, transfer, or block SIM cards and change assigned phone numbers."
+    },
+    {
+     "key": "account/plan_changes",
+     "text": "Upgrading, downgrading, or switching between mobile and broadband tariff plans on an account."
+    },
+    {
+     "key": "account/new_lines",
+     "text": "Adding new mobile lines or broadband connections to an existing business account."
+    },
+    {
+     "key": "connectivity/mobile_troubleshooting",
+     "text": "Diagnosing dropped calls, poor signal strength, or mobile data connectivity failures on staff devices."
+    },
+    {
+     "key": "connectivity/broadband_troubleshooting",
+     "text": "Diagnosing router problems, slow speeds, or intermittent connection drops on office broadband service."
+    },
+    {
+     "key": "connectivity/outage_status",
+     "text": "Checking reported network outages, planned maintenance windows, or expected service restoration timelines."
+    },
+    {
+     "key": "devices/hardware_support",
+     "text": "Basic setup, configuration, or usage guidance for company phones, routers, and modems."
+    },
+    {
+     "key": "devices/replacement_repair",
+     "text": "Arranging repairs, replacements, or warranty claims for faulty or damaged company-issued devices."
+    },
+    {
+     "key": "plans/addons_bundles",
+     "text": "Adding data top-ups, roaming packs, or other bundled extras to an existing plan."
+    },
+    {
+     "key": "plans/plan_comparison",
+     "text": "Comparing available mobile and broadband plans, features, and pricing before switching or upgrading."
+    },
+    {
+     "key": "security/account_security",
+     "text": "Resetting passwords or PINs, remotely blocking lost devices, or securing compromised staff accounts."
+    }
+   ],
+   "gold": "none",
+   "run_answer": "none",
+   "run_probability": 0.9664
+  },
+  {
+   "language": "hr",
+   "register": "in_node",
+   "text": "Možete li mi reći postoji li mogućnost elektroničkog potpisivanja ugovora?",
+   "nodes": [
+    {
+     "key": "afspraken/nieuwe_afspraak",
+     "text": "Inplannen van een nieuwe afspraak met de behandelend advocaat voor een bestaande cliënt."
+    },
+    {
+     "key": "afspraken/verzetten",
+     "text": "Verzetten of annuleren van een reeds ingeplande afspraak."
+    },
+    {
+     "key": "afspraken/herinnering",
+     "text": "Vragen naar datum, tijdstip of locatie van een al geboekte afspraak."
+    },
+    {
+     "key": "afspraken/telefonisch_overleg",
+     "text": "Inplannen van telefonisch of video-overleg als alternatief voor een fysieke afspraak."
+    },
+    {
+     "key": "afspraken/spoedverzoek",
+     "text": "Verzoek om een spoedafspraak vanwege een urgente juridische kwestie in een lopend dossier."
+    },
+    {
+     "key": "dossier/overdracht",
+     "text": "Vragen over het overdragen van een dossier naar een andere advocaat binnen het kantoor."
+    },
+    {
+     "key": "dossier/termijnen",
+     "text": "Vragen over proceduretermijnen of deadlines die spelen binnen een lopend dossier."
+    },
+    {
+     "key": "facturatie/factuur_opvragen",
+     "text": "Opvragen van een kopie van een reeds verzonden factuur."
+    },
+    {
+     "key": "facturatie/btw_specificatie",
+     "text": "Vragen over btw-specificatie of andere detailregels op een verzonden factuur."
+    },
+    {
+     "key": "facturatie/betalingsregeling",
+     "text": "Vragen over het treffen van een betalingsregeling voor openstaande facturen."
+    },
+    {
+     "key": "facturatie/geschil",
+     "text": "Bezwaren over de hoogte van een factuur, met uitzondering van het indienen van een formele klacht."
+    },
+    {
+     "key": "facturatie/tarieven_lopende_zaak",
+     "text": "Vragen naar het uurtarief dat van toepassing is binnen een reeds lopende zaak."
+    },
+    {
+     "key": "documenten/kopie_opvragen",
+     "text": "Opvragen van een kopie van stukken uit het eigen dossier."
+    },
+    {
+     "key": "documenten/ondertekenen",
+     "text": "Vragen over het digitaal of fysiek ondertekenen van juridische stukken."
+    },
+    {
+     "key": "communicatie/contactgegevens_wijzigen",
+     "text": "Doorgeven van een gewijzigd adres, telefoonnummer of e-mailadres."
+    },
+    {
+     "key": "communicatie/advocaat_bereiken",
+     "text": "Vragen hoe en op welke tijden de behandelend advocaat rechtstreeks te bereiken is."
+    },
+    {
+     "key": "communicatie/klachten/indienen",
+     "text": "Indienen van een formele klacht over de dienstverlening via de interne klachtenregeling."
+    },
+    {
+     "key": "toegang/verificatie_klant",
+     "text": "Vaststellen of een verzoek afkomstig is van een bestaande, bij het kantoor bekende cliënt."
+    }
+   ],
+   "gold": "documenten/ondertekenen",
+   "run_answer": "none",
+   "run_probability": 0.5249
+  },
+  {
+   "language": "hr",
+   "register": "in_node_hole",
+   "text": "Trebam otvoriti novi predmet vezan za spor s dobavljačem iz Njemačke, možete li mi reći kome se obratiti?",
+   "nodes": [
+    {
+     "key": "intake/conflict_check",
+     "text": "Questions about running conflict-of-interest checks before the firm can formally advise on a matter."
+    },
+    {
+     "key": "practice_area/employment",
+     "text": "Employment law questions covering contracts, terminations, workplace disputes and HR-related legal issues."
+    },
+    {
+     "key": "practice_area/corporate_commercial",
+     "text": "Corporate and commercial law questions including contracts, mergers, acquisitions and commercial agreements."
+    },
+    {
+     "key": "practice_area/ip_data_privacy",
+     "text": "Intellectual property and data protection questions, including trademarks, patents, licensing and privacy compliance."
+    },
+    {
+     "key": "practice_area/litigation_disputes",
+     "text": "Litigation and dispute resolution questions, including claims, arbitration and settlement processes."
+    },
+    {
+     "key": "practice_area/regulatory_compliance",
+     "text": "Regulatory and compliance questions across all business areas except data privacy compliance matters."
+    },
+    {
+     "key": "engagement/billing_invoices",
+     "text": "Questions about legal fees, invoices, billing arrangements and cost estimates for ongoing matters."
+    },
+    {
+     "key": "engagement/outside_counsel",
+     "text": "Requests to engage external counsel or select firms from the approved outside counsel panel."
+    },
+    {
+     "key": "general/legal_definitions",
+     "text": "General explanations of legal terms or concepts that are not tied to a specific active matter."
+    },
+    {
+     "key": "general/personal_legal_matters",
+     "text": "Any legal enquiry from staff except personal, non-work-related legal matters unconnected to the group's business."
+    }
+   ],
+   "gold": "none",
+   "run_answer": "none",
+   "run_probability": 0.4586
+  },
+  {
+   "language": "hr",
+   "register": "out_of_taxonomy",
+   "text": "Imam problem sa susjedom oko parkirnog mjesta, što mi savjetuješ da napravim?",
+   "nodes": [
+    {
+     "key": "billing/charges_explained",
+     "text": "Questions about understanding specific charges, fees, or line items on a bill."
+    },
+    {
+     "key": "billing/payment_methods",
+     "text": "Questions about how to pay a bill, update payment details, or set up direct debit."
+    },
+    {
+     "key": "billing/disputes",
+     "text": "Requests to dispute or challenge a specific charge believed to be incorrect or fraudulent."
+    },
+    {
+     "key": "billing/invoices",
+     "text": "Any question about reading, downloading, or reissuing invoices and statements except charges under formal dispute."
+    },
+    {
+     "key": "account/plan_changes",
+     "text": "Requests to upgrade, downgrade, or switch between mobile or broadband plans."
+    },
+    {
+     "key": "account/contract_terms",
+     "text": "Questions about contract length, renewal dates, or early termination conditions."
+    },
+    {
+     "key": "account/cancellation",
+     "text": "Requests to cancel a mobile line, broadband service, or entire account."
+    },
+    {
+     "key": "mobile_service/activation",
+     "text": "Help activating a new SIM card, eSIM, or mobile line for the first time."
+    },
+    {
+     "key": "mobile_service/sim_issues",
+     "text": "Troubleshooting SIM cards that are damaged, unrecognized, or not connecting to the network."
+    },
+    {
+     "key": "mobile_service/coverage",
+     "text": "Questions about mobile network coverage or signal strength in a specific location."
+    },
+    {
+     "key": "broadband_service/installation",
+     "text": "Scheduling, rescheduling, or answering questions about home broadband installation appointments."
+    },
+    {
+     "key": "broadband_service/outage_reports",
+     "text": "Reporting or checking the status of known broadband or network outages in an area."
+    },
+    {
+     "key": "broadband_service/speed_issues",
+     "text": "Any question about slow or inconsistent broadband speed except when caused by a reported outage."
+    },
+    {
+     "key": "devices/troubleshooting",
+     "text": "Help diagnosing device malfunctions, settings problems, or software update issues."
+    },
+    {
+     "key": "devices/insurance_claims",
+     "text": "Filing or checking the status of device insurance claims for loss, theft, or damage."
+    },
+    {
+     "key": "roaming/international_usage",
+     "text": "Questions about using mobile or data service while traveling outside the home country."
+    },
+    {
+     "key": "roaming/charges",
+     "text": "Any question about roaming charges or rates except those formally disputed as incorrect."
+    },
+    {
+     "key": "security/account_security",
+     "text": "Help securing an account with passwords, PINs, or two-factor authentication settings."
+    },
+    {
+     "key": "security/fraud_reports",
+     "text": "Reporting suspected fraud, scams, phishing, or unauthorized access to an account."
+    },
+    {
+     "key": "retail/store_locations",
+     "text": "Finding nearby store locations, opening hours, or directions."
+    },
+    {
+     "key": "retail/appointment_booking",
+     "text": "Booking, changing, or canceling an in-store customer service appointment."
+    },
+    {
+     "key": "business/enterprise_accounts",
+     "text": "Questions from business customers about enterprise plans, multi-line accounts, or corporate billing."
+    },
+    {
+     "key": "complaints/service_complaints",
+     "text": "Formal complaints about service quality, staff conduct, or overall customer experience."
+    },
+    {
+     "key": "offers/promotions_discounts",
+     "text": "Questions about current promotions, discounts, bundles, or loyalty program rewards."
+    }
+   ],
+   "gold": "none",
+   "run_answer": "none",
+   "run_probability": 0.9419
+  },
+  {
+   "language": "hu",
+   "register": "in_node",
+   "text": "Megváltozott az e-mail címem, kérem javítsák ki a nyilvántartásukban.",
+   "nodes": [
+    {
+     "key": "matters/matter_closure",
+     "text": "Questions about wrapping up a completed matter, final case summaries, or file archiving."
+    },
+    {
+     "key": "billing/invoices_payments",
+     "text": "Questions about invoices already issued, making a payment, or setting up a payment plan."
+    },
+    {
+     "key": "scheduling/appointments",
+     "text": "Requests to book a meeting, call, or consultation with an attorney or paralegal."
+    },
+    {
+     "key": "scheduling/reschedule_cancel",
+     "text": "Requests to reschedule or cancel an already-booked appointment or consultation."
+    },
+    {
+     "key": "firm_info/office_locations_hours",
+     "text": "Questions about office addresses, opening hours, parking, or how to reach a branch office."
+    },
+    {
+     "key": "account/contact_update",
+     "text": "Requests to update contact details such as address, phone number, or email on file."
+    },
+    {
+     "key": "communication/attorney_message_relay",
+     "text": "Requests to pass a message or question along to the assigned attorney or paralegal."
+    },
+    {
+     "key": "legal_content/general_legal_information",
+     "text": "Any general, non-case-specific legal information question, excluding advice tied to the client's own case facts."
+    }
+   ],
+   "gold": "account/contact_update",
+   "run_answer": "account/contact_update",
+   "run_probability": 0.9886
+  },
+  {
+   "language": "hu",
+   "register": "in_node_hole",
+   "text": "Szeretném megszüntetni a teljes fiókomat, mert külföldre költözöm és nincs rá szükségem.",
+   "nodes": [
+    {
+     "key": "billing/payment_methods",
+     "text": "Questions about how to pay a bill, update payment details, or set up direct debit."
+    },
+    {
+     "key": "account/profile_management",
+     "text": "Requests to update personal details, contact information, or account preferences."
+    },
+    {
+     "key": "broadband_service/outage_reports",
+     "text": "Reporting or checking the status of known broadband or network outages in an area."
+    },
+    {
+     "key": "broadband_service/speed_issues",
+     "text": "Any question about slow or inconsistent broadband speed except when caused by a reported outage."
+    },
+    {
+     "key": "complaints/service_complaints",
+     "text": "Formal complaints about service quality, staff conduct, or overall customer experience."
+    }
+   ],
+   "gold": "none",
+   "run_answer": "none",
+   "run_probability": 0.9903
+  },
+  {
+   "language": "hu",
+   "register": "out_of_taxonomy",
+   "text": "Milyen az időjárás holnap Budapesten, esni fog?",
+   "nodes": [
+    {
+     "key": "matters/new_matter_intake",
+     "text": "Requests from an existing client to open a new legal matter or engage the firm for an additional legal issue."
+    },
+    {
+     "key": "matters/case_status",
+     "text": "Questions about the current status, timeline, or next steps on an existing open matter."
+    },
+    {
+     "key": "billing/invoices_payments",
+     "text": "Questions about invoices already issued, making a payment, or setting up a payment plan."
+    },
+    {
+     "key": "scheduling/appointments",
+     "text": "Requests to book a meeting, call, or consultation with an attorney or paralegal."
+    },
+    {
+     "key": "scheduling/reschedule_cancel",
+     "text": "Requests to reschedule or cancel an already-booked appointment or consultation."
+    },
+    {
+     "key": "documents/document_requests",
+     "text": "Requests for copies or summaries of documents already held in the client's own case file, other than certified copies."
+    },
+    {
+     "key": "documents/e_signature_uploads",
+     "text": "Help with electronically signing firm documents or uploading files to the client's case file."
+    },
+    {
+     "key": "firm_info/practice_areas",
+     "text": "General questions about which practice areas or types of legal work the firm handles."
+    },
+    {
+     "key": "firm_info/office_locations_hours",
+     "text": "Questions about office addresses, opening hours, parking, or how to reach a branch office."
+    },
+    {
+     "key": "account/portal_access",
+     "text": "Help logging into or troubleshooting problems with the client portal or online account."
+    },
+    {
+     "key": "account/contact_update",
+     "text": "Requests to update contact details such as address, phone number, or email on file."
+    },
+    {
+     "key": "communication/attorney_message_relay",
+     "text": "Requests to pass a message or question along to the assigned attorney or paralegal."
+    },
+    {
+     "key": "communication/complaints_escalation",
+     "text": "Complaints about service quality or requests to escalate an issue to a supervising partner."
+    },
+    {
+     "key": "privacy/confidentiality_data_requests",
+     "text": "Questions about how the firm handles client confidentiality, data storage, retention, or privacy requests."
+    },
+    {
+     "key": "emergency/urgent_matters",
+     "text": "Any request flagged as urgent, excluding genuine life-safety or imminent court-deadline emergencies needing immediate phone contact."
+    }
+   ],
+   "gold": "none",
+   "run_answer": "none",
+   "run_probability": 0.9992
+  },
+  {
+   "language": "it",
+   "register": "in_node",
+   "text": "Salve, perché questo mese mi è stato addebitato un costo aggiuntivo di 15 euro rispetto al solito? Vorrei capire da cosa deriva.",
+   "nodes": [
+    {
+     "key": "billing/charges_explained",
+     "text": "Questions about understanding specific charges, fees, or line items on a bill."
+    },
+    {
+     "key": "billing/payment_methods",
+     "text": "Questions about how to pay a bill, update payment details, or set up direct debit."
+    },
+    {
+     "key": "billing/disputes",
+     "text": "Requests to dispute or challenge a specific charge believed to be incorrect or fraudulent."
+    },
+    {
+     "key": "billing/invoices",
+     "text": "Any question about reading, downloading, or reissuing invoices and statements except charges under formal dispute."
+    },
+    {
+     "key": "account/plan_changes",
+     "text": "Requests to upgrade, downgrade, or switch between mobile or broadband plans."
+    },
+    {
+     "key": "account/contract_terms",
+     "text": "Questions about contract length, renewal dates, or early termination conditions."
+    },
+    {
+     "key": "mobile_service/sim_issues",
+     "text": "Troubleshooting SIM cards that are damaged, unrecognized, or not connecting to the network."
+    },
+    {
+     "key": "devices/purchase_upgrade",
+     "text": "Questions about buying new phones, tablets, or upgrading an existing device."
+    },
+    {
+     "key": "security/account_security",
+     "text": "Help securing an account with passwords, PINs, or two-factor authentication settings."
+    },
+    {
+     "key": "complaints/service_complaints",
+     "text": "Formal complaints about service quality, staff conduct, or overall customer experience."
+    }
+   ],
+   "gold": "billing/charges_explained",
+   "run_answer": "billing/charges_explained",
+   "run_probability": 0.9665
+  },
+  {
+   "language": "it",
+   "register": "in_node_hole",
+   "text": "Salve, potete confermarmi a che livello del programma fedeltà sono attualmente, Silver o Gold?",
+   "nodes": [
+    {
+     "key": "booking/change_dates",
+     "text": "Промяна на датите или часовете на вече направена резервация за полет."
+    },
+    {
+     "key": "checkin/document_requirements",
+     "text": "Какви документи се изискват при чекиране за полет, без визови изисквания за конкретна дестинация."
+    },
+    {
+     "key": "baggage/damaged",
+     "text": "Оплаквания и процедура за компенсация при повреден багаж, установен при пристигане."
+    },
+    {
+     "key": "refunds/fee_dispute",
+     "text": "Оспорване на начислени такси за промяна, анулиране или доплащане на билет."
+    },
+    {
+     "key": "special_assistance/wheelchair",
+     "text": "Заявки за инвалидна количка и помощ при придвижване на летището."
+    },
+    {
+     "key": "special_assistance/medical_equipment",
+     "text": "Пренасяне на медицинско оборудване, кислородни концентратори или инсулинови помпи на борда."
+    }
+   ],
+   "gold": "none",
+   "run_answer": "none",
+   "run_probability": 0.9666
+  },
+  {
+   "language": "it",
+   "register": "out_of_taxonomy",
+   "text": "Mi consigli un buon ristorante di pesce vicino al centro?",
+   "nodes": [
+    {
+     "key": "matters/matter_closure",
+     "text": "Questions about wrapping up a completed matter, final case summaries, or file archiving."
+    },
+    {
+     "key": "billing/invoices_payments",
+     "text": "Questions about invoices already issued, making a payment, or setting up a payment plan."
+    },
+    {
+     "key": "billing/fee_estimates",
+     "text": "Requests for an estimate of fees or costs for current or upcoming legal work."
+    },
+    {
+     "key": "scheduling/reschedule_cancel",
+     "text": "Requests to reschedule or cancel an already-booked appointment or consultation."
+    },
+    {
+     "key": "documents/document_requests",
+     "text": "Requests for copies or summaries of documents already held in the client's own case file, other than certified copies."
+    },
+    {
+     "key": "account/portal_access",
+     "text": "Help logging into or troubleshooting problems with the client portal or online account."
+    },
+    {
+     "key": "account/contact_update",
+     "text": "Requests to update contact details such as address, phone number, or email on file."
+    },
+    {
+     "key": "legal_content/general_legal_information",
+     "text": "Any general, non-case-specific legal information question, excluding advice tied to the client's own case facts."
+    },
+    {
+     "key": "privacy/confidentiality_data_requests",
+     "text": "Questions about how the firm handles client confidentiality, data storage, retention, or privacy requests."
+    },
+    {
+     "key": "emergency/urgent_matters",
+     "text": "Any request flagged as urgent, excluding genuine life-safety or imminent court-deadline emergencies needing immediate phone contact."
+    }
+   ],
+   "gold": "none",
+   "run_answer": "none",
+   "run_probability": 0.9989
+  },
+  {
+   "language": "lt",
+   "register": "in_node",
+   "text": "Norėčiau pradėti naują bylą dėl nuomos sutarties pažeidimo su vienu iš mūsų tiekėjų. Kam turėčiau kreiptis, kad būtų atidarytas naujas reikalas?",
+   "nodes": [
+    {
+     "key": "intake/new_matter_request",
+     "text": "Requests to open a new legal matter or get initial guidance on a fresh legal issue, routed to the right team."
+    },
+    {
+     "key": "intake/conflict_check",
+     "text": "Questions about running conflict-of-interest checks before the firm can formally advise on a matter."
+    },
+    {
+     "key": "practice_area/employment",
+     "text": "Employment law questions covering contracts, terminations, workplace disputes and HR-related legal issues."
+    },
+    {
+     "key": "practice_area/litigation_disputes",
+     "text": "Litigation and dispute resolution questions, including claims, arbitration and settlement processes."
+    },
+    {
+     "key": "practice_area/regulatory_compliance",
+     "text": "Regulatory and compliance questions across all business areas except data privacy compliance matters."
+    },
+    {
+     "key": "engagement/billing_invoices",
+     "text": "Questions about legal fees, invoices, billing arrangements and cost estimates for ongoing matters."
+    },
+    {
+     "key": "general/legal_definitions",
+     "text": "General explanations of legal terms or concepts that are not tied to a specific active matter."
+    },
+    {
+     "key": "general/personal_legal_matters",
+     "text": "Any legal enquiry from staff except personal, non-work-related legal matters unconnected to the group's business."
+    }
+   ],
+   "gold": "intake/new_matter_request",
+   "run_answer": "intake/new_matter_request",
+   "run_probability": 0.7162
+  },
+  {
+   "language": "lt",
+   "register": "in_node_hole",
+   "text": "Naujas klientas prašo paskirti datą, kada pas jį atvyktų meistras įdiegti šviesolaidinį internetą.",
+   "nodes": [
+    {
+     "key": "facturation/consultation_facture",
+     "text": "Explique comment consulter le détail d'une facture mensuelle pour répondre aux questions d'un client."
+    },
+    {
+     "key": "facturation/contestation_montant",
+     "text": "Couvre le traitement d'une contestation portant sur un montant facturé jugé erroné par le client."
+    },
+    {
+     "key": "facturation/duplicata",
+     "text": "Couvre l'édition et l'envoi d'un duplicata de facture à la demande du client."
+    },
+    {
+     "key": "facturation/moyen_paiement",
+     "text": "Toute question sur le moyen de paiement enregistré sur le compte, sauf l'ajout d'une nouvelle carte bancaire."
+    },
+    {
+     "key": "forfaits/options_supplementaires",
+     "text": "Couvre l'activation ou la désactivation d'options complémentaires comme la data supplémentaire ou les appels illimités."
+    },
+    {
+     "key": "resiliation/mobile",
+     "text": "Décrit les étapes de résiliation d'un abonnement mobile à la demande du client."
+    },
+    {
+     "key": "resiliation/internet_fixe",
+     "text": "Décrit les étapes de résiliation d'un abonnement internet fixe, y compris la restitution du matériel."
+    },
+    {
+     "key": "sim/remplacement_perte_vol",
+     "text": "Couvre le remplacement d'une carte SIM perdue ou volée et la commande d'une nouvelle carte."
+    },
+    {
+     "key": "sim/portabilite_numero",
+     "text": "Décrit la procédure de portabilité d'un numéro entrant depuis un autre opérateur."
+    },
+    {
+     "key": "internet_fixe/panne_diagnostic",
+     "text": "Couvre le diagnostic à distance d'une panne de connexion internet signalée par un client."
+    },
+    {
+     "key": "roaming/tarifs",
+     "text": "Couvre les informations sur les tarifs de roaming applicables selon le pays de destination."
+    }
+   ],
+   "gold": "none",
+   "run_answer": "none",
+   "run_probability": 0.9786
+  },
+  {
+   "language": "lt",
+   "register": "out_of_taxonomy",
+   "text": "Kaip šiandien oro prognozė Vilniuje, ar verta imti skėtį?",
+   "nodes": [
+    {
+     "key": "intake/new_client",
+     "text": "Collects basic contact and case details from prospective clients seeking to retain the firm."
+    },
+    {
+     "key": "intake/conflict_check",
+     "text": "Handles questions about whether the firm can represent a prospective client without a conflict of interest."
+    },
+    {
+     "key": "scheduling/consultation",
+     "text": "Books or reschedules initial consultation appointments with an attorney for prospective clients."
+    },
+    {
+     "key": "scheduling/case_status",
+     "text": "Provides scheduling updates and appointment reminders for clients with an already open case."
+    },
+    {
+     "key": "services/practice_areas",
+     "text": "Explains which areas of law the firm practices, such as family, estate, or personal injury."
+    },
+    {
+     "key": "services/legal_advice",
+     "text": "Any question about the firm's services except providing substantive legal advice or analysis of a specific case."
+    },
+    {
+     "key": "billing/fees",
+     "text": "Answers general questions about fee structures, retainer amounts, and available payment plans."
+    },
+    {
+     "key": "billing/payment_disputes",
+     "text": "Addresses disputes or complaints about invoices or charges already billed to a client."
+    },
+    {
+     "key": "firm_info/logistics",
+     "text": "Covers office hours, location, parking, directions, and general contact information."
+    }
+   ],
+   "gold": "none",
+   "run_answer": "none",
+   "run_probability": 0.9928
+  },
+  {
+   "language": "lv",
+   "register": "in_node",
+   "text": "Sveiki, es gribētu pārcelt savu ievadkonsultāciju uz citu datumu, jo man radās neatliekamas lietas.",
+   "nodes": [
+    {
+     "key": "intake/new_client",
+     "text": "Collects basic contact and case details from prospective clients seeking to retain the firm."
+    },
+    {
+     "key": "intake/conflict_check",
+     "text": "Handles questions about whether the firm can represent a prospective client without a conflict of interest."
+    },
+    {
+     "key": "scheduling/consultation",
+     "text": "Books or reschedules initial consultation appointments with an attorney for prospective clients."
+    },
+    {
+     "key": "billing/fees",
+     "text": "Answers general questions about fee structures, retainer amounts, and available payment plans."
+    },
+    {
+     "key": "billing/payment_disputes",
+     "text": "Addresses disputes or complaints about invoices or charges already billed to a client."
+    }
+   ],
+   "gold": "scheduling/consultation",
+   "run_answer": "scheduling/consultation",
+   "run_probability": 0.9326
+  },
+  {
+   "language": "lv",
+   "register": "in_node_hole",
+   "text": "Labdien! Es vēlētos pieteikties jūsu firmas pakalpojumiem, jo man ir strīds ar kaimiņu par zemes robežu.",
+   "nodes": [
+    {
+     "key": "intake/conflict_check",
+     "text": "Handles questions about whether the firm can represent a prospective client without a conflict of interest."
+    },
+    {
+     "key": "scheduling/consultation",
+     "text": "Books or reschedules initial consultation appointments with an attorney for prospective clients."
+    },
+    {
+     "key": "scheduling/case_status",
+     "text": "Provides scheduling updates and appointment reminders for clients with an already open case."
+    },
+    {
+     "key": "services/practice_areas",
+     "text": "Explains which areas of law the firm practices, such as family, estate, or personal injury."
+    },
+    {
+     "key": "services/legal_advice",
+     "text": "Any question about the firm's services except providing substantive legal advice or analysis of a specific case."
+    },
+    {
+     "key": "billing/fees",
+     "text": "Answers general questions about fee structures, retainer amounts, and available payment plans."
+    }
+   ],
+   "gold": "none",
+   "run_answer": "none",
+   "run_probability": 0.4714
+  },
+  {
+   "language": "lv",
+   "register": "out_of_taxonomy",
+   "text": "Kā uzrakstīt vienkāršu Python skriptu, kas skaita vārdus tekstā?",
+   "nodes": [
+    {
+     "key": "booking/new_reservation",
+     "text": "Searching for flights and completing a new ticket purchase, including fare class and seat selection."
+    },
+    {
+     "key": "flight_status/schedule_changes",
+     "text": "Airline-initiated schedule changes, aircraft swaps, and rebooking options caused by timetable adjustments."
+    },
+    {
+     "key": "baggage/allowance",
+     "text": "Checked and carry-on baggage size, weight limits, and associated fees."
+    },
+    {
+     "key": "checkin/online",
+     "text": "Web and mobile check-in steps, boarding pass issuance, and online seat selection."
+    },
+    {
+     "key": "special_assistance/mobility",
+     "text": "Wheelchair service, mobility equipment handling, and accessibility accommodations for travel."
+    },
+    {
+     "key": "special_assistance/medical",
+     "text": "Medical clearance forms, oxygen equipment requests, and traveling with medical conditions."
+    },
+    {
+     "key": "onboard/inflight_services",
+     "text": "Meal preferences, entertainment options, and wifi availability during the flight."
+    }
+   ],
+   "gold": "none",
+   "run_answer": "none",
+   "run_probability": 0.9743
+  },
+  {
+   "language": "mt",
+   "register": "in_node",
+   "text": "Meta nċempel lil ħabib tiegħi, is-sejħa taqta' wara xi tliet minuti kull darba.",
+   "nodes": [
+    {
+     "key": "arve/selgitus",
+     "text": "Küsimused arve real olevate teenuste, kõnede ja andmemahu summade selgitamiseks."
+    },
+    {
+     "key": "mobiil/numbri_teisaldus",
+     "text": "Telefoninumbri teisaldamine teiselt operaatorilt või teisele operaatorile."
+    },
+    {
+     "key": "mobiil/kone_probleemid",
+     "text": "Kõnede katkemise, halva kvaliteedi või helistamise õnnestumatuse teatamine ja diagnoosimine."
+    },
+    {
+     "key": "seadmed/ruuteri_tagastus",
+     "text": "Renditud ruuteri või modemi tagastamise korra ja tähtaegade selgitamine."
+    }
+   ],
+   "gold": "mobiil/kone_probleemid",
+   "run_answer": "none",
+   "run_probability": 0.7893
+  },
+  {
+   "language": "mt",
+   "register": "in_node_hole",
+   "text": "Iridu jien nagħti d-dokumenti personalment jew nista' nibgħathom bil-posta elettronika?",
+   "nodes": [
+    {
+     "key": "programari/consultatie_initiala",
+     "text": "Cereri de programare pentru o prima consultatie cu un avocat, gratuita sau contra cost."
+    },
+    {
+     "key": "programari/reprogramare",
+     "text": "Cereri de modificare a orei sau anulare a unei programari deja existente la cabinet."
+    },
+    {
+     "key": "programari/urgenta",
+     "text": "Solicitari de intalnire urgenta pentru situatii cu termen legal imediat, precum retinere sau citatie."
+    },
+    {
+     "key": "domenii/dreptul_familiei",
+     "text": "Intrebari despre divort, custodie minori, pensie alimentara si partaj de bunuri comune."
+    },
+    {
+     "key": "domenii/dreptul_muncii",
+     "text": "Intrebari despre concediere, incheierea sau desfacerea contractului individual de munca, litigii cu angajatorul."
+    },
+    {
+     "key": "domenii/dreptul_imobiliar",
+     "text": "Intrebari despre vanzare-cumparare de imobile, cadastru, carte funciara si contracte de inchiriere."
+    },
+    {
+     "key": "domenii/drept_penal",
+     "text": "Intrebari despre acuzatii penale, audieri sau plangeri, exceptand dosarele de crima organizata sau terorism."
+    },
+    {
+     "key": "domenii/dreptul_succesiunilor",
+     "text": "Intrebari despre mostenire legala, testament, dezbatere succesorala si partajul masei succesorale."
+    },
+    {
+     "key": "domenii/dreptul_societar",
+     "text": "Intrebari despre infiintarea firmelor, contracte intre asociati si litigii de natura comerciala."
+    },
+    {
+     "key": "domenii/contracte_civile",
+     "text": "Redactare sau revizuire de contracte civile uzuale, exceptand contractele individuale de munca."
+    },
+    {
+     "key": "onorarii/structura_onorariu",
+     "text": "Intrebari despre modul de calcul al onorariului: tarif fix, orar sau clauza de succes."
+    },
+    {
+     "key": "onorarii/plata_facturi",
+     "text": "Intrebari despre metodele de plata acceptate, emiterea facturilor si a chitantelor de la cabinet."
+    },
+    {
+     "key": "onorarii/asistenta_judiciara",
+     "text": "Intrebari despre eligibilitatea pentru ajutor public judiciar sau asistenta juridica gratuita prin barou."
+    },
+    {
+     "key": "dosare/status_dosar",
+     "text": "Intrebari despre stadiul curent al unui dosar aflat deja in lucru la cabinet."
+    },
+    {
+     "key": "informatii_generale/program_cabinet",
+     "text": "Intrebari despre orele de functionare, adresa si datele de contact ale cabinetului."
+    },
+    {
+     "key": "informatii_generale/echipa_avocati",
+     "text": "Intrebari despre avocatii din cabinet, specializarile si experienta lor profesionala."
+    }
+   ],
+   "gold": "none",
+   "run_answer": "none",
+   "run_probability": 0.8268
+  },
+  {
+   "language": "mt",
+   "register": "out_of_taxonomy",
+   "text": "Nixtieq insir naf aħjar kif nissajja lasagna tajba għad-dar, għandek xi riċetta?",
+   "nodes": [
+    {
+     "key": "booking/refunds",
+     "text": "Any refund question except refunds tied to group or corporate bookings."
+    },
+    {
+     "key": "baggage/lost_damaged",
+     "text": "Reports of lost, delayed, or damaged baggage and status of tracing claims."
+    },
+    {
+     "key": "baggage/allowance_fees",
+     "text": "Baggage weight and size allowances, excess baggage charges, and special item fees."
+    },
+    {
+     "key": "flight_ops/status_delays",
+     "text": "Current flight status, delays, cancellations, and rebooking options after schedule disruption."
+    },
+    {
+     "key": "checkin/procedures",
+     "text": "Standard check-in steps, seat selection, and boarding pass issuance for passengers."
+    },
+    {
+     "key": "checkin/special_assistance",
+     "text": "Requests for wheelchair support, unaccompanied minor service, or medical accommodation during check-in and boarding."
+    },
+    {
+     "key": "hr_staff/benefits_payroll",
+     "text": "Employee benefits enrollment, payroll questions, and expense reimbursement claims."
+    },
+    {
+     "key": "it_support/system_access",
+     "text": "Password resets, login problems, and access requests for internal airline systems."
+    },
+    {
+     "key": "policy_safety/complaints_conduct",
+     "text": "Any passenger complaint or staff conduct issue except matters involving security or safety incidents."
+    }
+   ],
+   "gold": "none",
+   "run_answer": "none",
+   "run_probability": 0.9865
+  },
+  {
+   "language": "nl",
+   "register": "in_node",
+   "text": "Mijn internet valt constant uit en ik weet niet wat de oorzaak is, kunnen jullie helpen?",
+   "nodes": [
+    {
+     "key": "facturation/consultation_facture",
+     "text": "Explique comment consulter le détail d'une facture mensuelle pour répondre aux questions d'un client."
+    },
+    {
+     "key": "facturation/contestation_montant",
+     "text": "Couvre le traitement d'une contestation portant sur un montant facturé jugé erroné par le client."
+    },
+    {
+     "key": "facturation/moyen_paiement",
+     "text": "Toute question sur le moyen de paiement enregistré sur le compte, sauf l'ajout d'une nouvelle carte bancaire."
+    },
+    {
+     "key": "forfaits/changement_forfait",
+     "text": "Décrit la procédure à suivre pour changer le forfait mobile d'un client existant."
+    },
+    {
+     "key": "resiliation/mobile",
+     "text": "Décrit les étapes de résiliation d'un abonnement mobile à la demande du client."
+    },
+    {
+     "key": "resiliation/internet_fixe",
+     "text": "Décrit les étapes de résiliation d'un abonnement internet fixe, y compris la restitution du matériel."
+    },
+    {
+     "key": "resiliation/motif_deces",
+     "text": "Toute demande de résiliation liée au décès du titulaire, sauf la demande de remboursement des sommes dues."
+    },
+    {
+     "key": "sim/remplacement_perte_vol",
+     "text": "Couvre le remplacement d'une carte SIM perdue ou volée et la commande d'une nouvelle carte."
+    },
+    {
+     "key": "sim/activation_nouvelle",
+     "text": "Couvre l'activation d'une nouvelle carte SIM lors d'une première souscription ou d'un changement d'appareil."
+    },
+    {
+     "key": "sim/portabilite_numero",
+     "text": "Décrit la procédure de portabilité d'un numéro entrant depuis un autre opérateur."
+    },
+    {
+     "key": "internet_fixe/installation_rdv",
+     "text": "Couvre la prise de rendez-vous pour l'installation d'une nouvelle ligne internet fixe au domicile du client."
+    },
+    {
+     "key": "internet_fixe/panne_diagnostic",
+     "text": "Couvre le diagnostic à distance d'une panne de connexion internet signalée par un client."
+    },
+    {
+     "key": "roaming/activation",
+     "text": "Décrit la procédure d'activation du roaming pour un client se déplaçant à l'étranger."
+    },
+    {
+     "key": "compte_client/modification_coordonnees",
+     "text": "Toute modification des coordonnées d'un client (adresse, email, téléphone), sauf le changement de RIB bancaire."
+    },
+    {
+     "key": "compte_client/mot_de_passe",
+     "text": "Couvre la réinitialisation du mot de passe de l'espace client en ligne."
+    }
+   ],
+   "gold": "internet_fixe/panne_diagnostic",
+   "run_answer": "internet_fixe/panne_diagnostic",
+   "run_probability": 0.7315
+  },
+  {
+   "language": "nl",
+   "register": "in_node_hole",
+   "text": "Hoe berekenen jullie eigenlijk het honorarium, is dat een vast bedrag of werken jullie met een uurtarief?",
+   "nodes": [
+    {
+     "key": "programari/urgenta",
+     "text": "Solicitari de intalnire urgenta pentru situatii cu termen legal imediat, precum retinere sau citatie."
+    },
+    {
+     "key": "domenii/dreptul_familiei",
+     "text": "Intrebari despre divort, custodie minori, pensie alimentara si partaj de bunuri comune."
+    },
+    {
+     "key": "domenii/drept_penal",
+     "text": "Intrebari despre acuzatii penale, audieri sau plangeri, exceptand dosarele de crima organizata sau terorism."
+    },
+    {
+     "key": "domenii/dreptul_succesiunilor",
+     "text": "Intrebari despre mostenire legala, testament, dezbatere succesorala si partajul masei succesorale."
+    },
+    {
+     "key": "domenii/contracte_civile",
+     "text": "Redactare sau revizuire de contracte civile uzuale, exceptand contractele individuale de munca."
+    },
+    {
+     "key": "onorarii/asistenta_judiciara",
+     "text": "Intrebari despre eligibilitatea pentru ajutor public judiciar sau asistenta juridica gratuita prin barou."
+    },
+    {
+     "key": "dosare/status_dosar",
+     "text": "Intrebari despre stadiul curent al unui dosar aflat deja in lucru la cabinet."
+    },
+    {
+     "key": "informatii_generale/program_cabinet",
+     "text": "Intrebari despre orele de functionare, adresa si datele de contact ale cabinetului."
+    }
+   ],
+   "gold": "none",
+   "run_answer": "none",
+   "run_probability": 0.9671
+  },
+  {
+   "language": "nl",
+   "register": "out_of_taxonomy",
+   "text": "Welke voetbalclub staat nu bovenaan in de Eredivisie?",
+   "nodes": [
+    {
+     "key": "booking/new_reservation",
+     "text": "Searching for flights and completing a new ticket purchase, including fare class and seat selection."
+    },
+    {
+     "key": "booking/changes",
+     "text": "Changing dates, times, routes, or correcting passenger names on an existing reservation."
+    },
+    {
+     "key": "booking/cancellations",
+     "text": "Cancelling an existing reservation, covering all cancellation steps except how the refund itself is processed."
+    },
+    {
+     "key": "flight_status/realtime",
+     "text": "Live departure, arrival, gate, and delay information for a specific upcoming flight."
+    },
+    {
+     "key": "flight_status/schedule_changes",
+     "text": "Airline-initiated schedule changes, aircraft swaps, and rebooking options caused by timetable adjustments."
+    },
+    {
+     "key": "baggage/allowance",
+     "text": "Checked and carry-on baggage size, weight limits, and associated fees."
+    },
+    {
+     "key": "baggage/lost_damaged",
+     "text": "Reporting lost, delayed, or damaged baggage and tracking the status of a claim."
+    },
+    {
+     "key": "checkin/online",
+     "text": "Web and mobile check-in steps, boarding pass issuance, and online seat selection."
+    },
+    {
+     "key": "loyalty/miles_status",
+     "text": "Frequent flyer program enrollment, mile accrual questions, and tier status inquiries."
+    },
+    {
+     "key": "loyalty/redemption",
+     "text": "Redeeming accumulated miles for flights, upgrades, or partner rewards."
+    },
+    {
+     "key": "refunds_payments/refund_requests",
+     "text": "Requesting refunds for cancelled or unused tickets and checking refund timelines."
+    },
+    {
+     "key": "refunds_payments/payment_issues",
+     "text": "Payment failures, duplicate charges, currency conversion, and billing discrepancies on a booking."
+    },
+    {
+     "key": "special_assistance/medical",
+     "text": "Medical clearance forms, oxygen equipment requests, and traveling with medical conditions."
+    },
+    {
+     "key": "disruption/compensation",
+     "text": "Compensation claims for flight delays and cancellations, except requests escalated as formal legal or regulatory disputes."
+    }
+   ],
+   "gold": "none",
+   "run_answer": "none",
+   "run_probability": 0.9634
+  },
+  {
+   "language": "pl",
+   "register": "in_node",
+   "text": "Chciałabym zgłosić, że mój syn będzie leciał bez opiekuna, czy personel linii zajmie się nim od odprawy do odbioru przez dziadków?",
+   "nodes": [
+    {
+     "key": "gepaeck/aufgabe",
+     "text": "Fragen zu Freigepäckmengen und Gewichtsgrenzen für aufgegebenes Gepäck beim Check-in."
+    },
+    {
+     "key": "gepaeck/uebergepaeck",
+     "text": "Berechnung und Zahlung von Gebühren bei Übergepäck oder zusätzlichen Gepäckstücken."
+    },
+    {
+     "key": "gepaeck/verlust",
+     "text": "Vorgehen und Formulare bei nach der Landung als endgültig verloren gemeldetem Gepäck."
+    },
+    {
+     "key": "erstattung/ticketpreis",
+     "text": "Rückerstattung des Ticketpreises bei stornierten oder nicht angetretenen Flügen."
+    },
+    {
+     "key": "besondere_passagiere/unbegleitete_minderjaehrige",
+     "text": "Ablauf, Formulare und Begleitservice für unbegleitet reisende minderjährige Passagiere."
+    },
+    {
+     "key": "einchecken/onlinecheckin",
+     "text": "Unterstützung bei technischen Problemen mit dem Online-Check-in der Passagiere."
+    },
+    {
+     "key": "einchecken/dokumente",
+     "text": "Prüfung von Reisedokumenten wie Pass, Personalausweis und Visum beim Check-in."
+    }
+   ],
+   "gold": "besondere_passagiere/unbegleitete_minderjaehrige",
+   "run_answer": "besondere_passagiere/unbegleitete_minderjaehrige",
+   "run_probability": 0.9312
+  },
+  {
+   "language": "pl",
+   "register": "in_node_hole",
+   "text": "Czy możemy rozłożyć płatność za prowadzoną sprawę na raty, bo jednorazowa kwota jest dla nas obecnie problematyczna?",
+   "nodes": [
+    {
+     "key": "sprawa/status",
+     "text": "Udzielanie informacji o aktualnym etapie, statusie i najbliższych krokach w toczącej się sprawie klienta."
+    },
+    {
+     "key": "sprawa/rozszerzenie_zakresu",
+     "text": "Pytania o rozszerzenie już prowadzonej sprawy o dodatkowe kwestie prawne wykraczające poza pierwotne zlecenie."
+    },
+    {
+     "key": "rozliczenia/faktury",
+     "text": "Pytania o wystawienie, korektę, duplikat lub przesłanie faktury za usługi kancelarii."
+    },
+    {
+     "key": "rozliczenia/reklamacja_platnosci",
+     "text": "Zgłoszenia dotyczące spornych, zdaniem klienta błędnie naliczonych kwot na wystawionej fakturze."
+    },
+    {
+     "key": "rozliczenia/poza_umowa",
+     "text": "Wszelkie pytania rozliczeniowe, z wyjątkiem tych dotyczących usług nieobjętych aktualnie podpisaną umową o obsługę prawną."
+    },
+    {
+     "key": "dane_klienta/aktualizacja",
+     "text": "Zmiana danych kontaktowych, adresowych lub rejestrowych klienta zapisanych w systemie kancelarii."
+    },
+    {
+     "key": "dane_klienta/pelnomocnictwo",
+     "text": "Obsługa zmian, odwołań i aktualizacji pełnomocnictw udzielonych przedstawicielom klienta."
+    },
+    {
+     "key": "kontakt/umowienie_spotkania",
+     "text": "Umawianie, przekładanie lub odwoływanie spotkań i rozmów z prawnikiem prowadzącym sprawę."
+    },
+    {
+     "key": "kontakt/pilny_kontakt",
+     "text": "Przekierowywanie pilnych zgłoszeń klienta wymagających natychmiastowego kontaktu z zespołem prawnym."
+    },
+    {
+     "key": "ogolne/nowi_klienci",
+     "text": "Wszelkie zapytania od osób lub firm niebędących obecnie klientami kancelarii, z wyjątkiem przekierowania do działu rozwoju biznesu."
+    }
+   ],
+   "gold": "none",
+   "run_answer": "none",
+   "run_probability": 0.9246
+  },
+  {
+   "language": "pl",
+   "register": "out_of_taxonomy",
+   "text": "Mój laptop się nie włącza, próbowałem resetu, co robić?",
+   "nodes": [
+    {
+     "key": "gepaeck/uebergepaeck",
+     "text": "Berechnung und Zahlung von Gebühren bei Übergepäck oder zusätzlichen Gepäckstücken."
+    },
+    {
+     "key": "gepaeck/verlust",
+     "text": "Vorgehen und Formulare bei nach der Landung als endgültig verloren gemeldetem Gepäck."
+    },
+    {
+     "key": "gepaeck/verspaetung",
+     "text": "Fragen zu verspätet zugestelltem Gepäck nach der Landung, außer wenn es endgültig verloren gemeldet wird."
+    },
+    {
+     "key": "sondergepaeck/sportgeraete",
+     "text": "Transportbestimmungen für Sportgeräte wie Skier, Golfbags oder Fahrräder als Sondergepäck."
+    },
+    {
+     "key": "sondergepaeck/tiere",
+     "text": "Vorschriften zur Beförderung von Haustieren in der Kabine oder als aufgegebenes Gepäck."
+    },
+    {
+     "key": "buchung/neubuchung",
+     "text": "Erstellung neuer Flugbuchungen für Passagiere direkt am Schalter oder telefonisch."
+    },
+    {
+     "key": "buchung/stornierung",
+     "text": "Stornierung von Buchungen durch den Passagier, außer bei Annullierung des Fluges durch die Airline."
+    },
+    {
+     "key": "erstattung/ticketpreis",
+     "text": "Rückerstattung des Ticketpreises bei stornierten oder nicht angetretenen Flügen."
+    },
+    {
+     "key": "erstattung/gebuehren",
+     "text": "Rückerstattung von Zusatzgebühren wie Sitzplatzreservierung, außer bei Übergepäckgebühren."
+    },
+    {
+     "key": "flugstoerungen/annullierung",
+     "text": "Umbuchung und Entschädigungsansprüche der Passagiere bei vollständig annullierten Flügen."
+    },
+    {
+     "key": "besondere_passagiere/mobilitaet",
+     "text": "Unterstützung und Ablauf für Passagiere mit eingeschränkter Mobilität am Flughafen."
+    },
+    {
+     "key": "einchecken/dokumente",
+     "text": "Prüfung von Reisedokumenten wie Pass, Personalausweis und Visum beim Check-in."
+    }
+   ],
+   "gold": "none",
+   "run_answer": "none",
+   "run_probability": 0.9786
+  },
+  {
+   "language": "pt",
+   "register": "in_node",
+   "text": "Podem tratar da requisição de um smartphone novo para um colaborador que entra na equipa de logística na próxima semana?",
+   "nodes": [
+    {
+     "key": "billing/invoice_queries",
+     "text": "Explaining charges, line items, and billing cycle dates on corporate mobile or broadband invoices."
+    },
+    {
+     "key": "billing/plan_costs",
+     "text": "Comparing costs of current and alternative mobile or broadband tariffs, bundles, and add-ons."
+    },
+    {
+     "key": "billing/expense_reimbursement",
+     "text": "Guidance on submitting personal mobile or broadband expenses for corporate reimbursement."
+    },
+    {
+     "key": "billing/disputes",
+     "text": "Any billing dispute or overcharge complaint except cases involving suspected fraud or unauthorized use."
+    },
+    {
+     "key": "mobile_service/plan_changes",
+     "text": "Requests to upgrade, downgrade, or switch mobile tariff plans and data bundles."
+    },
+    {
+     "key": "mobile_service/coverage_issues",
+     "text": "Reports of poor signal strength, dropped calls, or network coverage gaps."
+    },
+    {
+     "key": "broadband_service/setup_activation",
+     "text": "Installing or activating fixed-line broadband service at offices or employee homes."
+    },
+    {
+     "key": "broadband_service/outage_reports",
+     "text": "Checking status of and reporting broadband outages or service disruptions."
+    },
+    {
+     "key": "devices/device_requests",
+     "text": "Requesting new corporate phones, tablets, or SIM cards for staff."
+    },
+    {
+     "key": "devices/technical_troubleshooting",
+     "text": "Any hardware or software fault on a corporate device except lost or stolen devices."
+    },
+    {
+     "key": "account/offboarding",
+     "text": "Deactivating mobile or broadband accounts when an employee leaves the organisation."
+    },
+    {
+     "key": "roaming/international_usage",
+     "text": "Questions about roaming plans, international rates, and activating roaming for business travel."
+    },
+    {
+     "key": "roaming/travel_support",
+     "text": "Any travel-related roaming question except disputes over roaming charges."
+    },
+    {
+     "key": "security/fraud_reporting",
+     "text": "Reporting suspicious activity, fraud, or unauthorized charges on corporate telecom accounts."
+    },
+    {
+     "key": "security/sim_swap",
+     "text": "Handling SIM swap requests and identity verification for corporate mobile numbers."
+    },
+    {
+     "key": "policy/acceptable_use",
+     "text": "Questions about the corporate acceptable use policy for mobile and broadband services."
+    }
+   ],
+   "gold": "devices/device_requests",
+   "run_answer": "devices/device_requests",
+   "run_probability": 0.9057
+  },
+  {
+   "language": "pt",
+   "register": "in_node_hole",
+   "text": "Boa tarde, gostaria de trocar o meu plano atual para um com mais minutos de chamadas incluídos.",
+   "nodes": [
+    {
+     "key": "arve/selgitus",
+     "text": "Küsimused arve real olevate teenuste, kõnede ja andmemahu summade selgitamiseks."
+    },
+    {
+     "key": "arve/maksmine",
+     "text": "Arve tasumise viisid, maksetähtajad ja makse laekumise kinnitamine."
+    },
+    {
+     "key": "arve/vaidlustamine",
+     "text": "Arvele lisatud summa või teenuse vaidlustamine ja tagasimakse taotlemine."
+    },
+    {
+     "key": "arve/e_arve",
+     "text": "E-arve tellimine, pangaga sidumine ja paberarvelt üleminek, välja arvatud e-arve tühistamine."
+    },
+    {
+     "key": "leping/pikendamine",
+     "text": "Olemasoleva teenuslepingu pikendamise taotlused ja tingimuste kinnitamine."
+    },
+    {
+     "key": "leping/tingimused",
+     "text": "Olemasoleva lepingu kehtivate tingimuste, kestuse ja soodustuste selgitamine kliendile."
+    },
+    {
+     "key": "leping/paketi_uleminek",
+     "text": "Olemasoleva teenusepaketi vahetamine teise samasse lepingusse kuuluva paketi vastu."
+    },
+    {
+     "key": "mobiil/numbri_teisaldus",
+     "text": "Telefoninumbri teisaldamine teiselt operaatorilt või teisele operaatorile."
+    },
+    {
+     "key": "mobiil/kone_probleemid",
+     "text": "Kõnede katkemise, halva kvaliteedi või helistamise õnnestumatuse teatamine ja diagnoosimine."
+    },
+    {
+     "key": "mobiil/sms_probleemid",
+     "text": "Sõnumite saatmise või kättesaamise viivituste ja tõrgete lahendamine."
+    },
+    {
+     "key": "mobiil/andmemahu_kasutus",
+     "text": "Kodumaise mobiilse andmemahu jälgimine ja limiitide selgitamine, välja arvatud roamingu andmemahu kasutus."
+    },
+    {
+     "key": "internet/katkestus",
+     "text": "Olemasoleva internetikatkestuse staatuse kontroll ja hinnanguline taasteaeg piirkonnas."
+    },
+    {
+     "key": "seadmed/simkaardi_tellimine",
+     "text": "Uue või asendus-SIM-kaardi tellimine kadumise, vigastuse või formaadi vahetuse korral."
+    },
+    {
+     "key": "konto/andmete_muutmine",
+     "text": "Kliendikonto isikuandmete, aadressi või kontaktinfo uuendamine kliendi soovil."
+    },
+    {
+     "key": "konto/parooli_lahtestus",
+     "text": "Iseteenindusportaali kasutajakonto parooli taastamine või sisselogimisprobleemide lahendamine."
+    },
+    {
+     "key": "roaming/aktiveerimine",
+     "text": "Roamingteenuse aktiveerimine või deaktiveerimine enne või ajal välisreisi."
+    }
+   ],
+   "gold": "none",
+   "run_answer": "leping/paketi_uleminek",
+   "run_probability": 0.7473
+  },
+  {
+   "language": "pt",
+   "register": "out_of_taxonomy",
+   "text": "Alguém sabe indicar um bom restaurante perto da sede para um almoço de equipa?",
+   "nodes": [
+    {
+     "key": "billing/invoice_queries",
+     "text": "Explaining charges, line items, and billing cycle dates on corporate mobile or broadband invoices."
+    },
+    {
+     "key": "billing/plan_costs",
+     "text": "Comparing costs of current and alternative mobile or broadband tariffs, bundles, and add-ons."
+    },
+    {
+     "key": "billing/expense_reimbursement",
+     "text": "Guidance on submitting personal mobile or broadband expenses for corporate reimbursement."
+    },
+    {
+     "key": "billing/disputes",
+     "text": "Any billing dispute or overcharge complaint except cases involving suspected fraud or unauthorized use."
+    },
+    {
+     "key": "mobile_service/plan_changes",
+     "text": "Requests to upgrade, downgrade, or switch mobile tariff plans and data bundles."
+    },
+    {
+     "key": "mobile_service/coverage_issues",
+     "text": "Reports of poor signal strength, dropped calls, or network coverage gaps."
+    },
+    {
+     "key": "broadband_service/setup_activation",
+     "text": "Installing or activating fixed-line broadband service at offices or employee homes."
+    },
+    {
+     "key": "broadband_service/outage_reports",
+     "text": "Checking status of and reporting broadband outages or service disruptions."
+    },
+    {
+     "key": "devices/device_requests",
+     "text": "Requesting new corporate phones, tablets, or SIM cards for staff."
+    },
+    {
+     "key": "devices/technical_troubleshooting",
+     "text": "Any hardware or software fault on a corporate device except lost or stolen devices."
+    },
+    {
+     "key": "devices/lost_stolen",
+     "text": "Reporting and processing lost or stolen corporate phones, tablets, or SIM cards."
+    },
+    {
+     "key": "account/access_management",
+     "text": "Adding, removing, or changing user access and administrator rights on telecom accounts."
+    },
+    {
+     "key": "account/offboarding",
+     "text": "Deactivating mobile or broadband accounts when an employee leaves the organisation."
+    },
+    {
+     "key": "roaming/international_usage",
+     "text": "Questions about roaming plans, international rates, and activating roaming for business travel."
+    },
+    {
+     "key": "roaming/travel_support",
+     "text": "Any travel-related roaming question except disputes over roaming charges."
+    },
+    {
+     "key": "security/fraud_reporting",
+     "text": "Reporting suspicious activity, fraud, or unauthorized charges on corporate telecom accounts."
+    },
+    {
+     "key": "security/sim_swap",
+     "text": "Handling SIM swap requests and identity verification for corporate mobile numbers."
+    },
+    {
+     "key": "policy/acceptable_use",
+     "text": "Questions about the corporate acceptable use policy for mobile and broadband services."
+    }
+   ],
+   "gold": "none",
+   "run_answer": "none",
+   "run_probability": 0.9982
+  },
+  {
+   "language": "ro",
+   "register": "in_node",
+   "text": "Vreau să văd dacă sunt eligibil pentru upgrade la un telefon nou cu plan la 24 de luni.",
+   "nodes": [
+    {
+     "key": "billing/charges_explained",
+     "text": "Explaining specific charges, fees or line items shown on a customer's bill or invoice."
+    },
+    {
+     "key": "billing/refunds",
+     "text": "Refund or credit requests for billing errors or overcharges, except credits arising from confirmed network outages."
+    },
+    {
+     "key": "account/profile_details",
+     "text": "Updating personal information such as name, address, email or contact number on the account."
+    },
+    {
+     "key": "account/security_access",
+     "text": "Password resets, login troubles, two-factor authentication and identity verification for online account access."
+    },
+    {
+     "key": "account/cancel_transfer",
+     "text": "Closing an account, transferring ownership, or porting a number to another provider."
+    },
+    {
+     "key": "mobile/roaming_usage",
+     "text": "Questions about roaming charges, international usage allowances and roaming add-on packs."
+    },
+    {
+     "key": "device/upgrades_orders",
+     "text": "Ordering a new phone or device, checking upgrade eligibility, and trade-in requests."
+    },
+    {
+     "key": "device/repairs_warranty",
+     "text": "Device repair requests, warranty claims and insurance claims for faulty or damaged handsets."
+    },
+    {
+     "key": "network/outage_status",
+     "text": "Checking known service outages, coverage in an area, and estimated restoration times."
+    }
+   ],
+   "gold": "device/upgrades_orders",
+   "run_answer": "device/upgrades_orders",
+   "run_probability": 0.8272
+  },
+  {
+   "language": "ro",
+   "register": "in_node_hole",
+   "text": "Aș dori să reduc abonamentul de date al colegului meu, are prea mult trafic neutilizat lunar.",
+   "nodes": [
+    {
+     "key": "billing/invoice_queries",
+     "text": "Explaining charges, line items, and billing cycle dates on corporate mobile or broadband invoices."
+    },
+    {
+     "key": "billing/plan_costs",
+     "text": "Comparing costs of current and alternative mobile or broadband tariffs, bundles, and add-ons."
+    },
+    {
+     "key": "billing/expense_reimbursement",
+     "text": "Guidance on submitting personal mobile or broadband expenses for corporate reimbursement."
+    },
+    {
+     "key": "billing/disputes",
+     "text": "Any billing dispute or overcharge complaint except cases involving suspected fraud or unauthorized use."
+    },
+    {
+     "key": "mobile_service/coverage_issues",
+     "text": "Reports of poor signal strength, dropped calls, or network coverage gaps."
+    },
+    {
+     "key": "broadband_service/setup_activation",
+     "text": "Installing or activating fixed-line broadband service at offices or employee homes."
+    },
+    {
+     "key": "broadband_service/outage_reports",
+     "text": "Checking status of and reporting broadband outages or service disruptions."
+    },
+    {
+     "key": "devices/device_requests",
+     "text": "Requesting new corporate phones, tablets, or SIM cards for staff."
+    },
+    {
+     "key": "devices/technical_troubleshooting",
+     "text": "Any hardware or software fault on a corporate device except lost or stolen devices."
+    },
+    {
+     "key": "devices/lost_stolen",
+     "text": "Reporting and processing lost or stolen corporate phones, tablets, or SIM cards."
+    },
+    {
+     "key": "account/access_management",
+     "text": "Adding, removing, or changing user access and administrator rights on telecom accounts."
+    },
+    {
+     "key": "account/offboarding",
+     "text": "Deactivating mobile or broadband accounts when an employee leaves the organisation."
+    },
+    {
+     "key": "roaming/international_usage",
+     "text": "Questions about roaming plans, international rates, and activating roaming for business travel."
+    },
+    {
+     "key": "roaming/travel_support",
+     "text": "Any travel-related roaming question except disputes over roaming charges."
+    },
+    {
+     "key": "security/fraud_reporting",
+     "text": "Reporting suspicious activity, fraud, or unauthorized charges on corporate telecom accounts."
+    },
+    {
+     "key": "security/sim_swap",
+     "text": "Handling SIM swap requests and identity verification for corporate mobile numbers."
+    },
+    {
+     "key": "policy/acceptable_use",
+     "text": "Questions about the corporate acceptable use policy for mobile and broadband services."
+    }
+   ],
+   "gold": "none",
+   "run_answer": "none",
+   "run_probability": 0.7559
+  },
+  {
+   "language": "ro",
+   "register": "out_of_taxonomy",
+   "text": "Vreau să știu cum pot lua un credit de nevoi personale de la o bancă.",
+   "nodes": [
+    {
+     "key": "billing/charges_explained",
+     "text": "Explaining specific charges, fees or line items shown on a customer's bill or invoice."
+    },
+    {
+     "key": "account/profile_details",
+     "text": "Updating personal information such as name, address, email or contact number on the account."
+    },
+    {
+     "key": "account/security_access",
+     "text": "Password resets, login troubles, two-factor authentication and identity verification for online account access."
+    },
+    {
+     "key": "account/cancel_transfer",
+     "text": "Closing an account, transferring ownership, or porting a number to another provider."
+    },
+    {
+     "key": "mobile/plan_changes",
+     "text": "Upgrading, downgrading or switching a mobile tariff, bundle or add-on for an existing line."
+    },
+    {
+     "key": "device/upgrades_orders",
+     "text": "Ordering a new phone or device, checking upgrade eligibility, and trade-in requests."
+    },
+    {
+     "key": "device/repairs_warranty",
+     "text": "Device repair requests, warranty claims and insurance claims for faulty or damaged handsets."
+    }
+   ],
+   "gold": "none",
+   "run_answer": "none",
+   "run_probability": 0.9978
+  },
+  {
+   "language": "sk",
+   "register": "in_node",
+   "text": "Stratil som SIM kartu, potrebujem novú, môžete mi tú starú zablokovať a poslať náhradnú?",
+   "nodes": [
+    {
+     "key": "mobile/sim_esim",
+     "text": "SIM swaps, eSIM activation, and replacing lost, stolen or damaged SIM cards."
+    },
+    {
+     "key": "broadband/plan_changes",
+     "text": "Changing a broadband package, speed tier, bundle or contract length for an existing line."
+    },
+    {
+     "key": "broadband/installation_setup",
+     "text": "Booking engineer visits, new router setup and activating a newly installed broadband line."
+    },
+    {
+     "key": "network/outage_status",
+     "text": "Checking known service outages, coverage in an area, and estimated restoration times."
+    }
+   ],
+   "gold": "mobile/sim_esim",
+   "run_answer": "mobile/sim_esim",
+   "run_probability": 0.9879
+  },
+  {
+   "language": "sk",
+   "register": "in_node_hole",
+   "text": "Ako môžem požiadať o právnu pomoc, ak mám nízky príjem?",
+   "nodes": [
+    {
+     "key": "intake/new_client_enquiry",
+     "text": "Mistoqsijiet minn klijenti potenzjali dwar is-servizzi legali offruti u kif jistgħu jibdew każ ġdid."
+    },
+    {
+     "key": "appointments/book_consultation",
+     "text": "Talbiet biex jiġi skedat l-ewwel laqgħa ta' konsultazzjoni ma' avukat tal-uffiċċju."
+    },
+    {
+     "key": "appointments/reschedule_cancel",
+     "text": "Talbiet biex jinbidel il-ħin jew id-data ta' laqgħa diġà skedata, jew biex tiġi kkanċellata."
+    },
+    {
+     "key": "appointments/virtual_meeting_setup",
+     "text": "Talbiet biex tiġi organizzata laqgħa bil-vidjo jew telefonika minflok laqgħa fiżika fl-uffiċċju."
+    },
+    {
+     "key": "fees/general_pricing",
+     "text": "Mistoqsijiet dwar kif jiġu kkalkulati l-onorarji u r-rati tas-siegħa, ħlief talbiet għal kwotazzjoni ta' każ speċifiku."
+    },
+    {
+     "key": "fees/quote_specific_case",
+     "text": "Talbiet għal stima jew kwotazzjoni tal-ispejjeż legali marbuta ma' każ partikolari tal-klijent."
+    },
+    {
+     "key": "practice_areas/family_law",
+     "text": "Mistoqsijiet dwar separazzjoni, divorzju, kustodja tat-tfal u manteniment fil-qasam tad-dritt tal-familja."
+    },
+    {
+     "key": "practice_areas/property_law",
+     "text": "Mistoqsijiet dwar trasferiment ta' proprjetà, konvenji, kera u tilwim dwar propjetà immobbli."
+    },
+    {
+     "key": "practice_areas/criminal_law",
+     "text": "Mistoqsijiet dwar akkużi kriminali, arresti u rappreżentanza legali quddiem il-Qorti Kriminali."
+    },
+    {
+     "key": "documents/submit_documents",
+     "text": "Talbiet minn klijenti biex jibagħtu dokumenti ġodda relatati ma' każ miftuħ."
+    },
+    {
+     "key": "complaints/service_complaint",
+     "text": "Ilmenti dwar is-servizz mogħti mill-uffiċċju jew dwar l-imġieba ta' membru tal-persunal."
+    }
+   ],
+   "gold": "none",
+   "run_answer": "none",
+   "run_probability": 0.6997
+  },
+  {
+   "language": "sk",
+   "register": "out_of_taxonomy",
+   "text": "Potreboval by som odporúčanie na dobrý film na víkend, niečo ľahké a vtipné.",
+   "nodes": [
+    {
+     "key": "mobile_service/coverage_issues",
+     "text": "Reports of poor signal strength, dropped calls, or network coverage gaps."
+    },
+    {
+     "key": "broadband_service/setup_activation",
+     "text": "Installing or activating fixed-line broadband service at offices or employee homes."
+    },
+    {
+     "key": "broadband_service/outage_reports",
+     "text": "Checking status of and reporting broadband outages or service disruptions."
+    },
+    {
+     "key": "roaming/travel_support",
+     "text": "Any travel-related roaming question except disputes over roaming charges."
+    }
+   ],
+   "gold": "none",
+   "run_answer": "none",
+   "run_probability": 0.9986
+  },
+  {
+   "language": "sl",
+   "register": "in_node",
+   "text": "Moj kovček tehta 28 kg, koliko bom moral doplačati za presežno težo?",
+   "nodes": [
+    {
+     "key": "gepaeck/aufgabe",
+     "text": "Fragen zu Freigepäckmengen und Gewichtsgrenzen für aufgegebenes Gepäck beim Check-in."
+    },
+    {
+     "key": "gepaeck/uebergepaeck",
+     "text": "Berechnung und Zahlung von Gebühren bei Übergepäck oder zusätzlichen Gepäckstücken."
+    },
+    {
+     "key": "gepaeck/verlust",
+     "text": "Vorgehen und Formulare bei nach der Landung als endgültig verloren gemeldetem Gepäck."
+    },
+    {
+     "key": "gepaeck/verspaetung",
+     "text": "Fragen zu verspätet zugestelltem Gepäck nach der Landung, außer wenn es endgültig verloren gemeldet wird."
+    },
+    {
+     "key": "sondergepaeck/sportgeraete",
+     "text": "Transportbestimmungen für Sportgeräte wie Skier, Golfbags oder Fahrräder als Sondergepäck."
+    },
+    {
+     "key": "sondergepaeck/musikinstrumente",
+     "text": "Regeln zur Mitnahme von Musikinstrumenten in der Kabine oder im Frachtraum."
+    },
+    {
+     "key": "sondergepaeck/tiere",
+     "text": "Vorschriften zur Beförderung von Haustieren in der Kabine oder als aufgegebenes Gepäck."
+    },
+    {
+     "key": "buchung/neubuchung",
+     "text": "Erstellung neuer Flugbuchungen für Passagiere direkt am Schalter oder telefonisch."
+    },
+    {
+     "key": "buchung/umbuchung",
+     "text": "Änderung von Datum, Uhrzeit oder Strecke bei bereits bestehenden Tickets."
+    },
+    {
+     "key": "buchung/namenskorrektur",
+     "text": "Korrektur von Schreibfehlern im Passagiernamen auf einem bereits ausgestellten Ticket."
+    },
+    {
+     "key": "erstattung/ticketpreis",
+     "text": "Rückerstattung des Ticketpreises bei stornierten oder nicht angetretenen Flügen."
+    },
+    {
+     "key": "flugstoerungen/verspaetung",
+     "text": "Umgang mit verpassten Anschlussflügen und Entschädigungsansprüchen bei Flugverspätung."
+    },
+    {
+     "key": "flugstoerungen/annullierung",
+     "text": "Umbuchung und Entschädigungsansprüche der Passagiere bei vollständig annullierten Flügen."
+    },
+    {
+     "key": "flugstoerungen/ueberbuchung",
+     "text": "Verfahren bei Overbooking und Freiwilligenregelung für ausgebuchte Flüge."
+    },
+    {
+     "key": "besondere_passagiere/mobilitaet",
+     "text": "Unterstützung und Ablauf für Passagiere mit eingeschränkter Mobilität am Flughafen."
+    },
+    {
+     "key": "besondere_passagiere/medizinisch",
+     "text": "Regeln zu medizinischen Geräten, Sauerstoffbedarf und ärztlichen Attesten an Bord."
+    },
+    {
+     "key": "einchecken/onlinecheckin",
+     "text": "Unterstützung bei technischen Problemen mit dem Online-Check-in der Passagiere."
+    },
+    {
+     "key": "einchecken/dokumente",
+     "text": "Prüfung von Reisedokumenten wie Pass, Personalausweis und Visum beim Check-in."
+    }
+   ],
+   "gold": "gepaeck/uebergepaeck",
+   "run_answer": "gepaeck/uebergepaeck",
+   "run_probability": 0.7488
+  },
+  {
+   "language": "sl",
+   "register": "in_node_hole",
+   "text": "Zelo sem nezadovoljen s tem, kako je bila obravnavana moja zadeva – nihče mi ni vrnil klica že dva tedna. Prosim, da se to čim prej uredi.",
+   "nodes": [
+    {
+     "key": "intake/new_client_enquiry",
+     "text": "Mistoqsijiet minn klijenti potenzjali dwar is-servizzi legali offruti u kif jistgħu jibdew każ ġdid."
+    },
+    {
+     "key": "intake/general_firm_info",
+     "text": "Mistoqsijiet ġenerali dwar l-uffiċċju, bħal ħinijiet tal-ftuħ u l-lokazzjoni, ħlief dawk dwar l-onorarji."
+    },
+    {
+     "key": "appointments/book_consultation",
+     "text": "Talbiet biex jiġi skedat l-ewwel laqgħa ta' konsultazzjoni ma' avukat tal-uffiċċju."
+    },
+    {
+     "key": "appointments/reschedule_cancel",
+     "text": "Talbiet biex jinbidel il-ħin jew id-data ta' laqgħa diġà skedata, jew biex tiġi kkanċellata."
+    },
+    {
+     "key": "appointments/virtual_meeting_setup",
+     "text": "Talbiet biex tiġi organizzata laqgħa bil-vidjo jew telefonika minflok laqgħa fiżika fl-uffiċċju."
+    },
+    {
+     "key": "fees/general_pricing",
+     "text": "Mistoqsijiet dwar kif jiġu kkalkulati l-onorarji u r-rati tas-siegħa, ħlief talbiet għal kwotazzjoni ta' każ speċifiku."
+    },
+    {
+     "key": "fees/quote_specific_case",
+     "text": "Talbiet għal stima jew kwotazzjoni tal-ispejjeż legali marbuta ma' każ partikolari tal-klijent."
+    },
+    {
+     "key": "fees/legal_aid_eligibility",
+     "text": "Mistoqsijiet dwar l-eliġibbiltà għal għajnuna legali mill-Istat u kif issir l-applikazzjoni."
+    },
+    {
+     "key": "practice_areas/family_law",
+     "text": "Mistoqsijiet dwar separazzjoni, divorzju, kustodja tat-tfal u manteniment fil-qasam tad-dritt tal-familja."
+    },
+    {
+     "key": "practice_areas/property_law",
+     "text": "Mistoqsijiet dwar trasferiment ta' proprjetà, konvenji, kera u tilwim dwar propjetà immobbli."
+    },
+    {
+     "key": "practice_areas/employment_law",
+     "text": "Mistoqsijiet dwar tkeċċija inġusta, kuntratti ta' impjieg u drittijiet fuq il-post tax-xogħol."
+    },
+    {
+     "key": "practice_areas/criminal_law",
+     "text": "Mistoqsijiet dwar akkużi kriminali, arresti u rappreżentanza legali quddiem il-Qorti Kriminali."
+    },
+    {
+     "key": "practice_areas/immigration_law",
+     "text": "Mistoqsijiet dwar permessi ta' residenza, viżi u proċeduri ta' ċittadinanza."
+    },
+    {
+     "key": "practice_areas/other_areas",
+     "text": "Mistoqsijiet dwar oqsma oħra tad-dritt li mhumiex koperti bil-liġi tal-familja, propjetà, impjieg, kriminali jew immigrazzjoni."
+    },
+    {
+     "key": "documents/request_copy",
+     "text": "Talbiet biex jinħarġu kopji ta' dokumenti jew fajls miżmuma mill-uffiċċju f'isem il-klijent."
+    },
+    {
+     "key": "documents/submit_documents",
+     "text": "Talbiet minn klijenti biex jibagħtu dokumenti ġodda relatati ma' każ miftuħ."
+    },
+    {
+     "key": "status/case_update",
+     "text": "Mistoqsijiet minn klijenti eżistenti dwar il-progress attwali tal-każ legali tagħhom."
+    }
+   ],
+   "gold": "none",
+   "run_answer": "none",
+   "run_probability": 0.9209
+  },
+  {
+   "language": "sl",
+   "register": "out_of_taxonomy",
+   "text": "Moj računalnik se je zaustavil in ne vem, kako ga znova zagnati, lahko pomagaš?",
+   "nodes": [
+    {
+     "key": "intake/general_firm_info",
+     "text": "Mistoqsijiet ġenerali dwar l-uffiċċju, bħal ħinijiet tal-ftuħ u l-lokazzjoni, ħlief dawk dwar l-onorarji."
+    },
+    {
+     "key": "appointments/book_consultation",
+     "text": "Talbiet biex jiġi skedat l-ewwel laqgħa ta' konsultazzjoni ma' avukat tal-uffiċċju."
+    },
+    {
+     "key": "fees/general_pricing",
+     "text": "Mistoqsijiet dwar kif jiġu kkalkulati l-onorarji u r-rati tas-siegħa, ħlief talbiet għal kwotazzjoni ta' każ speċifiku."
+    },
+    {
+     "key": "fees/quote_specific_case",
+     "text": "Talbiet għal stima jew kwotazzjoni tal-ispejjeż legali marbuta ma' każ partikolari tal-klijent."
+    },
+    {
+     "key": "fees/legal_aid_eligibility",
+     "text": "Mistoqsijiet dwar l-eliġibbiltà għal għajnuna legali mill-Istat u kif issir l-applikazzjoni."
+    },
+    {
+     "key": "practice_areas/other_areas",
+     "text": "Mistoqsijiet dwar oqsma oħra tad-dritt li mhumiex koperti bil-liġi tal-familja, propjetà, impjieg, kriminali jew immigrazzjoni."
+    },
+    {
+     "key": "status/case_update",
+     "text": "Mistoqsijiet minn klijenti eżistenti dwar il-progress attwali tal-każ legali tagħhom."
+    }
+   ],
+   "gold": "none",
+   "run_answer": "none",
+   "run_probability": 0.9884
+  },
+  {
+   "language": "sv",
+   "register": "in_node",
+   "text": "Kan jag flytta över mitt mobilnummer till en annan operatör, hur går jag tillväga för att portera det?",
+   "nodes": [
+    {
+     "key": "billing/charges_explained",
+     "text": "Explaining specific charges, fees or line items shown on a customer's bill or invoice."
+    },
+    {
+     "key": "account/cancel_transfer",
+     "text": "Closing an account, transferring ownership, or porting a number to another provider."
+    },
+    {
+     "key": "mobile/plan_changes",
+     "text": "Upgrading, downgrading or switching a mobile tariff, bundle or add-on for an existing line."
+    },
+    {
+     "key": "mobile/roaming_usage",
+     "text": "Questions about roaming charges, international usage allowances and roaming add-on packs."
+    },
+    {
+     "key": "broadband/plan_changes",
+     "text": "Changing a broadband package, speed tier, bundle or contract length for an existing line."
+    },
+    {
+     "key": "broadband/connection_issues",
+     "text": "Troubleshooting broadband connectivity or speed problems, except issues already flagged as a known area-wide outage."
+    },
+    {
+     "key": "device/repairs_warranty",
+     "text": "Device repair requests, warranty claims and insurance claims for faulty or damaged handsets."
+    }
+   ],
+   "gold": "account/cancel_transfer",
+   "run_answer": "none",
+   "run_probability": 0.6492
+  },
+  {
+   "language": "sv",
+   "register": "in_node_hole",
+   "text": "Jag behöver en offert på vad det skulle kosta att driva mitt ärende om felaktig uppsägning.",
+   "nodes": [
+    {
+     "key": "intake/new_client_enquiry",
+     "text": "Mistoqsijiet minn klijenti potenzjali dwar is-servizzi legali offruti u kif jistgħu jibdew każ ġdid."
+    },
+    {
+     "key": "intake/general_firm_info",
+     "text": "Mistoqsijiet ġenerali dwar l-uffiċċju, bħal ħinijiet tal-ftuħ u l-lokazzjoni, ħlief dawk dwar l-onorarji."
+    },
+    {
+     "key": "appointments/book_consultation",
+     "text": "Talbiet biex jiġi skedat l-ewwel laqgħa ta' konsultazzjoni ma' avukat tal-uffiċċju."
+    },
+    {
+     "key": "appointments/reschedule_cancel",
+     "text": "Talbiet biex jinbidel il-ħin jew id-data ta' laqgħa diġà skedata, jew biex tiġi kkanċellata."
+    },
+    {
+     "key": "appointments/virtual_meeting_setup",
+     "text": "Talbiet biex tiġi organizzata laqgħa bil-vidjo jew telefonika minflok laqgħa fiżika fl-uffiċċju."
+    },
+    {
+     "key": "fees/general_pricing",
+     "text": "Mistoqsijiet dwar kif jiġu kkalkulati l-onorarji u r-rati tas-siegħa, ħlief talbiet għal kwotazzjoni ta' każ speċifiku."
+    },
+    {
+     "key": "fees/legal_aid_eligibility",
+     "text": "Mistoqsijiet dwar l-eliġibbiltà għal għajnuna legali mill-Istat u kif issir l-applikazzjoni."
+    },
+    {
+     "key": "practice_areas/family_law",
+     "text": "Mistoqsijiet dwar separazzjoni, divorzju, kustodja tat-tfal u manteniment fil-qasam tad-dritt tal-familja."
+    },
+    {
+     "key": "practice_areas/property_law",
+     "text": "Mistoqsijiet dwar trasferiment ta' proprjetà, konvenji, kera u tilwim dwar propjetà immobbli."
+    },
+    {
+     "key": "documents/request_copy",
+     "text": "Talbiet biex jinħarġu kopji ta' dokumenti jew fajls miżmuma mill-uffiċċju f'isem il-klijent."
+    },
+    {
+     "key": "documents/submit_documents",
+     "text": "Talbiet minn klijenti biex jibagħtu dokumenti ġodda relatati ma' każ miftuħ."
+    },
+    {
+     "key": "status/case_update",
+     "text": "Mistoqsijiet minn klijenti eżistenti dwar il-progress attwali tal-każ legali tagħhom."
+    },
+    {
+     "key": "complaints/service_complaint",
+     "text": "Ilmenti dwar is-servizz mogħti mill-uffiċċju jew dwar l-imġieba ta' membru tal-persunal."
+    }
+   ],
+   "gold": "none",
+   "run_answer": "none",
+   "run_probability": 0.7858
+  },
+  {
+   "language": "sv",
+   "register": "out_of_taxonomy",
+   "text": "Kan du rekommendera en bra restaurang nära Centralstationen i Göteborg?",
+   "nodes": [
+    {
+     "key": "gepaeck/verlust",
+     "text": "Vorgehen und Formulare bei nach der Landung als endgültig verloren gemeldetem Gepäck."
+    },
+    {
+     "key": "gepaeck/verspaetung",
+     "text": "Fragen zu verspätet zugestelltem Gepäck nach der Landung, außer wenn es endgültig verloren gemeldet wird."
+    },
+    {
+     "key": "sondergepaeck/sportgeraete",
+     "text": "Transportbestimmungen für Sportgeräte wie Skier, Golfbags oder Fahrräder als Sondergepäck."
+    },
+    {
+     "key": "buchung/umbuchung",
+     "text": "Änderung von Datum, Uhrzeit oder Strecke bei bereits bestehenden Tickets."
+    },
+    {
+     "key": "buchung/stornierung",
+     "text": "Stornierung von Buchungen durch den Passagier, außer bei Annullierung des Fluges durch die Airline."
+    },
+    {
+     "key": "erstattung/ticketpreis",
+     "text": "Rückerstattung des Ticketpreises bei stornierten oder nicht angetretenen Flügen."
+    },
+    {
+     "key": "erstattung/gebuehren",
+     "text": "Rückerstattung von Zusatzgebühren wie Sitzplatzreservierung, außer bei Übergepäckgebühren."
+    },
+    {
+     "key": "flugstoerungen/verspaetung",
+     "text": "Umgang mit verpassten Anschlussflügen und Entschädigungsansprüchen bei Flugverspätung."
+    },
+    {
+     "key": "flugstoerungen/ueberbuchung",
+     "text": "Verfahren bei Overbooking und Freiwilligenregelung für ausgebuchte Flüge."
+    },
+    {
+     "key": "besondere_passagiere/medizinisch",
+     "text": "Regeln zu medizinischen Geräten, Sauerstoffbedarf und ärztlichen Attesten an Bord."
+    }
+   ],
+   "gold": "none",
+   "run_answer": "none",
+   "run_probability": 0.9997
+  },
+  {
+   "language": "tr",
+   "register": "in_node",
+   "text": "İnternetim sürekli kesiliyor, modem ışıkları kırmızı yanıp sönüyor.",
+   "nodes": [
+    {
+     "key": "billing/refunds",
+     "text": "Refund or credit requests for billing errors or overcharges, except credits arising from confirmed network outages."
+    },
+    {
+     "key": "account/security_access",
+     "text": "Password resets, login troubles, two-factor authentication and identity verification for online account access."
+    },
+    {
+     "key": "mobile/sim_esim",
+     "text": "SIM swaps, eSIM activation, and replacing lost, stolen or damaged SIM cards."
+    },
+    {
+     "key": "broadband/plan_changes",
+     "text": "Changing a broadband package, speed tier, bundle or contract length for an existing line."
+    },
+    {
+     "key": "broadband/connection_issues",
+     "text": "Troubleshooting broadband connectivity or speed problems, except issues already flagged as a known area-wide outage."
+    },
+    {
+     "key": "device/repairs_warranty",
+     "text": "Device repair requests, warranty claims and insurance claims for faulty or damaged handsets."
+    },
+    {
+     "key": "network/outage_status",
+     "text": "Checking known service outages, coverage in an area, and estimated restoration times."
+    }
+   ],
+   "gold": "broadband/connection_issues",
+   "run_answer": "broadband/connection_issues",
+   "run_probability": 0.8351
+  },
+  {
+   "language": "tr",
+   "register": "in_node_hole",
+   "text": "Vergi dairesiyle aramda çıkan bir anlaşmazlık var, bu konuda hukuki yardım almak istiyorum.",
+   "nodes": [
+    {
+     "key": "intake/general_firm_info",
+     "text": "Mistoqsijiet ġenerali dwar l-uffiċċju, bħal ħinijiet tal-ftuħ u l-lokazzjoni, ħlief dawk dwar l-onorarji."
+    },
+    {
+     "key": "appointments/reschedule_cancel",
+     "text": "Talbiet biex jinbidel il-ħin jew id-data ta' laqgħa diġà skedata, jew biex tiġi kkanċellata."
+    },
+    {
+     "key": "fees/legal_aid_eligibility",
+     "text": "Mistoqsijiet dwar l-eliġibbiltà għal għajnuna legali mill-Istat u kif issir l-applikazzjoni."
+    },
+    {
+     "key": "practice_areas/family_law",
+     "text": "Mistoqsijiet dwar separazzjoni, divorzju, kustodja tat-tfal u manteniment fil-qasam tad-dritt tal-familja."
+    },
+    {
+     "key": "practice_areas/immigration_law",
+     "text": "Mistoqsijiet dwar permessi ta' residenza, viżi u proċeduri ta' ċittadinanza."
+    },
+    {
+     "key": "complaints/service_complaint",
+     "text": "Ilmenti dwar is-servizz mogħti mill-uffiċċju jew dwar l-imġieba ta' membru tal-persunal."
+    }
+   ],
+   "gold": "none",
+   "run_answer": "none",
+   "run_probability": 0.7851
+  },
+  {
+   "language": "tr",
+   "register": "out_of_taxonomy",
+   "text": "Bilgisayarım sürekli donuyor, teknik destek alabilir miyim?",
+   "nodes": [
+    {
+     "key": "intake/general_firm_info",
+     "text": "Mistoqsijiet ġenerali dwar l-uffiċċju, bħal ħinijiet tal-ftuħ u l-lokazzjoni, ħlief dawk dwar l-onorarji."
+    },
+    {
+     "key": "appointments/book_consultation",
+     "text": "Talbiet biex jiġi skedat l-ewwel laqgħa ta' konsultazzjoni ma' avukat tal-uffiċċju."
+    },
+    {
+     "key": "appointments/virtual_meeting_setup",
+     "text": "Talbiet biex tiġi organizzata laqgħa bil-vidjo jew telefonika minflok laqgħa fiżika fl-uffiċċju."
+    },
+    {
+     "key": "fees/general_pricing",
+     "text": "Mistoqsijiet dwar kif jiġu kkalkulati l-onorarji u r-rati tas-siegħa, ħlief talbiet għal kwotazzjoni ta' każ speċifiku."
+    },
+    {
+     "key": "practice_areas/family_law",
+     "text": "Mistoqsijiet dwar separazzjoni, divorzju, kustodja tat-tfal u manteniment fil-qasam tad-dritt tal-familja."
+    },
+    {
+     "key": "practice_areas/property_law",
+     "text": "Mistoqsijiet dwar trasferiment ta' proprjetà, konvenji, kera u tilwim dwar propjetà immobbli."
+    },
+    {
+     "key": "practice_areas/employment_law",
+     "text": "Mistoqsijiet dwar tkeċċija inġusta, kuntratti ta' impjieg u drittijiet fuq il-post tax-xogħol."
+    },
+    {
+     "key": "practice_areas/other_areas",
+     "text": "Mistoqsijiet dwar oqsma oħra tad-dritt li mhumiex koperti bil-liġi tal-familja, propjetà, impjieg, kriminali jew immigrazzjoni."
+    },
+    {
+     "key": "documents/request_copy",
+     "text": "Talbiet biex jinħarġu kopji ta' dokumenti jew fajls miżmuma mill-uffiċċju f'isem il-klijent."
+    }
+   ],
+   "gold": "none",
+   "run_answer": "none",
+   "run_probability": 0.9751
+  }
+ ]
+}

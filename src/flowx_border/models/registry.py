@@ -475,6 +475,45 @@ MODELS: Final[dict[str, ModelSpec]] = {
             "CPU budget."
         ),
     ),
+    # The typed engine's two graphs, one repo, one revision. Two entries because each is
+    # its own file with its own hash and its own session; `topic_scope` attests the
+    # encoder's, and the shared revision pins the head's bytes as well.
+    "topic_scope_v2": ModelSpec(
+        model_id="flowxai/topic-scope-v2",
+        repo="flowxai/topic-scope-v2",
+        revision="e67ffa326bfc1be9dac956d202fcb029fe07d902",
+        filename="onnx/model.int8.onnx",
+        sha256="fb08eeecd7967d8d80e534b5cbbbf1fb69f29b85d851e9454fb5f0ea73411933",
+        extra_files=("tokenizer.json", "config.json", "decision_config.json"),
+        trained_max_length=128,
+        trained_languages=frozenset(LANGUAGES),
+        notes=(
+            "XLM-RoBERTa base, the encoder of a typed-decision head in the late "
+            "encoding: the message, the question and each taxonomy node are encoded "
+            "separately and meet in onnx/head.onnx. Embedding Gather in int8, the "
+            "rest fp32. On taxonomies from deployment types it never trained on it "
+            "picks the right node or none for 0.804 of 11,497 rows, against 0.479 for "
+            "flowxai/topic-scope on the same rows. Synthetic, held out by deployment "
+            "type; the card has the per-language table, with Maltese weakest at "
+            "0.624."
+        ),
+    ),
+    "topic_scope_v2_head": ModelSpec(
+        model_id="flowxai/topic-scope-v2",
+        repo="flowxai/topic-scope-v2",
+        revision="e67ffa326bfc1be9dac956d202fcb029fe07d902",
+        filename="onnx/head.onnx",
+        sha256="3b750a812d9fb28f732b468622b8588d4929cf7b09a97c01cc89c61f88e2f04a",
+        trained_max_length=128,
+        trained_languages=frozenset(LANGUAGES),
+        notes=(
+            "The decision head of topic_scope_v2, fp32: two pre-LN transformer layers "
+            "and a scorer over hidden states, plus the similarity term. Takes the "
+            "encoder's states for the message, the question and the packed nodes, and "
+            "returns one logit per option. Export verified on 300 test rows against "
+            "torch: 0 changed answers, largest logit difference 0.164."
+        ),
+    ),
     "toxicity": ModelSpec(
         model_id="flowxai/toxicity",
         repo="flowxai/toxicity",

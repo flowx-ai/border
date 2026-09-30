@@ -60,11 +60,16 @@ TAXONOMY = {
 MEASURED_SCORE_FLOOR = 0.6674
 
 
-@pytest.mark.parametrize("policy_name", ["default.yaml", "bfsi.yaml"])
-def test_the_shipped_threshold_is_above_the_score_floor(policy_name: str) -> None:
-    """The check that would have caught 0.45, and it needs no model to run."""
+#: The bars the typed engine's threshold table was read at, on validation rows, in
+#: training reports/topic_scope_v2_thresholds.json. A shipped threshold outside them is
+#: a number nobody measured.
+TYPED_MEASURED_BARS = (0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.85, 0.9)
+
+
+def shipped(policy_name: str) -> list[tuple[str, float]]:
+    """(engine, threshold) for every topic_scope block in a shipped policy."""
     raw = yaml.safe_load((POLICIES / policy_name).read_text(encoding="utf-8"))
-    found = []
+    found: list[tuple[str, float]] = []
 
     def walk(node: object) -> None:
         if isinstance(node, dict):
@@ -74,15 +79,40 @@ def test_the_shipped_threshold_is_above_the_score_floor(policy_name: str) -> Non
                     and isinstance(value, dict)
                     and "threshold" in value
                 ):
-                    found.append(float(value["threshold"]))
+                    engine = str((value.get("options") or {}).get("engine", "typed"))
+                    found.append((engine, float(value["threshold"])))
                 walk(value)
         elif isinstance(node, list):
             for item in node:
                 walk(item)
 
     walk(raw)
+    return found
+
+
+@pytest.mark.parametrize("policy_name", ["default.yaml", "bfsi.yaml"])
+def test_a_typed_threshold_is_one_the_table_measured(policy_name: str) -> None:
+    """The typed engine's score is a probability, and 0.85 there halves recall.
+
+    Changing the default engine without changing the threshold would have carried the
+    bi-encoder's cosine bar across to a probability, where it means something else.
+    """
+    found = shipped(policy_name)
     assert found, f"{policy_name} configures no topic_scope threshold to check"
-    for threshold in found:
+    for engine, threshold in found:
+        if engine == "typed":
+            assert threshold in TYPED_MEASURED_BARS, (policy_name, threshold)
+
+
+@pytest.mark.parametrize("policy_name", ["default.yaml", "bfsi.yaml"])
+def test_the_shipped_threshold_is_above_the_score_floor(policy_name: str) -> None:
+    """The check that would have caught 0.45, and it needs no model to run.
+
+    The bi-encoder's, so it applies to a policy that selects that engine.
+    """
+    for engine, threshold in shipped(policy_name):
+        if engine != "bi-encoder":
+            continue
         assert threshold > MEASURED_SCORE_FLOOR, (
             f"{policy_name} sets topic_scope threshold {threshold}, at or below the "
             f"measured score floor of {MEASURED_SCORE_FLOOR}. This detector emits a "
@@ -119,7 +149,7 @@ def test_the_score_floor_is_real_and_not_a_recorded_guess() -> None:
         threshold=0.0,
         on_fail="flag",
         always=True,
-        options={"taxonomy": everything},
+        options={"taxonomy": everything, "engine": "bi-encoder"},
     )
     ctx = Context()
     texts = [
