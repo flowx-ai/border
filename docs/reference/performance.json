@@ -750,6 +750,19 @@
       "status": "built",
       "tier": "T1"
     },
+    "link_integrity": {
+      "budget_ms": 5.0,
+      "caveats": [],
+      "in_core": true,
+      "metrics": null,
+      "metrics_note": "no evaluation artifact was available at collection time. A rules-based detector has none by nature; a model-backed one missing this is a gap.",
+      "requires": {},
+      "sides": [
+        "output"
+      ],
+      "status": "built",
+      "tier": "T1"
+    },
     "markup_injection": {
       "budget_ms": 5.0,
       "caveats": [],
@@ -1979,6 +1992,9 @@
       },
       "language_id": {
         "p95": 0.223
+      },
+      "link_integrity": {
+        "p95": 0.167
       },
       "markup_injection": {
         "p95": 0.17

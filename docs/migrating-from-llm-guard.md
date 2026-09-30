@@ -104,6 +104,7 @@ Behaviour differences that the tuple cannot express:
 - `system_prompt_leakage` (T1, output)
 - `markup_injection` (T1, input and output)
 - `internal_domains` (T1, output)
+- `link_integrity` (T1, output)
 - `output_format` (T1, output)
 - `sql_injection` (T1, output, needs the `sql` extra)
 - `url_reachability` (T3, output, makes an HTTP request)

@@ -140,11 +140,19 @@ MAX_FIRE_RATE: dict[str, float] = {
     # detectors carry.
     "secrets": 0.05,
     # Added 2026-09-30 with the detector, before it had fired on anything here: 0 of
-    # 234. Its mixed-script half has no list and runs in the shipped policy at `log`,
+    # 234. Its mixed-script half has no list and runs in the shipped policy at `flag`,
     # so it is held to the ceiling the other rules carry. Over the whole training
     # corpus its mundane rows measure 43 of 37052, all of them words the generator
     # really did write in two scripts.
     "confusables": 0.05,
+    # Added 2026-09-30 with the detector, before it had fired on anything. It measures
+    # 0 of 234, and that figure is weaker than it looks: none of the 234 rows carries a
+    # link, so the sweep cannot tell a careful detector from an idle one. The false
+    # positive evidence is elsewhere, 1 paragraph of 3917 across the METADATA of 228
+    # installed packages (11886 links), and that one was a link-local IPv6 address in
+    # a URL library's documentation. The ceiling is the rule-detector 0.05 so that a
+    # future row set with links in it is held to something from its first run.
+    "link_integrity": 0.05,
 }
 
 #: The one that is over its ceiling today, split out so the nine above stay enforced. A

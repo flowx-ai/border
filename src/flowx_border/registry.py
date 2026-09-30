@@ -65,6 +65,7 @@ def _build() -> tuple[dict[str, Detector], frozenset[str]]:
     from flowx_border.detectors.internal_domains import InternalDomainsDetector
     from flowx_border.detectors.invisible_text import InvisibleTextDetector
     from flowx_border.detectors.language_id import LanguageIdDetector
+    from flowx_border.detectors.link_integrity import LinkIntegrityDetector
     from flowx_border.detectors.markup_injection import MarkupInjectionDetector
     from flowx_border.detectors.output_format import OutputFormatDetector
     from flowx_border.detectors.output_leakage import OutputLeakageDetector
@@ -96,6 +97,7 @@ def _build() -> tuple[dict[str, Detector], frozenset[str]]:
         "markup_injection": MarkupInjectionDetector(),
         "internal_domains": InternalDomainsDetector(),
         "confusables": ConfusablesDetector(),
+        "link_integrity": LinkIntegrityDetector(),
         "output_format": OutputFormatDetector(),
         "postal_code": PostalCodeDetector(),
         "code_present": CodePresentDetector(),

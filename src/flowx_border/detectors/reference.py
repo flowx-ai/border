@@ -135,6 +135,11 @@ SUMMARIES: Final[MappingProxyType[str, str]] = MappingProxyType(
             "letters, by the Unicode UTS #39 skeleton, and single words written in two "
             "scripts where one letter passes for the other."
         ),
+        "link_integrity": (
+            "Links whose visible text names a different site from the target, or "
+            "whose target hides its host behind userinfo, a confusable spelling or an "
+            "IP address. Single-script internationalised hosts are not findings."
+        ),
         "output_format": (
             "Shape assertions a policy states: JSON, HTML, URL presence, length in "
             "graphemes, word count, case, choices, ranges, a regex, reading time."

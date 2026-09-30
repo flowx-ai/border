@@ -194,6 +194,14 @@ detectors:
     # Left on for a general assistant. Turn it off for a coding assistant, where
     # emitting a <script> tag is the product working rather than failing.
 
+  link_integrity:
+    on_fail: redact         # remove the deceptive link and its text, keep the answer
+    options:
+      # `confusable` reports mixed-script and lookalike hosts and leaves single-script
+      # internationalised ones alone, which is what 26 languages need. `all` reports
+      # every non-ASCII host, for a product that only ever links to ASCII names.
+      idn_hosts: confusable
+
   # T2. May be disabled per policy.
   moderation:
     enabled: true           # the account-access register landed, see below

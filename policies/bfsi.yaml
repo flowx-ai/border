@@ -135,6 +135,11 @@ detectors:
   markup_injection:
     on_fail: block
 
+  link_integrity:
+    on_fail: block          # a link that misstates its target is a phishing shape here
+    options:
+      idn_hosts: confusable
+
   moderation:
     enabled: true           # the account-access register landed: see policies/default.yaml
     on_fail: block          # this sector's answer, now that it can be enforced

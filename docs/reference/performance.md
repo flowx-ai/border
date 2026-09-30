@@ -26,6 +26,7 @@ means the score is unverified rather than good or bad.
 | `invisible_text` | T0 | built | – | – | – | – | – | – |
 | `json_schema` | T1 | built | – | – | – | – | – | – |
 | `language_id` | T1 | built | – | – | – | – | – | – |
+| `link_integrity` | T1 | built | – | – | – | – | – | – |
 | `markup_injection` | T1 | built | – | – | – | – | – | – |
 | `moderation` | T2 | built | f1 | 0.980 | 0.988 | 0.857 | 1623 | positive examples |
 | `nsfw` | T2 | built | f1 | 0.974 | 0.980 | 0.868 | 622 | positive examples |
@@ -78,6 +79,7 @@ At a 396 character reference input, 1 thread, CPUExecutionProvider. Romanian pro
 | `invisible_text` | 0.024 | 5.0 | – |
 | `json_schema` | 0.001 | 5.0 | – |
 | `language_id` | 0.223 | 5.0 | – |
+| `link_integrity` | 0.167 | 5.0 | – |
 | `markup_injection` | 0.170 | 5.0 | – |
 | `moderation` | 41.637 | 150.0 | – |
 | `nsfw` | 42.529 | 225.0 | – |
