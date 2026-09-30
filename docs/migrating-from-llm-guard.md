@@ -115,6 +115,7 @@ Behaviour differences that the tuple cannot express:
 - `moderation` (T2, input and output, no artifact published yet)
 - `encoded_payload` (T1, input and output)
 - `confusables` (T1, input and output)
+- `infra_leakage` (T1, output)
 
 The last twelve arrived on 2026-08-11 with the Guardrails Hub port, and six of them
 moved a scanner out of the unsupported table above.
@@ -130,6 +131,14 @@ and base64 of ordinary prose all decode and none is reported.
 skeleton check that `banned_terms` and `internal_domains` were missing, so a Cyrillic
 `а` in a listed name no longer walks past both, and it reports single words written in
 two scripts where one letter passes for the other.
+
+`infra_leakage` arrived on 2026-09-30 and moved no scanner either. It reports private,
+loopback and link-local addresses, cloud metadata endpoints, home and system paths, and
+hosts under reserved suffixes such as `.internal` and `.local`, with no list to
+configure. The nearest llm-guard scanner is `Sensitive`, which is about personal data
+and maps to `output_leakage` above. Before this, a stack trace carrying
+`/Users/<name>/secrets/config.yaml` and `10.0.4.17:8443` produced nothing here but a
+spurious `pii:date`.
 
 ## Scanners that gained a detector on 2026-08-11
 

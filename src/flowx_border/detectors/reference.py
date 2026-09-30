@@ -140,6 +140,12 @@ SUMMARIES: Final[MappingProxyType[str, str]] = MappingProxyType(
             "whose target hides its host behind userinfo, a confusable spelling or an "
             "IP address. Single-script internationalised hosts are not findings."
         ),
+        "infra_leakage": (
+            "Infrastructure detail in an answer with no list to configure: private, "
+            "loopback and link-local addresses, cloud metadata endpoints, home and "
+            "system paths, and hosts under reserved suffixes such as .internal and "
+            ".local. Documentation addresses and version numbers are not reported."
+        ),
         "output_format": (
             "Shape assertions a policy states: JSON, HTML, URL presence, length in "
             "graphemes, word count, case, choices, ranges, a regex, reading time."

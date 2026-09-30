@@ -533,6 +533,19 @@
       "status": "built",
       "tier": "T3"
     },
+    "infra_leakage": {
+      "tier": "T1",
+      "sides": [
+        "output"
+      ],
+      "budget_ms": 5.0,
+      "in_core": true,
+      "requires": {},
+      "status": "built",
+      "metrics": null,
+      "caveats": [],
+      "metrics_note": "no evaluation artifact was available at collection time. A rules-based detector has none by nature; a model-backed one missing this is a gap."
+    },
     "injection": {
       "budget_ms": 225.0,
       "caveats": [
@@ -1977,6 +1990,9 @@
       },
       "groundedness": {
         "p95": 12.851
+      },
+      "infra_leakage": {
+        "p95": 0.047
       },
       "injection": {
         "p95": 40.669

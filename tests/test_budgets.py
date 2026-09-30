@@ -102,6 +102,11 @@ MEASURED_MS = {
     # so this is the cost of looking: one folding pass and four patterns that fail.
     # With three hostile links appended it read 0.24 ms, so finding costs little more.
     "link_integrity": 0.17,
+    # Measured 2026-09-30, same machine and input, best of three 200-run rounds at
+    # 0.046 to 0.049. Seven regex scans over prose that contains no candidate, so
+    # `ipaddress` is never reached. A 2,900-character stack trace dense with addresses,
+    # paths and hosts measured 0.65 ms, still an eighth of the ceiling.
+    "infra_leakage": 0.05,
     # Measured with every check switched on except json, which the reference input fails
     # at the first character and so never exercises. A pathological `regex` in a policy
     # can cost more than this, and that cost belongs to whoever wrote it.
@@ -348,6 +353,9 @@ RULE_DETECTORS: list[tuple[str, object, DetectorConfig, Context]] = [
         DetectorConfig(on_fail="flag", options={"domains": ["corp.internal"]}),
         CTX,
     ),
+    # Prose with no address, path or host in it, which is the common case and the one
+    # to budget: every candidate scan fails fast and `ipaddress` is never called.
+    ("infra_leakage", None, CFG, CTX),
     (
         "sql_injection",
         None,
@@ -416,6 +424,7 @@ def _rule_detector(detector_id: str) -> object:
     from flowx_border.detectors.code_present import CodePresentDetector
     from flowx_border.detectors.confusables import ConfusablesDetector
     from flowx_border.detectors.encoded_payload import EncodedPayloadDetector
+    from flowx_border.detectors.infra_leakage import InfraLeakageDetector
     from flowx_border.detectors.internal_domains import InternalDomainsDetector
     from flowx_border.detectors.link_integrity import LinkIntegrityDetector
     from flowx_border.detectors.markup_injection import MarkupInjectionDetector
@@ -436,6 +445,7 @@ def _rule_detector(detector_id: str) -> object:
         "markup_injection": MarkupInjectionDetector,
         "internal_domains": InternalDomainsDetector,
         "link_integrity": LinkIntegrityDetector,
+        "infra_leakage": InfraLeakageDetector,
         "output_format": OutputFormatDetector,
         "postal_code": PostalCodeDetector,
         "sql_injection": SqlInjectionDetector,

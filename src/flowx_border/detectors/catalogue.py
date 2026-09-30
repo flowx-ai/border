@@ -140,6 +140,11 @@ CATALOGUE: Final[MappingProxyType[str, Spec]] = MappingProxyType(
         # network and sits in CORE. Output only: a deceptive link matters where a
         # reader follows it, and on the input side it is the user's own text.
         "link_integrity": Spec("T1", frozenset({OUTPUT}), 5.0),
+        # Added 2026-09-30. The list-free companion to internal_domains: private and
+        # link-local addresses, home and system paths, metadata endpoints and hosts
+        # under reserved suffixes, all defined by an RFC rather than by a deployment, so
+        # it works for a caller who configured nothing. Stdlib only, so in CORE.
+        "infra_leakage": Spec("T1", frozenset({OUTPUT}), 5.0),
         # Shape rather than security, and the only entry here that is. It exists so that
         # sixteen hub shape validators have one destination instead of sixteen.
         "output_format": Spec("T1", frozenset({OUTPUT}), 5.0),

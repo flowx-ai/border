@@ -21,6 +21,7 @@ means the score is unverified rather than good or bad.
 | `encoded_payload` | T1 | built | – | – | – | – | – | – |
 | `gibberish` | T1 | built | f1 | 0.992 | 1.000 | 0.946 | 779 | positive examples |
 | `groundedness` | T3 | built | exact_match_accuracy | 0.898 | 0.902 | 0.831 | 3214 | examples evaluated |
+| `infra_leakage` | T1 | built | – | – | – | – | – | – |
 | `injection` | T2 | built | f1 | 0.989 | 1.000 | 0.882 | 1080 | positive examples |
 | `internal_domains` | T1 | built | – | – | – | – | – | – |
 | `invisible_text` | T0 | built | – | – | – | – | – | – |
@@ -74,6 +75,7 @@ At a 396 character reference input, 1 thread, CPUExecutionProvider. Romanian pro
 | `encoded_payload` | 0.194 | 5.0 | – |
 | `gibberish` | 27.287 | 225.0 | – |
 | `groundedness` | 12.851 | 300.0 | – |
+| `infra_leakage` | 0.047 | 5.0 | – |
 | `injection` | 40.669 | 225.0 | – |
 | `internal_domains` | 0.160 | 5.0 | – |
 | `invisible_text` | 0.024 | 5.0 | – |
