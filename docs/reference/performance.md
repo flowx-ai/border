@@ -96,7 +96,7 @@ At a 396 character reference input, 1 thread, CPUExecutionProvider. Romanian pro
 | `summary_support` | 0.553 | 5.0 | – |
 | `system_prompt_leakage` | 0.196 | 5.0 | the unconfigured path |
 | `token_limit` | 0.001 | 5.0 | the unconfigured path |
-| `topic_scope` | 36.475 | 300.0 | – |
+| `topic_scope` | 49.509 | 300.0 | – |
 | `toxicity` | 19.062 | 225.0 | – |
 | `url_reachability` | 0.005 | 3000.0 | the unconfigured path |
 
