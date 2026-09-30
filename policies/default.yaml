@@ -148,6 +148,21 @@ detectors:
     options:
       terms: []             # names and hostnames a lookalike of which is an attack
       mixed_script: true
+  # The list-free companion to internal_domains, and on, because it needs nothing from
+  # the deployer: private and link-local addresses, home and system paths, metadata
+  # endpoints and hosts under .internal, .local and the like.
+  #
+  # Measured 2026-09-30: 0 of the 234 ordinary sweep rows in 26 languages, 6 of 26,966
+  # moderation corpus rows, 3 of 11,725 politeness rows. Every one of those nine was the
+  # shape it claims to be, none a version number or a date, which is why it is on.
+  #
+  # `flag` rather than `redact`, because what it cannot tell apart is a leak and an
+  # answer doing its job. Two of the nine told a customer to type 192.168.0.1 into a
+  # browser to reach their router, and a coding answer naming 127.0.0.1 is the product
+  # working. Redacting those breaks a correct answer. bfsi.yaml redacts, where neither
+  # is a plausible answer.
+  infra_leakage:
+    on_fail: flag
   output_format:
     enabled: false          # shape, not security, and its shape is yours to state
     on_fail: flag

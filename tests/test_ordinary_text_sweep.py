@@ -153,6 +153,11 @@ MAX_FIRE_RATE: dict[str, float] = {
     # a URL library's documentation. The ceiling is the rule-detector 0.05 so that a
     # future row set with links in it is held to something from its first run.
     "link_integrity": 0.05,
+    # Added 2026-09-30 with the detector, before it had fired, so it is governed from
+    # its first row rather than after. Measures 0 of 234: ordinary prose carries no
+    # private address, home directory or reserved-suffix host. 0.05 is the rule-shaped
+    # ceiling `secrets` carries, and a row that trips it is worth reading.
+    "infra_leakage": 0.05,
 }
 
 #: The one that is over its ceiling today, split out so the nine above stay enforced. A

@@ -91,6 +91,15 @@ detectors:
     options:
       terms: []             # fill in: your brand names and public hostnames
       mixed_script: true
+  # Redact where internal_domains blocks: that list is the deployer's own and certain,
+  # these are shapes, and removing the span keeps the answer. The metadata endpoint is
+  # the exception, because an answer naming it is closer to an SSRF recipe than a leak.
+  infra_leakage:
+    enabled: true
+    on_fail: redact
+    options:
+      kind_actions:
+        metadata_endpoint: block
   output_format:
     enabled: false          # nothing here is a compliance control
     on_fail: flag
