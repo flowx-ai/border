@@ -128,6 +128,13 @@ CATALOGUE: Final[MappingProxyType[str, Spec]] = MappingProxyType(
         # `LanguageSame` needs both.
         "language_id": Spec("T1", frozenset({INPUT, OUTPUT}), 5.0),
         "internal_domains": Spec("T1", frozenset({OUTPUT}), 5.0),
+        # Added 2026-09-30. The UTS #39 skeleton check that banned_terms and
+        # internal_domains were missing: a Cyrillic `а` in `acme` walked past both. T1
+        # rather than T0 because a mixed-script word has a legitimate reading in a few
+        # registers (a keyboard-layout slip in Bulgarian, notation in science), so a
+        # deployment has to be able to switch it off. Rules over a generated Unicode
+        # table that ships in the package, so it is in CORE.
+        "confusables": Spec("T1", frozenset({INPUT, OUTPUT}), 5.0),
         # Shape rather than security, and the only entry here that is. It exists so that
         # sixteen hub shape validators have one destination instead of sixteen.
         "output_format": Spec("T1", frozenset({OUTPUT}), 5.0),

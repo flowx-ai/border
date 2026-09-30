@@ -93,6 +93,11 @@ MEASURED_MS = {
     "system_prompt_leakage": 0.36,
     "markup_injection": 0.23,
     "internal_domains": 0.23,
+    # Measured 2026-09-30 on the M5 workstation, both halves on and three terms, one of
+    # them a hostname. Two skeleton keys from a per-character cache, a script count per
+    # non-ASCII word, and a find per term key. The reference input is Romanian prose,
+    # so the script count runs on every word with a diacritic and never fires.
+    "confusables": 0.12,
     # Measured with every check switched on except json, which the reference input fails
     # at the first character and so never exercises. A pathological `regex` in a policy
     # can cost more than this, and that cost belongs to whoever wrote it.
@@ -321,6 +326,17 @@ RULE_DETECTORS: list[tuple[str, object, DetectorConfig, Context]] = [
         ),
     ),
     ("markup_injection", None, CFG, CTX),
+    # Terms, for the reason banned_terms gets them: with an empty list the lookalike
+    # half does no work and the measurement would time only the script count.
+    (
+        "confusables",
+        None,
+        DetectorConfig(
+            on_fail="flag",
+            options={"terms": ["concurent", "acme", "corp.internal"]},
+        ),
+        CTX,
+    ),
     (
         "internal_domains",
         None,
@@ -393,6 +409,7 @@ def _rule_detector(detector_id: str) -> object:
     """
     from flowx_border.detectors.banned_terms import BannedTermsDetector
     from flowx_border.detectors.code_present import CodePresentDetector
+    from flowx_border.detectors.confusables import ConfusablesDetector
     from flowx_border.detectors.encoded_payload import EncodedPayloadDetector
     from flowx_border.detectors.internal_domains import InternalDomainsDetector
     from flowx_border.detectors.markup_injection import MarkupInjectionDetector
@@ -407,6 +424,7 @@ def _rule_detector(detector_id: str) -> object:
 
     return {
         "banned_terms": BannedTermsDetector,
+        "confusables": ConfusablesDetector,
         "encoded_payload": EncodedPayloadDetector,
         "system_prompt_leakage": SystemPromptLeakageDetector,
         "markup_injection": MarkupInjectionDetector,

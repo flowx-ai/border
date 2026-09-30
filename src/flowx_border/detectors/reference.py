@@ -130,6 +130,11 @@ SUMMARIES: Final[MappingProxyType[str, str]] = MappingProxyType(
             "Internal hostnames appearing in an answer meant for someone outside, in "
             "both their Unicode and punycode spellings."
         ),
+        "confusables": (
+            "Words that look like a listed term or hostname and are spelled with other "
+            "letters, by the Unicode UTS #39 skeleton, and single words written in two "
+            "scripts where one letter passes for the other."
+        ),
         "output_format": (
             "Shape assertions a policy states: JSON, HTML, URL presence, length in "
             "graphemes, word count, case, choices, ranges, a regex, reading time."

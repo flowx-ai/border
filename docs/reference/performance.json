@@ -190,6 +190,20 @@
       "status": "built",
       "tier": "T1"
     },
+    "confusables": {
+      "budget_ms": 5.0,
+      "caveats": [],
+      "in_core": true,
+      "metrics": null,
+      "metrics_note": "no evaluation artifact was available at collection time. A rules-based detector has none by nature; a model-backed one missing this is a gap.",
+      "requires": {},
+      "sides": [
+        "input",
+        "output"
+      ],
+      "status": "built",
+      "tier": "T1"
+    },
     "disclosure": {
       "budget_ms": 5.0,
       "caveats": [],
@@ -1935,6 +1949,9 @@
       },
       "code_present": {
         "p95": 0.008
+      },
+      "confusables": {
+        "p95": 0.124
       },
       "disclosure": {
         "p95": 0.029

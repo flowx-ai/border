@@ -139,6 +139,12 @@ MAX_FIRE_RATE: dict[str, float] = {
     # string that clears its entropy bar. 0.05 is the same ceiling the other rule-shaped
     # detectors carry.
     "secrets": 0.05,
+    # Added 2026-09-30 with the detector, before it had fired on anything here: 0 of
+    # 234. Its mixed-script half has no list and runs in the shipped policy at `log`,
+    # so it is held to the ceiling the other rules carry. Over the whole training
+    # corpus its mundane rows measure 43 of 37052, all of them words the generator
+    # really did write in two scripts.
+    "confusables": 0.05,
 }
 
 #: The one that is over its ceiling today, split out so the nine above stay enforced. A

@@ -82,6 +82,15 @@ detectors:
     on_fail: block          # topology in an outbound answer is a reportable event
     options:
       domains: []           # fill in: your internal hostnames
+  # Flag rather than log: a lookalike of an institution's name or hostname in an answer
+  # is the shape of a phishing link, and here that is worth a reviewer's eyes. Fill in
+  # terms with the same names and hostnames as the two lists above.
+  confusables:
+    enabled: true
+    on_fail: flag
+    options:
+      terms: []             # fill in: your brand names and public hostnames
+      mixed_script: true
   output_format:
     enabled: false          # nothing here is a compliance control
     on_fail: flag

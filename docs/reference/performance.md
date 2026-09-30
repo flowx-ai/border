@@ -16,6 +16,7 @@ means the score is unverified rather than good or bad.
 | `banned_terms` | T1 | built | – | – | – | – | – | – |
 | `bias` | T2 | built | f1 | 0.983 | 0.987 | 0.942 | 2064 | positive examples |
 | `code_present` | T1 | built | – | – | – | – | – | – |
+| `confusables` | T1 | built | – | – | – | – | – | – |
 | `disclosure` | T0 | built | – | – | – | – | – | – |
 | `encoded_payload` | T1 | built | – | – | – | – | – | – |
 | `gibberish` | T1 | built | f1 | 0.992 | 1.000 | 0.946 | 779 | positive examples |
@@ -67,6 +68,7 @@ At a 396 character reference input, 1 thread, CPUExecutionProvider. Romanian pro
 | `banned_terms` | 0.167 | 5.0 | – |
 | `bias` | 19.097 | 225.0 | – |
 | `code_present` | 0.008 | 5.0 | – |
+| `confusables` | 0.124 | 5.0 | – |
 | `disclosure` | 0.029 | 5.0 | – |
 | `encoded_payload` | 0.194 | 5.0 | – |
 | `gibberish` | 27.287 | 225.0 | – |

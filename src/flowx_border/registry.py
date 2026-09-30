@@ -59,6 +59,7 @@ def _build() -> tuple[dict[str, Detector], frozenset[str]]:
     """
     from flowx_border.detectors.banned_terms import BannedTermsDetector
     from flowx_border.detectors.code_present import CodePresentDetector
+    from flowx_border.detectors.confusables import ConfusablesDetector
     from flowx_border.detectors.disclosure import DisclosureDetector
     from flowx_border.detectors.encoded_payload import EncodedPayloadDetector
     from flowx_border.detectors.internal_domains import InternalDomainsDetector
@@ -94,6 +95,7 @@ def _build() -> tuple[dict[str, Detector], frozenset[str]]:
         "language_id": LanguageIdDetector(),
         "markup_injection": MarkupInjectionDetector(),
         "internal_domains": InternalDomainsDetector(),
+        "confusables": ConfusablesDetector(),
         "output_format": OutputFormatDetector(),
         "postal_code": PostalCodeDetector(),
         "code_present": CodePresentDetector(),
