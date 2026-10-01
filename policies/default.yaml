@@ -418,18 +418,19 @@ detectors:
   topic_scope:
     on_fail: flag
     # 0.5, a probability, since the typed engine became the default on 2026-09-30. Read off
-    # training reports/topic_scope_v3_thresholds.json (topic-scope-v3, XLM-R large),
-    # validation rows, where the model names a node at or above the bar:
+    # training reports/topic_scope_v3_thresholds.json (topic-scope-v3, XLM-R large, none
+    # offset -0.5 as shipped), validation rows, where the model names a node at or above
+    # the bar:
     #
     #   bar    right node    node rows named right
-    #   0.30       0.8919                   0.9032
-    #   0.50       0.9020                   0.8892
-    #   0.70       0.9354                   0.8248
-    #   0.85       0.9578                   0.7400
+    #   0.30       0.8847                   0.9110
+    #   0.50       0.8963                   0.8972
+    #   0.70       0.9319                   0.8363
+    #   0.85       0.9549                   0.7563
     #
     # "Right node" is stricter than what fires: naming the wrong one of two disallowed
     # nodes still fires correctly. 0.5 because below it the table is nearly flat, 0.3
-    # adding 1.4 points of recall for 1.0 of precision, and above it each 0.1 costs about
+    # adding 1.4 points of recall for 1.2 of precision, and above it each 0.1 costs about
     # three points of recall for under two of precision. topic-scope-v2 read 0.8581 and
     # 0.7935 at the same bar, so the bar is unchanged and the model under it is better.
     #

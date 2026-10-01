@@ -6,7 +6,7 @@ typed-decision head (`flowxai/topic-scope-v3`, see `topic_scope_typed.py`): it r
 message and every node together, can answer "none of these", and its score is a
 calibrated probability. `bi-encoder` is the model described below, kept loadable,
 unchanged, until the typed engine has a deployment's worth of evidence. On taxonomies
-from deployment types neither trained on, typed picks the right node or none for 0.804
+from deployment types neither trained on, typed picks the right node or none for 0.859
 of messages and the bi-encoder for 0.479.
 
 The findings are the same shape under both: `off_topic__<path>` when the winning node is
@@ -17,8 +17,15 @@ no node at all (`options.on_none` sets its action, for an allow-list deployment 
 that is the off-topic case), and `topic_scope_shortlisted` when the taxonomy was larger
 than the head is offered and only the nearest nodes were considered.
 
+**Known limitation: short plain in-scope questions.** On 400 hand-written probes
+(`tests/fixtures/topic_scope/hand_written_probes.json`), about 35% of short, plain
+questions about an allowed node get "none of these": 70 of 200 for topic-scope-v3, 73
+for v2. Nothing fires on them, so under the default `on_none: log` they pass; under
+`on_none: block` each is a refused question a deployment wanted answered. An allow-list
+deployment should measure that rate on its own traffic before blocking on none.
+
 **What a threshold means differs by engine.** Under `typed` it is a probability: 0.5,
-chosen on validation rows, fires on the right node 0.858 of the time. Under `bi-encoder`
+chosen on validation rows, fires on the right node 0.896 of the time. Under `bi-encoder`
 it is a rescaled cosine and 0.85 is the bar the paragraphs below arrive at. A policy
 that switches engine has to switch threshold with it.
 

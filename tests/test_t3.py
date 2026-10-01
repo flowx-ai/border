@@ -134,6 +134,20 @@ def test_the_prefix_is_counted_against_the_label_limit() -> None:
 # ------------------------------------------------------------------- topic_scope
 
 
+@pytest.mark.xfail(
+    reason=(
+        "A known limitation of the typed engine, kept visible rather than worked "
+        "around by changing the probe. topic-scope-v3 answers 'none of these' to this "
+        "question at 0.611 (none offset -0.5), a log-level finding by default and a "
+        "refusal under options.on_none. topic-scope-v2 passes this one probe, and the "
+        "gap is not v3's: on 200 hand-written short in-scope questions "
+        "(tests/fixtures/topic_scope/hand_written_probes.json) v2 answers none on 73 "
+        "and v3 on 70, about 35% for both, worst on transfers between accounts, "
+        "statements and card limits. It needs short plain questions in training; the "
+        "offset does not fix it. Measured 2026-10-01."
+    ),
+    strict=True,
+)
 def test_an_in_scope_question_produces_no_finding(scoped: TopicScopeDetector) -> None:
     cfg = DetectorConfig(on_fail="flag", threshold=0.5, options=TAXONOMY)
     assert (

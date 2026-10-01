@@ -10,7 +10,8 @@ disagreement there is a porting bug; a wrong answer the run also gave is the mod
 is counted separately.
 
 The fixtures come from `scripts/topic_scope_v2_library.py --name topic-scope-v3` in the
-training repository, from the XLM-R large run's saved logits. One file, replaced rather
+training repository, from the XLM-R large run's saved logits at the shipped none offset,
+-0.5 (`--none-offset -0.5`; the run fitted -0.25). One file, replaced rather
 than added beside v2's, because each row carries the answer the loaded model's own run
 gave and the test compares against it: fixtures from another model would test the wrong
 weights. They are unseen-type rows: taxonomies from deployment types the model never
