@@ -43,7 +43,7 @@ means the score is unverified rather than good or bad.
 | `summary_support` | T1 | built | – | – | – | – | – | – |
 | `system_prompt_leakage` | T1 | built | – | – | – | – | – | – |
 | `token_limit` | T1 | built | – | – | – | – | – | – |
-| `topic_scope` | T3 | built | top1_accuracy | 0.803 | 0.814 | 0.624 | 11497 | examples evaluated |
+| `topic_scope` | T3 | built | top1_accuracy | 0.859 | 0.862 | 0.750 | 11497 | examples evaluated |
 | `toxicity` | T2 | built | f1 | 0.992 | 1.000 | 0.950 | 518 | positive examples |
 | `url_reachability` | T3 | built | – | – | – | – | – | – |
 
@@ -96,7 +96,7 @@ At a 396 character reference input, 1 thread, CPUExecutionProvider. Romanian pro
 | `summary_support` | 0.553 | 5.0 | – |
 | `system_prompt_leakage` | 0.196 | 5.0 | the unconfigured path |
 | `token_limit` | 0.001 | 5.0 | the unconfigured path |
-| `topic_scope` | 49.509 | 300.0 | – |
+| `topic_scope` | 146.453 | 300.0 | – |
 | `toxicity` | 19.062 | 225.0 | – |
 | `url_reachability` | 0.005 | 3000.0 | the unconfigured path |
 
