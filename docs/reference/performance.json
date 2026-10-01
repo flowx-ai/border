@@ -190,6 +190,20 @@
       "status": "built",
       "tier": "T1"
     },
+    "confusables": {
+      "budget_ms": 5.0,
+      "caveats": [],
+      "in_core": true,
+      "metrics": null,
+      "metrics_note": "no evaluation artifact was available at collection time. A rules-based detector has none by nature; a model-backed one missing this is a gap.",
+      "requires": {},
+      "sides": [
+        "input",
+        "output"
+      ],
+      "status": "built",
+      "tier": "T1"
+    },
     "disclosure": {
       "budget_ms": 5.0,
       "caveats": [],
@@ -519,6 +533,19 @@
       "status": "built",
       "tier": "T3"
     },
+    "infra_leakage": {
+      "tier": "T1",
+      "sides": [
+        "output"
+      ],
+      "budget_ms": 5.0,
+      "in_core": true,
+      "requires": {},
+      "status": "built",
+      "metrics": null,
+      "caveats": [],
+      "metrics_note": "no evaluation artifact was available at collection time. A rules-based detector has none by nature; a model-backed one missing this is a gap."
+    },
     "injection": {
       "budget_ms": 225.0,
       "caveats": [
@@ -731,6 +758,19 @@
       "requires": {},
       "sides": [
         "input",
+        "output"
+      ],
+      "status": "built",
+      "tier": "T1"
+    },
+    "link_integrity": {
+      "budget_ms": 5.0,
+      "caveats": [],
+      "in_core": true,
+      "metrics": null,
+      "metrics_note": "no evaluation artifact was available at collection time. A rules-based detector has none by nature; a model-backed one missing this is a gap.",
+      "requires": {},
+      "sides": [
         "output"
       ],
       "status": "built",
@@ -1936,6 +1976,9 @@
       "code_present": {
         "p95": 0.008
       },
+      "confusables": {
+        "p95": 0.124
+      },
       "disclosure": {
         "p95": 0.029
       },
@@ -1947,6 +1990,9 @@
       },
       "groundedness": {
         "p95": 12.851
+      },
+      "infra_leakage": {
+        "p95": 0.047
       },
       "injection": {
         "p95": 40.669
@@ -1962,6 +2008,9 @@
       },
       "language_id": {
         "p95": 0.223
+      },
+      "link_integrity": {
+        "p95": 0.167
       },
       "markup_injection": {
         "p95": 0.17

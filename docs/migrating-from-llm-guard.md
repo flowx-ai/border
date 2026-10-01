@@ -104,6 +104,7 @@ Behaviour differences that the tuple cannot express:
 - `system_prompt_leakage` (T1, output)
 - `markup_injection` (T1, input and output)
 - `internal_domains` (T1, output)
+- `link_integrity` (T1, output)
 - `output_format` (T1, output)
 - `sql_injection` (T1, output, needs the `sql` extra)
 - `url_reachability` (T3, output, makes an HTTP request)
@@ -113,6 +114,8 @@ Behaviour differences that the tuple cannot express:
 - `json_schema` (T1, output, needs the `schema` extra)
 - `moderation` (T2, input and output, no artifact published yet)
 - `encoded_payload` (T1, input and output)
+- `confusables` (T1, input and output)
+- `infra_leakage` (T1, output)
 
 The last twelve arrived on 2026-08-11 with the Guardrails Hub port, and six of them
 moved a scanner out of the unsupported table above.
@@ -123,6 +126,19 @@ to what comes out, which is the half of prompt injection a classifier cannot rea
 surface text of a base64 blob carries no attack, so `PromptInjection` and our own
 `injection` both score it clean. Decoding alone is never a finding, so a JWT, a git hash
 and base64 of ordinary prose all decode and none is reported.
+
+`confusables` arrived on 2026-09-30 and also moved no scanner. It is the UTS #39
+skeleton check that `banned_terms` and `internal_domains` were missing, so a Cyrillic
+`а` in a listed name no longer walks past both, and it reports single words written in
+two scripts where one letter passes for the other.
+
+`infra_leakage` arrived on 2026-09-30 and moved no scanner either. It reports private,
+loopback and link-local addresses, cloud metadata endpoints, home and system paths, and
+hosts under reserved suffixes such as `.internal` and `.local`, with no list to
+configure. The nearest llm-guard scanner is `Sensitive`, which is about personal data
+and maps to `output_leakage` above. Before this, a stack trace carrying
+`/Users/<name>/secrets/config.yaml` and `10.0.4.17:8443` produced nothing here but a
+spurious `pii:date`.
 
 ## Scanners that gained a detector on 2026-08-11
 

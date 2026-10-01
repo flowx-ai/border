@@ -82,6 +82,24 @@ detectors:
     on_fail: block          # topology in an outbound answer is a reportable event
     options:
       domains: []           # fill in: your internal hostnames
+  # Flag rather than log: a lookalike of an institution's name or hostname in an answer
+  # is the shape of a phishing link, and here that is worth a reviewer's eyes. Fill in
+  # terms with the same names and hostnames as the two lists above.
+  confusables:
+    enabled: true
+    on_fail: flag
+    options:
+      terms: []             # fill in: your brand names and public hostnames
+      mixed_script: true
+  # Redact where internal_domains blocks: that list is the deployer's own and certain,
+  # these are shapes, and removing the span keeps the answer. The metadata endpoint is
+  # the exception, because an answer naming it is closer to an SSRF recipe than a leak.
+  infra_leakage:
+    enabled: true
+    on_fail: redact
+    options:
+      kind_actions:
+        metadata_endpoint: block
   output_format:
     enabled: false          # nothing here is a compliance control
     on_fail: flag
@@ -125,6 +143,11 @@ detectors:
 
   markup_injection:
     on_fail: block
+
+  link_integrity:
+    on_fail: block          # a link that misstates its target is a phishing shape here
+    options:
+      idn_hosts: confusable
 
   moderation:
     enabled: true           # the account-access register landed: see policies/default.yaml

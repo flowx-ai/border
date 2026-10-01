@@ -139,6 +139,25 @@ MAX_FIRE_RATE: dict[str, float] = {
     # string that clears its entropy bar. 0.05 is the same ceiling the other rule-shaped
     # detectors carry.
     "secrets": 0.05,
+    # Added 2026-09-30 with the detector, before it had fired on anything here: 0 of
+    # 234. Its mixed-script half has no list and runs in the shipped policy at `flag`,
+    # so it is held to the ceiling the other rules carry. Over the whole training
+    # corpus its mundane rows measure 43 of 37052, all of them words the generator
+    # really did write in two scripts.
+    "confusables": 0.05,
+    # Added 2026-09-30 with the detector, before it had fired on anything. It measures
+    # 0 of 234, and that figure is weaker than it looks: none of the 234 rows carries a
+    # link, so the sweep cannot tell a careful detector from an idle one. The false
+    # positive evidence is elsewhere, 1 paragraph of 3917 across the METADATA of 228
+    # installed packages (11886 links), and that one was a link-local IPv6 address in
+    # a URL library's documentation. The ceiling is the rule-detector 0.05 so that a
+    # future row set with links in it is held to something from its first run.
+    "link_integrity": 0.05,
+    # Added 2026-09-30 with the detector, before it had fired, so it is governed from
+    # its first row rather than after. Measures 0 of 234: ordinary prose carries no
+    # private address, home directory or reserved-suffix host. 0.05 is the rule-shaped
+    # ceiling `secrets` carries, and a row that trips it is worth reading.
+    "infra_leakage": 0.05,
 }
 
 #: The one that is over its ceiling today, split out so the nine above stay enforced. A

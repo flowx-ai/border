@@ -128,6 +128,23 @@ CATALOGUE: Final[MappingProxyType[str, Spec]] = MappingProxyType(
         # `LanguageSame` needs both.
         "language_id": Spec("T1", frozenset({INPUT, OUTPUT}), 5.0),
         "internal_domains": Spec("T1", frozenset({OUTPUT}), 5.0),
+        # Added 2026-09-30. The UTS #39 skeleton check that banned_terms and
+        # internal_domains were missing: a Cyrillic `а` in `acme` walked past both. T1
+        # rather than T0 because a mixed-script word has a legitimate reading in a few
+        # registers (a keyboard-layout slip in Bulgarian, notation in science), so a
+        # deployment has to be able to switch it off. Rules over a generated Unicode
+        # table that ships in the package, so it is in CORE.
+        "confusables": Spec("T1", frozenset({INPUT, OUTPUT}), 5.0),
+        # Added 2026-09-30, item 2 of docs/proposed-detectors.md. Rules over the links
+        # in an answer, with the TLD list shipped as package data, so it needs no
+        # network and sits in CORE. Output only: a deceptive link matters where a
+        # reader follows it, and on the input side it is the user's own text.
+        "link_integrity": Spec("T1", frozenset({OUTPUT}), 5.0),
+        # Added 2026-09-30. The list-free companion to internal_domains: private and
+        # link-local addresses, home and system paths, metadata endpoints and hosts
+        # under reserved suffixes, all defined by an RFC rather than by a deployment, so
+        # it works for a caller who configured nothing. Stdlib only, so in CORE.
+        "infra_leakage": Spec("T1", frozenset({OUTPUT}), 5.0),
         # Shape rather than security, and the only entry here that is. It exists so that
         # sixteen hub shape validators have one destination instead of sixteen.
         "output_format": Spec("T1", frozenset({OUTPUT}), 5.0),

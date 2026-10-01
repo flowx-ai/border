@@ -64,8 +64,9 @@ from flowx_border.types import Finding
 LABEL: Final = "internal_domain"
 
 #: Characters that continue a hostname. Used on both sides of a match so that a domain
-#: is matched as a whole host rather than as a substring of a different one.
-_HOST_CHAR: Final = r"[\w-]"
+#: is matched as a whole host rather than as a substring of a different one. Public
+#: because infra_leakage bounds its reserved-suffix hosts the same way.
+HOST_CHAR: Final = r"[\w-]"
 
 
 def idn_variants(domain: str) -> tuple[str, ...]:
@@ -103,8 +104,8 @@ def compile_domains(domains: tuple[str, ...]) -> re.Pattern[str] | None:
         return None
     body = "|".join(re.escape(spelling) for spelling in spellings)
     return re.compile(
-        rf"(?<!{_HOST_CHAR})(?<!\.)(?:{_HOST_CHAR}+\.)*(?:{body})"
-        rf"(?!{_HOST_CHAR})(?!\.{_HOST_CHAR})"
+        rf"(?<!{HOST_CHAR})(?<!\.)(?:{HOST_CHAR}+\.)*(?:{body})"
+        rf"(?!{HOST_CHAR})(?!\.{HOST_CHAR})"
     )
 
 

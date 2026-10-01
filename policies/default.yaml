@@ -135,6 +135,34 @@ detectors:
     on_fail: redact         # a hostname in an answer is worth removing, not refusing
     options:
       domains: []           # corp.internal, wiki.example.corp, and so on
+  # UTS #39 lookalikes: `аcme` with a Cyrillic а, `acrne`, a hostname with one borrowed
+  # letter. On, at `flag`: the mixed-script half needs no list and measured 0 of 234 on
+  # the ordinary-text sweep and 43 of 37052 mundane corpus rows, every one of them a
+  # word really written in two scripts. `flag` rather than `redact` or `block` because
+  # real users slip keyboard layouts mid-word and that rate is unmeasured; a flag costs
+  # a reviewer a look, not the user their message. Lower it to `log` if your own traffic
+  # says so. List the terms banned_terms and internal_domains carry to catch lookalikes
+  # of them too, with a YAML anchor if you want one list for all three.
+  confusables:
+    on_fail: flag
+    options:
+      terms: []             # names and hostnames a lookalike of which is an attack
+      mixed_script: true
+  # The list-free companion to internal_domains, and on, because it needs nothing from
+  # the deployer: private and link-local addresses, home and system paths, metadata
+  # endpoints and hosts under .internal, .local and the like.
+  #
+  # Measured 2026-09-30: 0 of the 234 ordinary sweep rows in 26 languages, 6 of 26,966
+  # moderation corpus rows, 3 of 11,725 politeness rows. Every one of those nine was the
+  # shape it claims to be, none a version number or a date, which is why it is on.
+  #
+  # `flag` rather than `redact`, because what it cannot tell apart is a leak and an
+  # answer doing its job. Two of the nine told a customer to type 192.168.0.1 into a
+  # browser to reach their router, and a coding answer naming 127.0.0.1 is the product
+  # working. Redacting those breaks a correct answer. bfsi.yaml redacts, where neither
+  # is a plausible answer.
+  infra_leakage:
+    on_fail: flag
   output_format:
     enabled: false          # shape, not security, and its shape is yours to state
     on_fail: flag
@@ -180,6 +208,14 @@ detectors:
     on_fail: redact         # remove the executable fragment, keep the answer
     # Left on for a general assistant. Turn it off for a coding assistant, where
     # emitting a <script> tag is the product working rather than failing.
+
+  link_integrity:
+    on_fail: redact         # remove the deceptive link and its text, keep the answer
+    options:
+      # `confusable` reports mixed-script and lookalike hosts and leaves single-script
+      # internationalised ones alone, which is what 26 languages need. `all` reports
+      # every non-ASCII host, for a product that only ever links to ASCII names.
+      idn_hosts: confusable
 
   # T2. May be disabled per policy.
   moderation:

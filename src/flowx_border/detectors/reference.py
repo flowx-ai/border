@@ -130,6 +130,22 @@ SUMMARIES: Final[MappingProxyType[str, str]] = MappingProxyType(
             "Internal hostnames appearing in an answer meant for someone outside, in "
             "both their Unicode and punycode spellings."
         ),
+        "confusables": (
+            "Words that look like a listed term or hostname and are spelled with other "
+            "letters, by the Unicode UTS #39 skeleton, and single words written in two "
+            "scripts where one letter passes for the other."
+        ),
+        "link_integrity": (
+            "Links whose visible text names a different site from the target, or "
+            "whose target hides its host behind userinfo, a confusable spelling or an "
+            "IP address. Single-script internationalised hosts are not findings."
+        ),
+        "infra_leakage": (
+            "Infrastructure detail in an answer with no list to configure: private, "
+            "loopback and link-local addresses, cloud metadata endpoints, home and "
+            "system paths, and hosts under reserved suffixes such as .internal and "
+            ".local. Documentation addresses and version numbers are not reported."
+        ),
         "output_format": (
             "Shape assertions a policy states: JSON, HTML, URL presence, length in "
             "graphemes, word count, case, choices, ranges, a regex, reading time."

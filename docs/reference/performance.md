@@ -16,15 +16,18 @@ means the score is unverified rather than good or bad.
 | `banned_terms` | T1 | built | – | – | – | – | – | – |
 | `bias` | T2 | built | f1 | 0.983 | 0.987 | 0.942 | 2064 | positive examples |
 | `code_present` | T1 | built | – | – | – | – | – | – |
+| `confusables` | T1 | built | – | – | – | – | – | – |
 | `disclosure` | T0 | built | – | – | – | – | – | – |
 | `encoded_payload` | T1 | built | – | – | – | – | – | – |
 | `gibberish` | T1 | built | f1 | 0.992 | 1.000 | 0.946 | 779 | positive examples |
 | `groundedness` | T3 | built | exact_match_accuracy | 0.898 | 0.902 | 0.831 | 3214 | examples evaluated |
+| `infra_leakage` | T1 | built | – | – | – | – | – | – |
 | `injection` | T2 | built | f1 | 0.989 | 1.000 | 0.882 | 1080 | positive examples |
 | `internal_domains` | T1 | built | – | – | – | – | – | – |
 | `invisible_text` | T0 | built | – | – | – | – | – | – |
 | `json_schema` | T1 | built | – | – | – | – | – | – |
 | `language_id` | T1 | built | – | – | – | – | – | – |
+| `link_integrity` | T1 | built | – | – | – | – | – | – |
 | `markup_injection` | T1 | built | – | – | – | – | – | – |
 | `moderation` | T2 | built | f1 | 0.980 | 0.988 | 0.857 | 1623 | positive examples |
 | `nsfw` | T2 | built | f1 | 0.974 | 0.980 | 0.868 | 622 | positive examples |
@@ -67,15 +70,18 @@ At a 396 character reference input, 1 thread, CPUExecutionProvider. Romanian pro
 | `banned_terms` | 0.167 | 5.0 | – |
 | `bias` | 19.097 | 225.0 | – |
 | `code_present` | 0.008 | 5.0 | – |
+| `confusables` | 0.124 | 5.0 | – |
 | `disclosure` | 0.029 | 5.0 | – |
 | `encoded_payload` | 0.194 | 5.0 | – |
 | `gibberish` | 27.287 | 225.0 | – |
 | `groundedness` | 12.851 | 300.0 | – |
+| `infra_leakage` | 0.047 | 5.0 | – |
 | `injection` | 40.669 | 225.0 | – |
 | `internal_domains` | 0.160 | 5.0 | – |
 | `invisible_text` | 0.024 | 5.0 | – |
 | `json_schema` | 0.001 | 5.0 | – |
 | `language_id` | 0.223 | 5.0 | – |
+| `link_integrity` | 0.167 | 5.0 | – |
 | `markup_injection` | 0.170 | 5.0 | – |
 | `moderation` | 41.637 | 150.0 | – |
 | `nsfw` | 42.529 | 225.0 | – |
