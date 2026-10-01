@@ -27,6 +27,7 @@ from flowx_border.detectors.multilingual import (
     find_terms,
     fold,
     fold_text,
+    sentences,
     shingles,
 )
 
@@ -247,3 +248,37 @@ def test_a_text_shorter_than_the_window_is_one_shingle() -> None:
 def test_an_empty_text_has_no_shingles() -> None:
     assert shingles("", 5) == []
     assert shingles("   ", 5) == []
+
+
+# ----------------------------------------------------------------------- sentences
+
+
+def _split(text: str) -> list[str]:
+    return [text[start:end].strip() for start, end in sentences(text)]
+
+
+def test_prose_splits_at_its_full_stops() -> None:
+    assert _split("The card is blocked. A new one is on its way!") == [
+        "The card is blocked.",
+        "A new one is on its way!",
+    ]
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "Contact me at jane.doe@example.com please.",
+        "The terms are at https://bank.example/terms?lang=en today.",
+        "Open statement.pdf and check the total.",
+        "The rate is 3.1 percent.",
+    ],
+)
+def test_a_stop_inside_a_word_does_not_end_the_sentence(text: str) -> None:
+    # An email address split into "jane.", "doe@example." and "com please." handed
+    # the classifier fragments it was never calibrated on, and `injection` read the
+    # middle one as a jailbreak at 0.96.
+    assert _split(text) == [text]
+
+
+def test_a_question_mark_ends_a_sentence_before_a_space() -> None:
+    assert _split("Is it free? Yes.") == ["Is it free?", "Yes."]
