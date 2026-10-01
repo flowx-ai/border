@@ -529,12 +529,12 @@ MODELS: Final[dict[str, ModelSpec]] = {
             "XLM-RoBERTa large, the encoder of the same typed-decision head as "
             "topic_scope_v2, in the same late encoding. Embedding Gather in int8, the "
             "rest fp32, 1,466 MB. On taxonomies from deployment types it never trained "
-            "on it picks the right node or none for 0.859 of 11,497 rows, against 0.804 "
-            "for flowxai/topic-scope-v2 and 0.479 for flowxai/topic-scope on the same "
-            "rows (a second training seed: 0.869). Synthetic, held out by deployment "
-            "type; none offset -0.5, as v2. Maltese weakest at 0.750. On 400 hand-written "
-            "probes 0.752 against v2's 0.708; both answer none to about 35% of short "
-            "in-scope questions."
+            "on it picks the right node or none for 0.859 of 11,497 rows, against "
+            "0.804 for flowxai/topic-scope-v2 and 0.479 for flowxai/topic-scope on the "
+            "same rows (a second training seed: 0.869). Synthetic, held out by "
+            "deployment type; none offset -0.5, as v2. Maltese weakest at 0.750. On "
+            "400 hand-written probes 0.752 against v2's 0.708; both answer none to "
+            "about 35% of short in-scope questions."
         ),
     ),
     "topic_scope_v3_head": ModelSpec(
