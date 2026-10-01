@@ -97,11 +97,20 @@ LANGUAGE_NAMES = {
 }
 
 
+#: A detector whose weights live under a different model id than the detector's name.
+#: topic_scope runs `topic_scope_v2` since 2026-09-30, and without this the collector
+#: kept publishing the bi-encoder it replaced, because that folder still matched the
+#: detector's name. The superseded folder is a fallback, not a candidate: it is read
+#: only when the shipped model's folder is absent.
+SHIPPED_MODEL: dict[str, str] = {"topic_scope": "topic_scope_v2"}
+
+
 def _artifact_dir(root: Path, detector: str) -> Path | None:
     """The artifact folder for a detector, in either naming convention."""
-    for name in (f"{detector}-full", detector, detector.replace("_", "") + "-full"):
-        if (root / name).is_dir():
-            return root / name
+    for model in dict.fromkeys((SHIPPED_MODEL.get(detector, detector), detector)):
+        for name in (f"{model}-full", model, model.replace("_", "") + "-full"):
+            if (root / name).is_dir():
+                return root / name
     return None
 
 
@@ -373,6 +382,27 @@ def caveats_for(
                 f"scores zero in {', '.join(rest)}, which is unexplained and a bug "
                 "to chase."
             )
+    # Which rows were scored, when the evaluation had to exclude the model's own
+    # training rows. Added 2026-09-28: groundedness was published at 0.8015 on a test
+    # split holding 1656 of its training rows, and a corrected number quoted without
+    # this sentence reads as a regression rather than a correction. See
+    # open_issues.md item 11.
+    provenance = (evaluation or {}).get("provenance") or {}
+    if provenance.get("excluded"):
+        untrained = provenance.get("rows_in_untrained_registers")
+        notes.append(
+            f"scored on the {provenance['rows_scored']} of "
+            f"{provenance['rows_checked']} test rows the model never trained on. A "
+            f"re-split had moved {provenance['excluded']} of its training rows into "
+            "the test split, and they are excluded with their pair partners."
+            + (
+                f" {untrained} of those are from registers added to the corpus after "
+                "the model trained, so the figure mostly measures cases it never "
+                "learned."
+                if untrained
+                else ""
+            )
+        )
     if quality.get("threshold") is None:
         notes.append(
             "no calibrated threshold recorded, so this detector runs at the policy "
