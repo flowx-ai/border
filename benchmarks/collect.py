@@ -98,11 +98,12 @@ LANGUAGE_NAMES = {
 
 
 #: A detector whose weights live under a different model id than the detector's name.
-#: topic_scope runs `topic_scope_v2` since 2026-09-30, and without this the collector
-#: kept publishing the bi-encoder it replaced, because that folder still matched the
-#: detector's name. The superseded folder is a fallback, not a candidate: it is read
-#: only when the shipped model's folder is absent.
-SHIPPED_MODEL: dict[str, str] = {"topic_scope": "topic_scope_v2"}
+#: topic_scope runs `topic_scope_v3` since 2026-10-01 (`topic_scope_v2` from
+#: 2026-09-30), and without this the collector kept publishing the bi-encoder it
+#: replaced, because that folder still matched the detector's name. The superseded
+#: folder is a fallback, not a candidate: it is read only when the shipped model's
+#: folder is absent.
+SHIPPED_MODEL: dict[str, str] = {"topic_scope": "topic_scope_v3"}
 
 
 def _artifact_dir(root: Path, detector: str) -> Path | None:

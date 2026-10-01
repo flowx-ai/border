@@ -514,6 +514,44 @@ MODELS: Final[dict[str, ModelSpec]] = {
             "torch: 0 changed answers, largest logit difference 0.164."
         ),
     ),
+    # topic-scope-v3, published 2026-10-01 at none offset -0.5. The sha256 values are
+    # the local export's, and the hub's LFS pointers carry the same ones.
+    "topic_scope_v3": ModelSpec(
+        model_id="flowxai/topic-scope-v3",
+        repo="flowxai/topic-scope-v3",
+        revision="34426a0e0eb1010ba07bcf72329574ef044ec008",
+        filename="onnx/model.int8.onnx",
+        sha256="483552daf200d5662a66cd6b90087c46168f72fcb7d5f2305f9b318aa11c7139",
+        extra_files=("tokenizer.json", "config.json", "decision_config.json"),
+        trained_max_length=128,
+        trained_languages=frozenset(LANGUAGES),
+        notes=(
+            "XLM-RoBERTa large, the encoder of the same typed-decision head as "
+            "topic_scope_v2, in the same late encoding. Embedding Gather in int8, the "
+            "rest fp32, 1,466 MB. On taxonomies from deployment types it never trained "
+            "on it picks the right node or none for 0.859 of 11,497 rows, against "
+            "0.804 for flowxai/topic-scope-v2 and 0.479 for flowxai/topic-scope on the "
+            "same rows (a second training seed: 0.869). Synthetic, held out by "
+            "deployment type; none offset -0.5, as v2. Maltese weakest at 0.750. On "
+            "400 hand-written probes 0.752 against v2's 0.708; both answer none to "
+            "about 35% of short in-scope questions."
+        ),
+    ),
+    "topic_scope_v3_head": ModelSpec(
+        model_id="flowxai/topic-scope-v3",
+        repo="flowxai/topic-scope-v3",
+        revision="34426a0e0eb1010ba07bcf72329574ef044ec008",
+        filename="onnx/head.onnx",
+        sha256="69a14a213934d71ea49cc41871c4bd43403831e573d9e7ccf815186cf33b140e",
+        trained_max_length=128,
+        trained_languages=frozenset(LANGUAGES),
+        notes=(
+            "The decision head of topic_scope_v3, fp32, over 1024-wide states: two "
+            "pre-LN transformer layers and a scorer, plus the similarity term. Export "
+            "verified on 300 test rows against torch: 0 changed answers, largest logit "
+            "difference 0.135."
+        ),
+    ),
     "toxicity": ModelSpec(
         model_id="flowxai/toxicity",
         repo="flowxai/toxicity",

@@ -535,17 +535,17 @@
       "tier": "T3"
     },
     "infra_leakage": {
-      "tier": "T1",
+      "budget_ms": 5.0,
+      "caveats": [],
+      "in_core": true,
+      "metrics": null,
+      "metrics_note": "no evaluation artifact was available at collection time. A rules-based detector has none by nature; a model-backed one missing this is a gap.",
+      "requires": {},
       "sides": [
         "output"
       ],
-      "budget_ms": 5.0,
-      "in_core": true,
-      "requires": {},
       "status": "built",
-      "metrics": null,
-      "caveats": [],
-      "metrics_note": "no evaluation artifact was available at collection time. A rules-based detector has none by nature; a model-backed one missing this is a gap."
+      "tier": "T1"
     },
     "injection": {
       "budget_ms": 225.0,
@@ -1580,126 +1580,126 @@
       "caveats": [],
       "in_core": true,
       "metrics": {
-        "best": 0.854,
+        "best": 0.8992,
         "languages_evaluated": 26,
         "languages_without_a_count": [],
-        "macro": 0.8031,
-        "median": 0.8139,
+        "macro": 0.8592,
+        "median": 0.8615,
         "metric": "top1_accuracy",
         "n_means": "examples evaluated",
         "per_language": {
           "az": {
             "n": 413,
-            "score": 0.753
+            "score": 0.816
           },
           "bg": {
             "n": 445,
-            "score": 0.8045
+            "score": 0.8247
           },
           "cs": {
             "n": 412,
-            "score": 0.801
+            "score": 0.8617
           },
           "da": {
             "n": 551,
-            "score": 0.833
+            "score": 0.8439
           },
           "de": {
             "n": 546,
-            "score": 0.7711
+            "score": 0.8242
           },
           "el": {
             "n": 462,
-            "score": 0.8139
+            "score": 0.8571
           },
           "en": {
             "n": 471,
-            "score": 0.7919
+            "score": 0.828
           },
           "es": {
             "n": 496,
-            "score": 0.8508
+            "score": 0.8992
           },
           "et": {
             "n": 489,
-            "score": 0.8139
+            "score": 0.8507
           },
           "fi": {
             "n": 495,
-            "score": 0.8505
+            "score": 0.8848
           },
           "fr": {
             "n": 493,
-            "score": 0.854
+            "score": 0.8884
           },
           "ga": {
             "n": 427,
-            "score": 0.7096
+            "score": 0.808
           },
           "hr": {
             "n": 430,
-            "score": 0.8419
+            "score": 0.893
           },
           "hu": {
             "n": 383,
-            "score": 0.8303
+            "score": 0.859
           },
           "it": {
             "n": 372,
-            "score": 0.8468
+            "score": 0.8952
           },
           "lt": {
             "n": 403,
-            "score": 0.8164
+            "score": 0.861
           },
           "lv": {
             "n": 389,
-            "score": 0.8046
+            "score": 0.8946
           },
           "mt": {
             "n": 412,
             "notes": [
               "absent from the base model's pretraining corpus, which is worth knowing but has not been shown to bound the score: nsfw went from 0.000 to 1.000 here on more examples"
             ],
-            "score": 0.6238
+            "score": 0.75
           },
           "nl": {
             "n": 406,
-            "score": 0.8177
+            "score": 0.8621
           },
           "pl": {
             "n": 434,
-            "score": 0.7903
+            "score": 0.8756
           },
           "pt": {
             "n": 449,
-            "score": 0.8508
+            "score": 0.8953
           },
           "ro": {
             "n": 454,
-            "score": 0.7974
+            "score": 0.8612
           },
           "sk": {
             "n": 425,
-            "score": 0.7929
+            "score": 0.8965
           },
           "sl": {
             "n": 414,
-            "score": 0.814
+            "score": 0.8816
           },
           "sv": {
             "n": 419,
-            "score": 0.8234
+            "score": 0.8878
           },
           "tr": {
             "n": 407,
-            "score": 0.7838
+            "score": 0.8403
           }
         },
         "threshold": 0.5,
         "threshold_chosen_by": "right_node_share",
         "total_examples": 11497,
-        "worst": 0.6238
+        "worst": 0.75
       },
       "requires": {},
       "sides": [
@@ -1982,7 +1982,7 @@
         "p95": 0.001
       },
       "topic_scope": {
-        "p95": 49.509
+        "p95": 146.453
       },
       "toxicity": {
         "p95": 19.062
