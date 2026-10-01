@@ -388,7 +388,15 @@ def shingles(text: str, size: int) -> list[str]:
 #: Only a lookahead, deliberately. `\.(?!\d)` leaves "see item 3." terminating, which a
 #: lookbehind for a digit would break, and the case to exclude is a stop with digits on
 #: both sides rather than a stop after a number.
-_TERMINATOR: Final = r"(?:\.(?!\d)|[!?\u037e\u0387\u2026])"
+#:
+#: The lookahead is `\w` rather than `\d`, and covers `?` as well, because a sentence
+#: does not end in the middle of a word. `jane.doe@example.com` was three sentences, and
+#: once the classifier began scoring sentences as well as windows, `doe@example.` alone
+#: read to `injection` as a jailbreak at 0.96: an email address anywhere in a message
+#: blocked it. The same holds for a domain, a URL's query string, a file name, and the
+#: inner stops of `z.B.` and `e.g.`. The price is that a missing space, `end.Next`, no
+#: longer splits, which is one sentence counted where a careful reader would see two.
+_TERMINATOR: Final = r"(?:\.(?!\w)|\?(?!\w)|[!\u037e\u0387\u2026])"
 _SENTENCE_END: Final = re.compile(rf"{_TERMINATOR}{_TERMINATOR}*[\s\"'\u201d\u00bb]*")
 
 
